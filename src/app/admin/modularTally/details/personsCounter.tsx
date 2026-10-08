@@ -7,6 +7,8 @@ import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
 import CPersonCharacteristicLegend from "@/components/ui/personCharacteristic/cPersonCharacteristicLegend";
 import type { GetModularTallySubmissionDataResult } from "@/lib/serverFunctions/queries/modularTally";
 import { Paper } from "@mui/material";
+import { IconMoodPlus, IconTrash } from "@tabler/icons-react";
+import { enqueueSnackbar } from "notistack";
 import { useMemo, useState } from "react";
 import { GrGroup } from "react-icons/gr";
 
@@ -42,7 +44,7 @@ const CounterButton = ({
       <CDynamicIcon iconKey={characteristic.personCharacteristic.iconKey} />
       {characteristic.personCharacteristic.name}
     </h6>
-    <div className="flex w-16 flex-col gap-1">
+    <div className="flex w-20 flex-col gap-1">
       <CButton
         disabled={readOnly}
         sx={{
@@ -131,15 +133,24 @@ const PersonsCounter = ({
     (characteristic) =>
       characteristic.personCharacteristic.id === selectedStateCharacteristicId,
   );
-  const selectedBaseCharacteristicIds = useMemo(
+  const selectedBaseCharacteristics = useMemo(
     () => [
-      ...(selectedStateCharacteristicId ? [selectedStateCharacteristicId] : []),
-      ...selectedCommonCharacteristicIds.values(),
-      ...selectedTagCharacteristicIds,
+      ...(selectedStateCharacteristic ? [selectedStateCharacteristic] : []),
+      ...commonGroups.flatMap((group) =>
+        group.characteristics.filter((characteristic) =>
+          group.personCharacteristicGroup.isTagGroup ?
+            selectedTagCharacteristicIds.has(
+              characteristic.personCharacteristic.id,
+            )
+          : selectedCommonCharacteristicIds.get(group.id) ===
+            characteristic.personCharacteristic.id,
+        ),
+      ),
     ],
     [
+      commonGroups,
       selectedCommonCharacteristicIds,
-      selectedStateCharacteristicId,
+      selectedStateCharacteristic,
       selectedTagCharacteristicIds,
     ],
   );
@@ -157,12 +168,45 @@ const PersonsCounter = ({
     );
   };
 
-  const getCounterCharacteristicIds = (
+  const getCounterCharacteristics = (
     counterCharacteristic: TemplateCharacteristic,
-  ) => [
-    ...selectedBaseCharacteristicIds,
-    counterCharacteristic.personCharacteristic.id,
-  ];
+  ) => [...selectedBaseCharacteristics, counterCharacteristic];
+
+  const notifyPersonQuantityChange = (
+    characteristics: TemplateCharacteristic[],
+    delta: 1 | -1,
+  ) => {
+    const personWasAdded = delta === 1;
+
+    enqueueSnackbar({
+      anchorOrigin: { vertical: "top", horizontal: "center" },
+      autoHideDuration: 3000,
+      variant: "node",
+      preventDuplicate: false,
+      backgroundColor: personWasAdded ? "#43a047" : "#d32f2f",
+      node: (
+        <div className="flex items-center gap-2">
+          <span>
+            {personWasAdded ?
+              <IconMoodPlus />
+            : <IconTrash />}
+          </span>
+          <div className="flex flex-wrap gap-1">
+            {characteristics.map((characteristic) => (
+              <span
+                key={characteristic.id}
+                title={characteristic.personCharacteristic.name}
+              >
+                <CDynamicIcon
+                  iconKey={characteristic.personCharacteristic.iconKey}
+                />
+              </span>
+            ))}
+          </div>
+        </div>
+      ),
+    });
+  };
 
   return (
     <div className="py-2">
@@ -313,8 +357,11 @@ const PersonsCounter = ({
               <div className="flex min-h-24 flex-wrap justify-center gap-5 rounded p-1">
                 {sortCharacteristics(counterGroup.characteristics).map(
                   (characteristic) => {
-                    const characteristicIds =
-                      getCounterCharacteristicIds(characteristic);
+                    const characteristics =
+                      getCounterCharacteristics(characteristic);
+                    const characteristicIds = characteristics.map(
+                      ({ personCharacteristic }) => personCharacteristic.id,
+                    );
                     const count =
                       personObservations.get(
                         getPersonObservationKey(characteristicIds),
@@ -326,12 +373,14 @@ const PersonsCounter = ({
                         characteristic={characteristic}
                         count={count}
                         readOnly={readOnly}
-                        onIncrement={() =>
-                          onQuantityChange(characteristicIds, 1)
-                        }
-                        onDecrement={() =>
-                          onQuantityChange(characteristicIds, -1)
-                        }
+                        onIncrement={() => {
+                          onQuantityChange(characteristicIds, 1);
+                          notifyPersonQuantityChange(characteristics, 1);
+                        }}
+                        onDecrement={() => {
+                          onQuantityChange(characteristicIds, -1);
+                          notifyPersonQuantityChange(characteristics, -1);
+                        }}
                       />
                     );
                   },
