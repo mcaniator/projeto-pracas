@@ -1,5 +1,6 @@
 "use client";
 
+import { deleteModularTallyDraft } from "@/app/admin/modularTally/details/modularTallyDraft";
 import { useLoadingOverlay } from "@/components/context/loadingContext";
 import { useNetwork } from "@/components/context/networkContext";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
@@ -14,6 +15,7 @@ import type {
 } from "@/lib/serverFunctions/mutations/modularTally";
 import type { Dayjs } from "dayjs";
 import { useRouter } from "next-nprogress-bar";
+import { enqueueSnackbar } from "notistack";
 import { useEffect, useState } from "react";
 
 const SaveModularTallyDialog = ({
@@ -48,13 +50,23 @@ const SaveModularTallyDialog = ({
   const [submitModularTally] = useModularTallySubmit({
     callbacks: {
       onSuccess: (response) => {
-        if (!response.data) return;
-        onSaveSuccess(response.data);
-        onClose();
+        const data = response.data;
+        if (!data) return;
+        deleteModularTallyDraft(modularTallyId)
+          .catch(() => {
+            enqueueSnackbar(
+              "Contagem salva, mas houve uma falha ao excluir o rascunho!",
+              { variant: "error" },
+            );
+          })
+          .finally(() => {
+            onSaveSuccess(data);
+            onClose();
 
-        if (response.data.savedAsFinalized) {
-          router.push("/admin/modularTally");
-        }
+            if (data.savedAsFinalized) {
+              router.push("/admin/modularTally");
+            }
+          });
       },
     },
   });

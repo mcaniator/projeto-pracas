@@ -488,9 +488,11 @@ const AssessmentClient = ({
         canSaveOffline={canSaveOffline}
         isSQLiteAssessment={isSQLiteAssessment}
         onSaveSuccess={(newUpdatedAt) => {
+          window.clearTimeout(draftSaveTimeoutRef.current);
           savedUpdatedAtRef.current = newUpdatedAt;
           setSavedUpdatedAtState(newUpdatedAt);
           setPendingSave(false);
+          setDraftUpdatedAt(undefined);
           isDirtyRef.current = false;
         }}
         onClose={() => setOpenSaveDialog(false)}

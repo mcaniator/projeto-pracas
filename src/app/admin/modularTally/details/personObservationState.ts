@@ -1,7 +1,9 @@
+import type { ModularTallySubmitData } from "@/lib/serverFunctions/mutations/modularTally";
 import type { GetModularTallySubmissionDataResult } from "@/lib/serverFunctions/queries/modularTally";
 
 type PersonObservation =
-  GetModularTallySubmissionDataResult["personObservations"][number];
+  | GetModularTallySubmissionDataResult["personObservations"][number]
+  | ModularTallySubmitData["personObservations"][number];
 
 export type PersonObservationStateItem = {
   personCharacteristicIds: number[];

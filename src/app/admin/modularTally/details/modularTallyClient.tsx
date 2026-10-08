@@ -1,6 +1,7 @@
 "use client";
 
 import { useUserContext } from "@/components/context/UserContext";
+import { useLoadingOverlay } from "@/components/context/loadingContext";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CButton from "@/components/ui/cButton";
 import CChip from "@/components/ui/cChip";
@@ -20,6 +21,7 @@ import type {
   SerializedFormValues,
 } from "@/lib/types/formSubmission/responseFormTypes";
 import {
+  IconArrowBackUp,
   IconChartBar,
   IconClipboard,
   IconClipboardCheck,
@@ -29,16 +31,25 @@ import {
   IconTrash,
   IconUser,
 } from "@tabler/icons-react";
+import { enqueueSnackbar } from "notistack";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GrGroup } from "react-icons/gr";
 
+import ChooseModularTallySourceDialog from "./chooseModularTallySourceDialog";
 import DeleteModularTallyDialog from "./deleteModularTallyDialog";
+import {
+  type ModularTallyDraft,
+  deleteModularTallyDraft,
+  fetchModularTallyDraft,
+  saveModularTallyDraft,
+} from "./modularTallyDraft";
 import {
   changePersonObservationQuantity,
   createPersonObservationState,
   serializePersonObservationState,
 } from "./personObservationState";
 import PersonsCounter from "./personsCounter";
+import RevertModularTallyDraftDialog from "./revertModularTallyDraftDialog";
 import SaveModularTallyDialog from "./saveModularTallyDialog";
 import TallyPersonsDialog from "./tallyPersonsDialog";
 
@@ -52,6 +63,7 @@ const ModularTallyClient = ({
 }) => {
   const responseFormRef = useRef<ResponseFormV2Handle>(null);
   const { user } = useUserContext();
+  const { setLoadingOverlay } = useLoadingOverlay();
   const { modularTallySubmission } = modularTallyDetails;
   const formSubmission = modularTallySubmission.formSubmission;
   const serializedFormValuesRef = useRef<SerializedFormValues | undefined>(
@@ -76,14 +88,26 @@ const ModularTallyClient = ({
     modularTallyDetails.isFinalized,
   );
   const [pendingSave, setPendingSave] = useState(false);
+  const [draftUpdatedAt, setDraftUpdatedAt] = useState<Date>();
+  const [savedUpdatedAtState, setSavedUpdatedAtState] = useState(
+    modularTallyDetails.updatedAt,
+  );
+  const [pendingDraftModularTallyChoice, setPendingDraftModularTallyChoice] =
+    useState<ModularTallyDraft>();
   const [openSaveDialog, setOpenSaveDialog] = useState(false);
   const [openStatisticsDialog, setOpenStatisticsDialog] = useState(false);
   const [openDeleteModularTallyDialog, setOpenDeleteModularTallyDialog] =
     useState(false);
+  const [
+    openRevertModularTallyDraftDialog,
+    setOpenRevertModularTallyDraftDialog,
+  ] = useState(false);
   const [personObservations, setPersonObservations] = useState(() =>
     createPersonObservationState(modularTallySubmission.personObservations),
   );
   const isDirtyRef = useRef(false);
+  const savedUpdatedAtRef = useRef(modularTallyDetails.updatedAt);
+  const draftSaveTimeoutRef = useRef<number | undefined>(undefined);
   const initialPersonObservationsRef = useRef(personObservations);
   const serializedPersonObservations = useMemo(
     () => serializePersonObservationState(personObservations),
@@ -94,8 +118,34 @@ const ModularTallyClient = ({
     if (!isDirtyRef.current) return;
 
     setPendingSave(true);
-    // TODO: Implementar o salvamento local do draft da contagem.
-  }, []);
+    window.clearTimeout(draftSaveTimeoutRef.current);
+    draftSaveTimeoutRef.current = window.setTimeout(() => {
+      const modularTallyDraft: ModularTallyDraft = {
+        id: modularTallyDetails.id,
+        userId: user.id,
+        username: user.username,
+        savedUpdatedAt: savedUpdatedAtRef.current,
+        draftUpdatedAt: new Date(),
+        isFinalized,
+        startDate: startDate.toDate(),
+        endDate: endDate?.toDate() ?? null,
+        responseFormValues: serializedFormValuesRef.current,
+        geometries: geometriesRef.current,
+        personObservations: serializedPersonObservations,
+      };
+
+      void saveModularTallyDraft(modularTallyDraft);
+      setDraftUpdatedAt(modularTallyDraft.draftUpdatedAt);
+    }, 500);
+  }, [
+    endDate,
+    isFinalized,
+    modularTallyDetails.id,
+    serializedPersonObservations,
+    startDate,
+    user.id,
+    user.username,
+  ]);
   const handleValuesChange = useCallback(
     ({ serializedValues, source }: ResponseFormValuesChange) => {
       serializedFormValuesRef.current = serializedValues;
@@ -117,6 +167,90 @@ const ModularTallyClient = ({
     [scheduleDraftSave],
   );
 
+  const applyDraftModularTallyValues = useCallback(
+    (modularTallyDraft: ModularTallyDraft) => {
+      window.clearTimeout(draftSaveTimeoutRef.current);
+      if (
+        formSubmission &&
+        modularTallyDraft.responseFormValues &&
+        modularTallyDraft.geometries
+      ) {
+        responseFormRef.current?.reset({
+          responsesFormValues: modularTallyDraft.responseFormValues,
+          geometries: modularTallyDraft.geometries,
+        });
+      }
+      serializedFormValuesRef.current = modularTallyDraft.responseFormValues;
+      geometriesRef.current = modularTallyDraft.geometries;
+      const draftPersonObservations = createPersonObservationState(
+        modularTallyDraft.personObservations,
+      );
+      initialPersonObservationsRef.current = draftPersonObservations;
+      setPersonObservations(draftPersonObservations);
+      setIsFinalized(modularTallyDraft.isFinalized);
+      setIsFilling(true);
+      setStartDate(dayjs(modularTallyDraft.startDate));
+      setEndDate(
+        modularTallyDraft.endDate ? dayjs(modularTallyDraft.endDate) : null,
+      );
+      setDraftUpdatedAt(modularTallyDraft.draftUpdatedAt);
+      isDirtyRef.current = false;
+      setPendingDraftModularTallyChoice(undefined);
+      setPendingSave(true);
+    },
+    [formSubmission],
+  );
+
+  const applySavedModularTallyValues = useCallback(() => {
+    const applySavedValuesAndDeleteDraft = async () => {
+      window.clearTimeout(draftSaveTimeoutRef.current);
+      setLoadingOverlay({ show: true, message: "Carregando..." });
+      if (formSubmission) {
+        responseFormRef.current?.reset({
+          responsesFormValues: formSubmission.responsesFormValues,
+          geometries: formSubmission.geometries,
+        });
+      }
+      serializedFormValuesRef.current = formSubmission?.responsesFormValues;
+      geometriesRef.current = formSubmission?.geometries;
+      const savedPersonObservations = createPersonObservationState(
+        modularTallySubmission.personObservations,
+      );
+      initialPersonObservationsRef.current = savedPersonObservations;
+      setPersonObservations(savedPersonObservations);
+      setIsFinalized(modularTallyDetails.isFinalized);
+      setIsFilling(!modularTallyDetails.isFinalized);
+      setStartDate(dayjs(modularTallyDetails.startDate));
+      setEndDate(
+        modularTallyDetails.endDate ? dayjs(modularTallyDetails.endDate) : null,
+      );
+      isDirtyRef.current = false;
+      setPendingDraftModularTallyChoice(undefined);
+
+      try {
+        await deleteModularTallyDraft(modularTallyDetails.id);
+        setPendingSave(false);
+        setDraftUpdatedAt(undefined);
+      } catch {
+        enqueueSnackbar("Erro ao remover dados locais!", {
+          variant: "error",
+        });
+      } finally {
+        if (modularTallyDetails.isFinalized) {
+          setIsFilling(false);
+        }
+        setLoadingOverlay({ show: false });
+      }
+    };
+
+    void applySavedValuesAndDeleteDraft();
+  }, [
+    formSubmission,
+    modularTallyDetails,
+    modularTallySubmission.personObservations,
+    setLoadingOverlay,
+  ]);
+
   useEffect(() => {
     if (initialPersonObservationsRef.current === personObservations) return; // avoid schedule save on initial render
 
@@ -124,6 +258,53 @@ const ModularTallyClient = ({
     isDirtyRef.current = true;
     scheduleDraftSave();
   }, [personObservations, scheduleDraftSave]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    const loadModularTallyDraft = async () => {
+      try {
+        setLoadingOverlay({
+          show: true,
+          message: "Carregando dados locais...",
+        });
+        const modularTallyDraft = await fetchModularTallyDraft(
+          modularTallyDetails.id,
+        );
+
+        if (ignore || !modularTallyDraft) return;
+
+        setDraftUpdatedAt(modularTallyDraft.draftUpdatedAt);
+        if (
+          modularTallyDetails.updatedAt.getTime() <=
+          modularTallyDraft.savedUpdatedAt.getTime()
+        ) {
+          applyDraftModularTallyValues(modularTallyDraft);
+          return;
+        }
+
+        setPendingDraftModularTallyChoice(modularTallyDraft);
+      } catch {
+        enqueueSnackbar("Erro ao carregar dados locais!", {
+          variant: "error",
+        });
+      } finally {
+        setLoadingOverlay({ show: false });
+      }
+    };
+
+    void loadModularTallyDraft();
+    return () => {
+      ignore = true;
+    };
+  }, [
+    applyDraftModularTallyValues,
+    modularTallyDetails.id,
+    modularTallyDetails.updatedAt,
+    setLoadingOverlay,
+  ]);
+
+  useEffect(() => () => window.clearTimeout(draftSaveTimeoutRef.current), []);
 
   const header = (
     <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
@@ -164,7 +345,7 @@ const ModularTallyClient = ({
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex min-w-fit flex-1 flex-wrap items-center gap-2">
         {isFilling && (
           <CDateTimePicker
             label="Início"
@@ -177,28 +358,41 @@ const ModularTallyClient = ({
             }}
           />
         )}
-        {!isFilling && userCanEdit && (
-          <>
-            <CHelpChip tooltip="Você possui permissão para editar esta contagem finalizada." />
+        <div className="ml-auto flex items-center gap-2">
+          {!isFilling && userCanEdit && (
+            <>
+              <CHelpChip tooltip="Você possui permissão para editar esta contagem finalizada." />
+              <CButton
+                square
+                tooltip="Editar contagem"
+                onClick={() => setIsFilling(true)}
+              >
+                <IconPencil />
+              </CButton>
+            </>
+          )}
+          <CButton
+            topLeftChipLabel="!"
+            enableTopLeftChip={pendingSave}
+            tooltip="Reverter alterações locais"
+            square
+            color={isFilling ? "warning" : undefined}
+            disabled={!pendingSave}
+            onClick={() => setOpenRevertModularTallyDraftDialog(true)}
+          >
+            <IconArrowBackUp />
+          </CButton>
+          {isFilling && (
             <CButton
               square
-              tooltip="Editar contagem"
-              onClick={() => setIsFilling(true)}
+              tooltip="Excluir contagem"
+              color="error"
+              onClick={() => setOpenDeleteModularTallyDialog(true)}
             >
-              <IconPencil />
+              <IconTrash />
             </CButton>
-          </>
-        )}
-        {isFilling && (
-          <CButton
-            square
-            tooltip="Excluir contagem"
-            color="error"
-            onClick={() => setOpenDeleteModularTallyDialog(true)}
-          >
-            <IconTrash />
-          </CButton>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
@@ -289,8 +483,12 @@ const ModularTallyClient = ({
         endDate={endDate}
         isFinalized={isFinalized}
         onClose={() => setOpenSaveDialog(false)}
-        onSaveSuccess={() => {
+        onSaveSuccess={(data) => {
+          window.clearTimeout(draftSaveTimeoutRef.current);
+          savedUpdatedAtRef.current = data.updatedAt;
+          setSavedUpdatedAtState(data.updatedAt);
           setPendingSave(false);
+          setDraftUpdatedAt(undefined);
           isDirtyRef.current = false;
         }}
         onEndDateChange={(value) => {
@@ -311,6 +509,18 @@ const ModularTallyClient = ({
         onClose={() => setOpenDeleteModularTallyDialog(false)}
       />
 
+      <RevertModularTallyDraftDialog
+        open={openRevertModularTallyDraftDialog}
+        draftUpdatedAt={draftUpdatedAt}
+        savedUpdatedAt={savedUpdatedAtState}
+        onClose={() => setOpenRevertModularTallyDraftDialog(false)}
+        onConfirm={() => {
+          setOpenRevertModularTallyDraftDialog(false);
+          applySavedModularTallyValues();
+          enqueueSnackbar("Revertido com sucesso!", { variant: "success" });
+        }}
+      />
+
       <TallyPersonsDialog
         open={openStatisticsDialog}
         modularTallyTemplateStructure={
@@ -319,6 +529,23 @@ const ModularTallyClient = ({
         personObservations={serializedPersonObservations}
         onClose={() => setOpenStatisticsDialog(false)}
       />
+
+      {!!pendingDraftModularTallyChoice && (
+        <ChooseModularTallySourceDialog
+          savedSource={{
+            updatedAt: modularTallyDetails.updatedAt,
+            username: modularTallyDetails.user.username,
+          }}
+          draftSource={{
+            updatedAt: pendingDraftModularTallyChoice.draftUpdatedAt,
+            username: pendingDraftModularTallyChoice.username,
+          }}
+          applySavedModularTallyValues={applySavedModularTallyValues}
+          applyDraftModularTallyValues={() =>
+            applyDraftModularTallyValues(pendingDraftModularTallyChoice)
+          }
+        />
+      )}
     </div>
   );
 };
