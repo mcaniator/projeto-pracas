@@ -250,8 +250,9 @@ const LocationRegisterDialog = ({
       }
     });
 
-    if (locationId) {
-      formData.append("locationId", locationId.toString());
+    const currentLocationId = locationId ?? parkData.locationId;
+    if (currentLocationId !== null) {
+      formData.append("locationId", currentLocationId.toString());
     }
 
     if (featuresGeoJson) {
