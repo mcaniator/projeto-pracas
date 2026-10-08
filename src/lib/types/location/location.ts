@@ -8,6 +8,7 @@ export type LocationForMap = {
   thirdStreet: string | null;
   fourthStreet: string | null;
   formSubmissionId: number | null;
+  formId: number | null;
   mainImage: string | null;
   popularName: string | null;
   typeId: number;

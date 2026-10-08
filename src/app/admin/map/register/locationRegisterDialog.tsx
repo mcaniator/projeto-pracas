@@ -1,6 +1,7 @@
 "use client";
 
 import OptionalInfoStep from "@/app/admin/map/register/registerSteps/optionalnfoStep";
+import FormManager from "@/components/form/formManager/formManager";
 import { useFetchCities } from "@/lib/serverFunctions/apiCalls/city";
 import {
   useCreateLocation,
@@ -19,12 +20,7 @@ import {
   IconArrowForwardUp,
   IconCheck,
 } from "@tabler/icons-react";
-import {
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useState,
-} from "react";
+import { useCallback, useEffect, useImperativeHandle, useState } from "react";
 
 import CDialog from "../../../../components/ui/dialog/cDialog";
 import { ParkRegisterData } from "../../../../lib/types/parks/parkRegister";
@@ -61,9 +57,10 @@ const defaultParkData: ParkRegisterData = {
   broadAdministrativeUnitId: null,
   mainImage: null,
   isPublic: false,
+  formId: null,
 };
 
-const steps = ["", "", ""];
+const steps = ["", "", "", ""];
 
 const LocationRegisterDialog = ({
   ref,
@@ -184,6 +181,7 @@ const LocationRegisterDialog = ({
           broadAdministrativeUnitId: location.broadAdministrativeUnitId,
           mainImage: null,
           isPublic: location.isPublic,
+          formId: location.formId,
         } as ParkRegisterData;
         if (location.mainImage) {
           try {
@@ -216,6 +214,12 @@ const LocationRegisterDialog = ({
 
   const [step, setStep] = useState(1);
   const [enableNextStep, setEnableNextStep] = useState(false);
+
+  useEffect(() => {
+    if (step === 3) {
+      setEnableNextStep(true);
+    }
+  }, [step]);
 
   const mutationCallbacks = {
     onSuccess() {
@@ -252,6 +256,10 @@ const LocationRegisterDialog = ({
 
     if (featuresGeoJson) {
       formData.append("featuresGeoJson", featuresGeoJson); // Inclui o GeoJSON no formulário
+    }
+
+    if (parkData.formId !== null) {
+      formData.append("formId", parkData.formId.toString());
     }
 
     if (hasEditedImage) {
@@ -434,6 +442,20 @@ const LocationRegisterDialog = ({
           />
         )}
         {step === 3 && (
+          <FormManager
+            formUse="LOCATION"
+            title="Formulário (opcional)"
+            formEditorRoute="/admin/protocols/forms/edit"
+            value={parkData.formId}
+            onValueChange={(form) => {
+              setParkData((previous) => ({
+                ...previous,
+                formId: form?.id ?? null,
+              }));
+            }}
+          />
+        )}
+        {step === 4 && (
           <OptionalInfoStep
             parkData={parkData}
             setEnableNextStep={setEnableNextStep}

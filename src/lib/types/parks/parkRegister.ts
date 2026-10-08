@@ -26,6 +26,7 @@ type ParkRegisterData = {
   broadAdministrativeUnitId: number | null;
   mainImage: File | null;
   isPublic: boolean;
+  formId: number | null;
 };
 
 export { type ParkRegisterData };

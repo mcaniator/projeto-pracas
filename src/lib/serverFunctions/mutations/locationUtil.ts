@@ -92,11 +92,14 @@ const _deleteLocation = async (
 export const updateLocationDataSchema = z.instanceof(FormData);
 export type UpdateLocationData = z.infer<typeof updateLocationDataSchema>;
 
-const _updateLocation = async (
-  request: APIRequestData<UpdateLocationData>,
-) => {
+const _updateLocation = async (request: APIRequestData<UpdateLocationData>) => {
   const formData = request.data!;
   try {
+    const formIdValue = formData.get("formId");
+    const formId =
+      formIdValue === null ? null : (
+        z.coerce.number().int().positive().parse(formIdValue)
+      );
     const locationData = locationSchema.parse({
       name: formData.get("name"),
       popularName: formData.get("popularName"),
@@ -169,6 +172,24 @@ const _updateLocation = async (
             name: true,
           },
         });
+        await prisma.location.update({
+          where: { id: location.id },
+          data:
+            formId === null ?
+              { formSubmission: { disconnect: true } }
+            : {
+                formSubmission: {
+                  upsert: {
+                    create: {
+                      form: { connect: { id: formId } },
+                    },
+                    update: {
+                      form: { connect: { id: formId } },
+                    },
+                  },
+                },
+              },
+        });
         const featuresGeoJson = z
           .string()
           .nullish()
@@ -209,11 +230,14 @@ const _updateLocation = async (
 export const createLocationDataSchema = z.instanceof(FormData);
 export type CreateLocationData = z.infer<typeof createLocationDataSchema>;
 
-const _createLocation = async (
-  request: APIRequestData<CreateLocationData>,
-) => {
+const _createLocation = async (request: APIRequestData<CreateLocationData>) => {
   const formData = request.data!;
   try {
+    const formIdValue = formData.get("formId");
+    const formId =
+      formIdValue === null ? null : (
+        z.coerce.number().int().positive().parse(formIdValue)
+      );
     const locationData = locationSchema.parse({
       name: z.coerce
         .string()
@@ -265,6 +289,18 @@ const _createLocation = async (
             name: true,
           },
         });
+        if (formId !== null) {
+          await prisma.location.update({
+            where: { id: location.id },
+            data: {
+              formSubmission: {
+                create: {
+                  form: { connect: { id: formId } },
+                },
+              },
+            },
+          });
+        }
         // Após a criação da localização, adicionar os polígonos
         const featuresGeoJson = z
           .string()

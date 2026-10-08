@@ -37,6 +37,7 @@ export const fetchLocations = async (
     l.third_street as "thirdStreet",
     l.fourth_street as "fourthStreet",
     l.form_submission_id as "formSubmissionId",
+    MAX(fs.form_id) as "formId",
     l.is_park as "isPark",
     l.inactive_not_found as "inactiveNotFound",
     l.narrow_administrative_unit_id as "narrowAdministrativeUnitId",
@@ -71,6 +72,7 @@ export const fetchLocations = async (
   LEFT JOIN location_category lc ON lc.id = l.category_id
   LEFT JOIN location_type lt ON lt.id = l.type_id
   LEFT JOIN image i ON i.image_id = l.main_image_id
+  LEFT JOIN form_submission fs ON fs.id = l.form_submission_id
   LEFT JOIN city c ON c.id = l.city_id
   LEFT JOIN (
     SELECT DISTINCT ON (a2.location_id)
