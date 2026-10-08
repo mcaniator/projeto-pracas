@@ -37,7 +37,7 @@ export const fetchLocations = async (
     l.third_street as "thirdStreet",
     l.fourth_street as "fourthStreet",
     l.form_submission_id as "formSubmissionId",
-    MAX(fs.form_id) as "formId",
+    fs.form_id as "formId",
     l.is_park as "isPark",
     l.inactive_not_found as "inactiveNotFound",
     l.narrow_administrative_unit_id as "narrowAdministrativeUnitId",
@@ -88,7 +88,7 @@ export const fetchLocations = async (
   ${params.locationId != null ? Prisma.sql`AND l.id = ${params.locationId}` : Prisma.empty}
   ${params.cityId != null ? Prisma.sql`AND l.city_id = ${params.cityId}` : Prisma.empty}
   GROUP BY 
-    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30
+    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
 `;
     const formatedLocations = locations.map((location) => ({
       ...location,
