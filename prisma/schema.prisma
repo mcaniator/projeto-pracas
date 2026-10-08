@@ -794,7 +794,7 @@ model PersonObservation {
   id Int @id @default(autoincrement())
 
   modularTallyId Int          @map("modular_tally_id")
-  modularTally   ModularTally @relation(fields: [modularTallyId], references: [id])
+  modularTally   ModularTally @relation(fields: [modularTallyId], references: [id], onDelete: Cascade)
   quantity       Int
 
   characteristics PersonObservationCharacteristic[]
@@ -805,7 +805,7 @@ model PersonObservation {
 
 model PersonObservationCharacteristic {
   personObservationId    Int                  @map("person_observation_id")
-  personObservation      PersonObservation    @relation(fields: [personObservationId], references: [id])
+  personObservation      PersonObservation    @relation(fields: [personObservationId], references: [id], onDelete: Cascade)
   personCharacteristicId Int                  @map("person_characteristic_id")
   personCharacteristic   PersonCharacteristic @relation(fields: [personCharacteristicId], references: [id])
 

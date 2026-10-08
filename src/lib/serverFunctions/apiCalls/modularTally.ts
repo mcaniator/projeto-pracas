@@ -2,10 +2,15 @@ import type {
   CreateModularTallyData,
   CreateModularTallyResponse,
   CreateModularTallyTemplateData,
+  DeleteModularTallyData,
+  ModularTallySubmitData,
+  ModularTallySubmitResponse,
   UpdateModularTallyTemplateArchiveStatusData,
   UpdateTallyTemplateData,
 } from "@/lib/serverFunctions/mutations/modularTally";
 import type {
+  FetchModularTallyDetailsParams,
+  FetchModularTallyDetailsResponse,
   FetchModularTallyTemplateStructureParams,
   FetchModularTallyTemplateStructureResponse,
   FetchModularTallyTemplatesParams,
@@ -40,6 +45,19 @@ export const useFetchModularTallys = (
   });
 };
 
+export const useFetchModularTallyDetails = (
+  params?: UseFetchAPIParams<FetchModularTallyDetailsResponse>,
+) => {
+  return useFetchAPI<
+    FetchModularTallyDetailsResponse,
+    FetchModularTallyDetailsParams
+  >({
+    url: "/api/admin/modularTallys/details",
+    callbacks: params?.callbacks,
+    options: { method: "GET" },
+  });
+};
+
 export const useFetchModularTallyUsers = (
   params?: UseFetchAPIParams<FetchModularTallyUsersResponse>,
 ) => {
@@ -59,6 +77,28 @@ export const useCreateModularTally = (
     CreateModularTallyData
   >({
     url: "/api/admin/modularTallys/create",
+    callbacks: params?.callbacks,
+    options: { method: "POST" },
+  });
+};
+
+export const useDeleteModularTally = (params?: UseFetchAPIParams<null>) => {
+  return useFetchAPI<null, Record<string, never>, DeleteModularTallyData>({
+    url: "/api/admin/modularTallys/delete",
+    callbacks: params?.callbacks,
+    options: { method: "POST" },
+  });
+};
+
+export const useModularTallySubmit = (
+  params?: UseFetchAPIParams<ModularTallySubmitResponse>,
+) => {
+  return useFetchAPI<
+    ModularTallySubmitResponse,
+    Record<string, never>,
+    ModularTallySubmitData
+  >({
+    url: "/api/admin/modularTallys/responses",
     callbacks: params?.callbacks,
     options: { method: "POST" },
   });

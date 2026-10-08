@@ -1,11 +1,18 @@
 import { auth } from "@/lib/auth/auth";
+import { getSessionUser } from "@/lib/auth/userUtil";
 import { prisma } from "@/lib/prisma";
 import {
   APIRequestData,
   APIResponseInfo,
 } from "@/lib/types/backendCalls/APIResponse";
 import { Prisma } from "@prisma/client";
+import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { z } from "zod";
+
+import {
+  formSubmissionDataSchema,
+  getFormSubmissionUpdateTransactions,
+} from "./formSubmission";
 
 export const createModularTallyDataSchema = z.object({
   locationId: z.number().int().positive(),
@@ -44,7 +51,10 @@ export const createModularTally = async (
         finalized: true,
         archived: false,
       },
-      select: { id: true },
+      select: {
+        id: true,
+        formId: true,
+      },
     });
 
     if (!modularTallyTemplate) {
@@ -59,10 +69,16 @@ export const createModularTally = async (
 
     const modularTally = await prisma.modularTally.create({
       data: {
-        locationId: data.locationId,
         startDate: data.startDate,
-        userId: session.user.id,
-        modularTallyTemplateId: modularTallyTemplate.id,
+        location: { connect: { id: data.locationId } },
+        user: { connect: { id: session.user.id } },
+        modularTallyTemplate: {
+          connect: { id: modularTallyTemplate.id },
+        },
+        formSubmission:
+          modularTallyTemplate.formId ?
+            { create: { formId: modularTallyTemplate.formId } }
+          : undefined,
       },
       select: { id: true },
     });
@@ -79,6 +95,436 @@ export const createModularTally = async (
       responseInfo: {
         statusCode: 500,
         message: "Erro ao criar contagem!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+};
+
+export const deleteModularTallyDataSchema = z.object({
+  modularTallyId: z.coerce.number().int().positive(),
+});
+
+export type DeleteModularTallyData = z.infer<
+  typeof deleteModularTallyDataSchema
+>;
+
+export const deleteModularTally = async (
+  request: APIRequestData<DeleteModularTallyData>,
+) => {
+  const { modularTallyId } = request.data!;
+
+  try {
+    const modularTally = await prisma.modularTally.findUnique({
+      where: { id: modularTallyId },
+      select: {
+        userId: true,
+        formSubmissionId: true,
+      },
+    });
+
+    if (!modularTally) {
+      return {
+        responseInfo: {
+          statusCode: 404,
+          message: "Contagem não encontrada!",
+        } as APIResponseInfo,
+        data: null,
+      };
+    }
+
+    const user = await getSessionUser();
+    if (modularTally.userId !== user?.id) {
+      try {
+        await checkIfLoggedInUserHasAnyPermission({
+          roles: ["TALLY_MANAGER"],
+        });
+      } catch {
+        return {
+          responseInfo: {
+            statusCode: 401,
+            message: "Sem permissão para excluir contagem!",
+          } as APIResponseInfo,
+          data: null,
+        };
+      }
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.modularTally.delete({
+        where: { id: modularTallyId },
+      });
+
+      if (modularTally.formSubmissionId) {
+        await tx.formSubmission.delete({
+          where: { id: modularTally.formSubmissionId },
+        });
+      }
+    });
+
+    return {
+      responseInfo: {
+        statusCode: 200,
+        message: "Contagem excluída!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  } catch {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao excluir contagem!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+};
+
+const personObservationCharacteristicDataSchema = z.object({
+  personCharacteristicId: z.number().int().positive(),
+});
+
+const personObservationDataSchema = z
+  .object({
+    quantity: z.number().int().positive(),
+    characteristics: z.array(personObservationCharacteristicDataSchema).min(1),
+  })
+  .superRefine((observation, context) => {
+    const characteristicIds = observation.characteristics.map(
+      ({ personCharacteristicId }) => personCharacteristicId,
+    );
+
+    if (new Set(characteristicIds).size !== characteristicIds.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["characteristics"],
+        message: "A observação possui características duplicadas.",
+      });
+    }
+  });
+
+export type SavePersonObservationsParams = {
+  tx: Prisma.TransactionClient;
+  modularTallyId: number;
+  personObservations: z.infer<typeof personObservationDataSchema>[];
+};
+
+export const savePersonObservations = async ({
+  tx,
+  modularTallyId,
+  personObservations,
+}: SavePersonObservationsParams) => {
+  await tx.$executeRaw(
+    Prisma.sql`DELETE FROM "person_observation" WHERE "modular_tally_id" = ${modularTallyId}`,
+  );
+
+  if (personObservations.length === 0) return;
+
+  // Reserve the IDs first so both inserts can be built in memory without
+  // depending on the row order returned by INSERT ... RETURNING.
+  const generatedObservationIds = await tx.$queryRaw<
+    { index: number; id: number }[]
+  >(Prisma.sql`
+    SELECT
+      "generated"."index"::integer AS "index",
+      nextval(pg_get_serial_sequence('person_observation', 'id'))::integer AS "id"
+    FROM generate_series(1, ${personObservations.length}) AS "generated" ("index")
+    ORDER BY "generated"."index"
+  `);
+
+  const observationIdsByIndex = new Map<number, number>();
+  generatedObservationIds.forEach(({ index, id }) => {
+    observationIdsByIndex.set(index - 1, id);
+  });
+
+  const observationValues: Prisma.Sql[] = [];
+  const characteristicValues: Prisma.Sql[] = [];
+
+  personObservations.forEach((observation, index) => {
+    const observationId = observationIdsByIndex.get(index);
+    if (!observationId) {
+      throw new Error("Erro ao gerar identificador da observação");
+    }
+
+    observationValues.push(
+      Prisma.sql`(${observationId}, ${modularTallyId}, ${observation.quantity})`,
+    );
+
+    observation.characteristics.forEach(({ personCharacteristicId }) => {
+      characteristicValues.push(
+        Prisma.sql`(${observationId}, ${personCharacteristicId})`,
+      );
+    });
+  });
+
+  await tx.$executeRaw(Prisma.sql`
+    INSERT INTO "person_observation" (
+      "id",
+      "modular_tally_id",
+      "quantity"
+    )
+    VALUES ${Prisma.join(observationValues, ",")}
+  `);
+
+  await tx.$executeRaw(Prisma.sql`
+    INSERT INTO "person_observation_characteristic" (
+      "person_observation_id",
+      "person_characteristic_id"
+    )
+    VALUES ${Prisma.join(characteristicValues, ",")}
+  `);
+};
+
+export const modularTallySubmitDataSchema = z
+  .object({
+    modularTallyId: z.coerce.number().int().positive(),
+    formSubmission: formSubmissionDataSchema.optional(),
+    personObservations: z.array(personObservationDataSchema),
+    startDate: z.coerce.date(),
+    endDate: z.coerce.date().nullable(),
+    isFinalized: z.boolean(),
+  })
+  .superRefine((data, context) => {
+    const observationKeys = data.personObservations.map((observation) =>
+      observation.characteristics
+        .map(({ personCharacteristicId }) => personCharacteristicId)
+        .sort((a, b) => a - b)
+        .join(":"),
+    );
+
+    if (new Set(observationKeys).size !== observationKeys.length) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["personObservations"],
+        message: "Existem observações com o mesmo conjunto de características.",
+      });
+    }
+  });
+
+export type ModularTallySubmitData = z.infer<
+  typeof modularTallySubmitDataSchema
+>;
+
+export type ModularTallySubmitResponse = NonNullable<
+  Awaited<ReturnType<typeof modularTallySubmit>>["data"]
+>;
+
+export const modularTallySubmit = async (
+  request: APIRequestData<ModularTallySubmitData>,
+) => {
+  const data = request.data;
+
+  if (!data) {
+    return {
+      responseInfo: {
+        statusCode: 400,
+        message: "Dados inválidos!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+
+  const {
+    modularTallyId,
+    formSubmission,
+    personObservations,
+    startDate,
+    endDate,
+    isFinalized,
+  } = data;
+
+  try {
+    const user = await getSessionUser();
+    if (!user) {
+      return {
+        responseInfo: {
+          statusCode: 401,
+          message: "Erro na autenticação!",
+        } as APIResponseInfo,
+        data: null,
+      };
+    }
+
+    const modularTally = await prisma.modularTally.findUnique({
+      where: { id: modularTallyId },
+      select: {
+        userId: true,
+        formSubmissionId: true,
+        modularTallyTemplate: {
+          select: {
+            tallyTemplateGroups: {
+              select: {
+                displayMode: true,
+                personCharacteristicGroup: {
+                  select: { isTagGroup: true },
+                },
+                characteristics: {
+                  select: { personCharacteristicId: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!modularTally) {
+      return {
+        responseInfo: {
+          statusCode: 404,
+          message: "Contagem não encontrada!",
+        } as APIResponseInfo,
+        data: null,
+      };
+    }
+
+    if (user.id !== modularTally.userId) {
+      try {
+        await checkIfLoggedInUserHasAnyPermission({
+          roles: ["TALLY_MANAGER"],
+        });
+      } catch {
+        return {
+          responseInfo: {
+            statusCode: 401,
+            message: "Sem permissão para editar esta contagem!",
+          } as APIResponseInfo,
+          data: null,
+        };
+      }
+    }
+
+    if (isFinalized && !endDate) {
+      return {
+        responseInfo: {
+          statusCode: 400,
+          message: "Informe a data final para finalizar a contagem!",
+        } as APIResponseInfo,
+        data: null,
+      };
+    }
+
+    if (Boolean(modularTally.formSubmissionId) !== Boolean(formSubmission)) {
+      // If the tally has a form submission, the form submission must be submitted from the client.
+      return {
+        responseInfo: {
+          statusCode: 400,
+          message: "Os dados do formulário não correspondem à contagem!",
+        } as APIResponseInfo,
+        data: null,
+      };
+    }
+
+    const templateGroups =
+      modularTally.modularTallyTemplate.tallyTemplateGroups;
+    const allowedCharacteristicIds = new Set(
+      templateGroups.flatMap((group) =>
+        group.characteristics.map(
+          (characteristic) => characteristic.personCharacteristicId,
+        ),
+      ),
+    );
+    const hasInvalidCharacteristic = personObservations.some((observation) =>
+      observation.characteristics.some(
+        ({ personCharacteristicId }) =>
+          !allowedCharacteristicIds.has(personCharacteristicId),
+      ),
+    );
+
+    if (hasInvalidCharacteristic) {
+      return {
+        responseInfo: {
+          statusCode: 400,
+          message: "Uma ou mais características não pertencem ao protocolo!",
+        } as APIResponseInfo,
+        data: null,
+      };
+    }
+
+    const groupsWithExactlyOneCharacteristic = templateGroups.filter(
+      (group) =>
+        group.displayMode === "COUNTERS" ||
+        group.displayMode === "SCREEN_CONTEXT_SELECTOR" ||
+        (group.displayMode === "COMMON" &&
+          !group.personCharacteristicGroup.isTagGroup),
+    );
+    const hasInvalidGroupSelection = personObservations.some((observation) => {
+      const observationCharacteristicIds = new Set(
+        observation.characteristics.map(
+          ({ personCharacteristicId }) => personCharacteristicId,
+        ),
+      );
+
+      return groupsWithExactlyOneCharacteristic.some((group) => {
+        const selectedFromGroup = group.characteristics.filter(
+          ({ personCharacteristicId }) =>
+            observationCharacteristicIds.has(personCharacteristicId),
+        ).length;
+        return selectedFromGroup !== 1;
+      });
+    });
+
+    if (hasInvalidGroupSelection) {
+      return {
+        responseInfo: {
+          statusCode: 400,
+          message: "A combinação de características da observação é inválida!",
+        } as APIResponseInfo,
+        data: null,
+      };
+    }
+
+    const updatedModularTally = await prisma.$transaction(async (tx) => {
+      const updatedTally = await tx.modularTally.update({
+        where: { id: modularTallyId },
+        select: {
+          updatedAt: true,
+          isFinalized: true,
+        },
+        data: {
+          startDate,
+          endDate,
+          isFinalized,
+        },
+      });
+
+      await savePersonObservations({
+        tx,
+        modularTallyId,
+        personObservations,
+      });
+
+      if (modularTally.formSubmissionId && formSubmission) {
+        const formSubmissionTransactions =
+          await getFormSubmissionUpdateTransactions({
+            tx,
+            formSubmissionId: modularTally.formSubmissionId,
+            formSubmission,
+          });
+
+        for (const transaction of formSubmissionTransactions) {
+          await transaction;
+        }
+      }
+
+      return updatedTally;
+    });
+
+    return {
+      responseInfo: {
+        statusCode: 201,
+        message: "Contagem salva!",
+      } as APIResponseInfo,
+      data: {
+        savedAsFinalized: updatedModularTally.isFinalized,
+        updatedAt: updatedModularTally.updatedAt,
+      },
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao salvar contagem!",
       } as APIResponseInfo,
       data: null,
     };

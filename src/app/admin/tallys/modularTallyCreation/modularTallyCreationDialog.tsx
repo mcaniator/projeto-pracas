@@ -34,7 +34,9 @@ const ModularTallyCreationDialog = ({
         if (!data?.modularTallyId) return;
 
         setIsRedirecting(true);
-        router.push("/admin/modularTally");
+        router.push(
+          `/admin/modularTally/details?modularTallyId=${data.modularTallyId}`,
+        );
       },
     },
   });

@@ -70,8 +70,7 @@ const ModularTallysList = ({
                 <span className="flex items-center gap-2 text-base sm:text-xl">
                   <CButton
                     square
-                    disabled
-                    tooltip="A tela da contagem será implementada em breve."
+                    href={`/admin/modularTally/details?modularTallyId=${modularTally.id}`}
                   >
                     <IconExternalLink />
                     Acessar

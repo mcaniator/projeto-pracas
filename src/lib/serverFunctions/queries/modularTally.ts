@@ -8,6 +8,8 @@ import { booleanFromString } from "@/lib/zodValidators";
 import { prisma } from "@lib/prisma";
 import { z } from "zod";
 
+import { getFormSubmissionData } from "./formSubmission";
+
 export const fetchModularTallyTemplatesParamsSchema = z.object({
   finalizedOnly: booleanFromString.nullish(),
   includeArchived: booleanFromString.nullish(),
@@ -189,66 +191,79 @@ export type FetchModularTallyTemplateStructureResponse = NonNullable<
   Awaited<ReturnType<typeof fetchModularTallyTemplateStructure>>["data"]
 >;
 
+export type GetModularTallyTemplateStructureParams = {
+  modularTallyTemplateId: number;
+};
+
+export const getModularTallyTemplateStructure = async ({
+  modularTallyTemplateId,
+}: GetModularTallyTemplateStructureParams) => {
+  const modularTallyTemplate = await prisma.modularTallyTemplate.findUnique({
+    where: { id: modularTallyTemplateId },
+    select: {
+      id: true,
+      name: true,
+      archived: true,
+      finalized: true,
+      form: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      tallyTemplateGroups: {
+        select: {
+          id: true,
+          position: true,
+          displayMode: true,
+          personCharacteristicGroup: {
+            select: {
+              id: true,
+              title: true,
+              isTagGroup: true,
+            },
+          },
+          characteristics: {
+            select: {
+              id: true,
+              position: true,
+              personCharacteristic: {
+                select: {
+                  id: true,
+                  name: true,
+                  iconKey: true,
+                  color: true,
+                },
+              },
+            },
+            orderBy: { position: "asc" },
+          },
+        },
+        orderBy: { position: "asc" },
+      },
+    },
+  });
+
+  if (!modularTallyTemplate) {
+    throw new Error("Protocolo de contagem não encontrado");
+  }
+
+  return modularTallyTemplate;
+};
+
+export type GetModularTallyTemplateStructureResult = Awaited<
+  ReturnType<typeof getModularTallyTemplateStructure>
+>;
+
 export const fetchModularTallyTemplateStructure = async (
   request: APIRequestParams<FetchModularTallyTemplateStructureParams>,
 ) => {
   const params = request.params!;
 
   try {
-    const modularTallyTemplate = await prisma.modularTallyTemplate.findUnique({
-      where: { id: params.modularTallyTemplateId },
-      select: {
-        id: true,
-        name: true,
-        finalized: true,
-        form: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        tallyTemplateGroups: {
-          select: {
-            id: true,
-            position: true,
-            displayMode: true,
-            personCharacteristicGroup: {
-              select: {
-                id: true,
-                title: true,
-                isTagGroup: true,
-              },
-            },
-            characteristics: {
-              select: {
-                id: true,
-                position: true,
-                personCharacteristic: {
-                  select: {
-                    id: true,
-                    name: true,
-                    iconKey: true,
-                    color: true,
-                  },
-                },
-              },
-              orderBy: { position: "asc" },
-            },
-          },
-          orderBy: { position: "asc" },
-        },
-      },
+    const modularTallyTemplate = await getModularTallyTemplateStructure({
+      modularTallyTemplateId: params.modularTallyTemplateId,
     });
-
-    if (!modularTallyTemplate) {
-      return {
-        responseInfo: {
-          statusCode: 404,
-          message: "Protocolo de contagem não encontrado!",
-        } as APIResponseInfo,
-        data: null,
-      };
-    }
 
     return {
       responseInfo: { statusCode: 200 } as APIResponseInfo,
@@ -259,6 +274,160 @@ export const fetchModularTallyTemplateStructure = async (
       responseInfo: {
         statusCode: 500,
         message: "Erro ao consultar protocolo de contagem!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+};
+
+export type GetModularTallySubmissionDataParams = {
+  modularTallyId: number;
+};
+
+export const getModularTallySubmissionData = async ({
+  modularTallyId,
+}: GetModularTallySubmissionDataParams) => {
+  const modularTally = await prisma.modularTally.findUnique({
+    where: { id: modularTallyId },
+    select: {
+      modularTallyTemplateId: true,
+      formSubmissionId: true,
+    },
+  });
+
+  if (!modularTally) {
+    throw new Error("Contagem não encontrada");
+  }
+
+  const [modularTallyTemplateStructure, personObservations, formSubmission] =
+    await Promise.all([
+      getModularTallyTemplateStructure({
+        modularTallyTemplateId: modularTally.modularTallyTemplateId,
+      }),
+      prisma.personObservation.findMany({
+        where: { modularTallyId },
+        orderBy: { id: "asc" },
+        select: {
+          id: true,
+          quantity: true,
+          characteristics: {
+            orderBy: { personCharacteristicId: "asc" },
+            select: { personCharacteristicId: true },
+          },
+        },
+      }),
+      modularTally.formSubmissionId ?
+        getFormSubmissionData({
+          formSubmissionId: modularTally.formSubmissionId,
+          includeCalculations: true,
+        })
+      : Promise.resolve(null),
+    ]);
+
+  return {
+    formSubmission,
+    modularTallyTemplateStructure,
+    personObservations,
+  };
+};
+
+export type GetModularTallySubmissionDataResult = Awaited<
+  ReturnType<typeof getModularTallySubmissionData>
+>;
+
+export const fetchModularTallyDetailsParamsSchema = z.object({
+  modularTallyId: z.coerce.number().int().positive(),
+});
+
+export type FetchModularTallyDetailsParams = z.infer<
+  typeof fetchModularTallyDetailsParamsSchema
+>;
+
+export type FetchModularTallyDetailsResponse = NonNullable<
+  Awaited<ReturnType<typeof fetchModularTallyDetails>>["data"]
+>;
+
+type ModularTallyLocationPolygon = {
+  st_asgeojson: string | null;
+};
+
+export const fetchModularTallyDetails = async (
+  request: APIRequestParams<FetchModularTallyDetailsParams>,
+) => {
+  const params = request.params!;
+
+  try {
+    const modularTally = await prisma.modularTally.findUnique({
+      where: { id: params.modularTallyId },
+      select: {
+        id: true,
+        startDate: true,
+        endDate: true,
+        isFinalized: true,
+        updatedAt: true,
+        user: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+        location: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!modularTally) {
+      return {
+        responseInfo: {
+          statusCode: 404,
+          message: "Contagem não encontrada!",
+        } as APIResponseInfo,
+        data: null,
+      };
+    }
+
+    const [modularTallySubmission, locationPolygon] = await Promise.all([
+      getModularTallySubmissionData({
+        modularTallyId: modularTally.id,
+      }),
+      prisma.$queryRaw<Array<ModularTallyLocationPolygon>>`
+        SELECT
+          CASE
+            WHEN ST_IsEmpty(l.polygon) THEN NULL
+            ELSE ST_AsGeoJSON(l.polygon)::text
+          END AS st_asgeojson
+        FROM location l
+        WHERE l.id = ${modularTally.location.id}
+      `,
+    ]);
+
+    return {
+      responseInfo: { statusCode: 200 } as APIResponseInfo,
+      data: {
+        modularTallyDetails: {
+          id: modularTally.id,
+          startDate: modularTally.startDate,
+          endDate: modularTally.endDate,
+          isFinalized: modularTally.isFinalized,
+          updatedAt: modularTally.updatedAt,
+          user: modularTally.user,
+          location: {
+            ...modularTally.location,
+            st_asgeojson: locationPolygon[0]?.st_asgeojson ?? null,
+          },
+          modularTallySubmission,
+        },
+      },
+    };
+  } catch {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao buscar contagem!",
       } as APIResponseInfo,
       data: null,
     };

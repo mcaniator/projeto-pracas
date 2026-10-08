@@ -68,10 +68,51 @@ type ResponseFormV2Props = {
   readOnly: boolean;
   header?: ReactNode;
   footer?: ReactNode;
+  disableFilledQuestionsCounter?: boolean;
   locationPolygonGeoJson?: string | null;
   onValuesChange?: (change: ResponseFormValuesChange) => void;
   onGeometriesChange?: (change: ResponseFormGeometriesChange) => void;
   onSubmit?: (values: FormValues) => void;
+};
+
+type ResponseFormVirtuosoContext = {
+  control: Control<FormValues>;
+  disableFilledQuestionsCounter: boolean;
+  footer?: ReactNode;
+  header?: ReactNode;
+  totalQuestions: number;
+};
+
+const ResponseFormVirtuosoHeader = ({
+  context,
+}: {
+  context?: ResponseFormVirtuosoContext;
+}) => <>{context?.header}</>;
+
+const ResponseFormVirtuosoFooter = ({
+  context,
+}: {
+  context?: ResponseFormVirtuosoContext;
+}) => {
+  if (!context) return null;
+
+  return (
+    <>
+      {!context.disableFilledQuestionsCounter && ( // If there is a footer, the filled questions counter is rendered at the to of the footer
+        <>
+          <Divider />
+          <div className="mt-2 px-2">
+            <FilledQuestionsCounter
+              control={context.control}
+              totalQuestions={context.totalQuestions}
+            />
+          </div>
+          <Divider sx={{ mt: 1 }} />
+        </>
+      )}
+      {context.footer}
+    </>
+  );
 };
 
 const countQuestions = (categories: FormSubmissionCategoryItem[]) =>
@@ -94,6 +135,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
       readOnly,
       header,
       footer,
+      disableFilledQuestionsCounter = false,
       locationPolygonGeoJson = null,
       onValuesChange,
       onGeometriesChange,
@@ -128,22 +170,31 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         ),
       [calculations],
     );
-    const virtuosoComponents = useMemo(
-      () => ({
-        ...(header !== undefined && header !== null ?
-          { Header: () => <>{header}</> }
-        : {}),
-        ...(footer !== undefined && footer !== null ?
-          { Footer: () => <>{footer}</> }
-        : {}),
-      }),
-      [footer, header],
+    const totalQuestions = useMemo(
+      () => countQuestions(categories),
+      [categories],
     );
     const { control, getValues, handleSubmit, reset, setValue, subscribe } =
       useForm<FormValues>({
         mode: "onChange",
         defaultValues: defaultResponseFormValues,
       });
+    const hasHeader = header !== undefined && header !== null;
+    const hasFooter = footer !== undefined && footer !== null;
+    const virtuosoComponents = useMemo(
+      () => ({
+        ...(hasHeader ? { Header: ResponseFormVirtuosoHeader } : {}),
+        ...(hasFooter ? { Footer: ResponseFormVirtuosoFooter } : {}),
+      }),
+      [hasFooter, hasHeader],
+    );
+    const virtuosoContext: ResponseFormVirtuosoContext = {
+      control,
+      disableFilledQuestionsCounter,
+      footer,
+      header,
+      totalQuestions,
+    };
     const [geometries, setGeometries] = useState<ResponseFormGeometry[]>(
       () => formSubmission.geometries,
     );
@@ -335,6 +386,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
           <Virtuoso
             data={categories}
             components={virtuosoComponents}
+            context={virtuosoContext}
             style={{ height: "100%", overflowX: "hidden" }}
             computeItemKey={(_, category) => `category-${category.categoryId}`}
             itemContent={(_, category) => (
@@ -357,13 +409,18 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
             )}
           />
         </div>
-        <Divider />
-        <div className="mt-2 px-2">
-          <FilledQuestionsCounter
-            control={control}
-            totalQuestions={countQuestions(categories)}
-          />
-        </div>
+        {(footer === undefined || footer === null) &&
+          !disableFilledQuestionsCounter && (
+            <>
+              <Divider />
+              <div className="mt-2 px-2">
+                <FilledQuestionsCounter
+                  control={control}
+                  totalQuestions={totalQuestions}
+                />
+              </div>
+            </>
+          )}
       </form>
     );
   },

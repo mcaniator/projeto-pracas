@@ -106,7 +106,7 @@ const AssessmentClient = ({
   const [pendingDraftAssessmentChoice, setPendingDraftAssessmentChoice] =
     useState<AssessmentDraft>();
   const [draftUpdatedAt, setDraftUpdatedAt] = useState<Date>();
-  const [pendingSaveFromDraft, setPendingSaveFromDraft] = useState(false);
+  const [pendingSave, setPendingSave] = useState(false);
   const [savedUpdatedAtState, setSavedUpdatedAtState] = useState(
     assessmentDetails.updatedAt,
   );
@@ -116,16 +116,15 @@ const AssessmentClient = ({
   const serializedFormValuesRef = useRef<SerializedFormValues>(
     formSubmission.responsesFormValues,
   );
-  const responsesAreDirtyRef = useRef(false);
-  const nonResponseItemsIsDirtyRef = useRef(false);
+  const isDirtyRef = useRef(false);
   const draftSaveTimeoutRef = useRef<number | undefined>(undefined);
 
   const scheduleDraftSave = useCallback(() => {
-    if (!responsesAreDirtyRef.current && !nonResponseItemsIsDirtyRef.current) {
+    if (!isDirtyRef.current) {
       return;
     }
 
-    setPendingSaveFromDraft(true);
+    setPendingSave(true);
     window.clearTimeout(draftSaveTimeoutRef.current);
     draftSaveTimeoutRef.current = window.setTimeout(() => {
       const assessmentDraft: AssessmentDraft = {
@@ -159,7 +158,7 @@ const AssessmentClient = ({
     ({ serializedValues, source }: ResponseFormValuesChange) => {
       serializedFormValuesRef.current = serializedValues;
       if (source === "user") {
-        responsesAreDirtyRef.current = true;
+        isDirtyRef.current = true;
         scheduleDraftSave();
       }
     },
@@ -170,7 +169,7 @@ const AssessmentClient = ({
     ({ geometries, source }: ResponseFormGeometriesChange) => {
       geometriesRef.current = geometries;
       if (source === "user") {
-        nonResponseItemsIsDirtyRef.current = true;
+        isDirtyRef.current = true;
         scheduleDraftSave();
       }
     },
@@ -192,10 +191,9 @@ const AssessmentClient = ({
       );
       setDriveFolderUrl(assessmentDraft.driveFolderUrl);
       geometriesRef.current = assessmentDraft.geometries;
-      responsesAreDirtyRef.current = false;
-      nonResponseItemsIsDirtyRef.current = false;
+      isDirtyRef.current = false;
       setPendingDraftAssessmentChoice(undefined);
-      setPendingSaveFromDraft(true);
+      setPendingSave(true);
     },
     [],
   );
@@ -216,12 +214,11 @@ const AssessmentClient = ({
       );
       setDriveFolderUrl(assessmentDetails.driveFolderUrl);
       geometriesRef.current = formSubmission.geometries;
-      responsesAreDirtyRef.current = false;
-      nonResponseItemsIsDirtyRef.current = false;
+      isDirtyRef.current = false;
       setPendingDraftAssessmentChoice(undefined);
       try {
         await deleteAssessmentResponsesDraft(assessmentDetails.id);
-        setPendingSaveFromDraft(false);
+        setPendingSave(false);
         setDraftUpdatedAt(undefined);
       } catch {
         enqueueSnackbar("Erro ao remover dados locais!", {
@@ -270,8 +267,7 @@ const AssessmentClient = ({
       );
       setIsFinalized(importedData.isFinalized);
       setDriveFolderUrl(importedData.driveFolderUrl);
-      responsesAreDirtyRef.current = true;
-      nonResponseItemsIsDirtyRef.current = true;
+      isDirtyRef.current = true;
       scheduleDraftSave();
       enqueueSnackbar(<>Avaliação importada!</>, { variant: "success" });
     } catch {
@@ -373,7 +369,7 @@ const AssessmentClient = ({
             value={startDate}
             onChange={(value) => {
               if (!value) return;
-              nonResponseItemsIsDirtyRef.current = true;
+              isDirtyRef.current = true;
               setStartDate(value);
               scheduleDraftSave();
             }}
@@ -399,11 +395,11 @@ const AssessmentClient = ({
         </CButton>
         <CButton
           topLeftChipLabel="!"
-          enableTopLeftChip={pendingSaveFromDraft}
+          enableTopLeftChip={pendingSave}
           tooltip="Reverter alterações locais"
           square
           color={isFilling ? "warning" : undefined}
-          disabled={!pendingSaveFromDraft}
+          disabled={!pendingSave}
           onClick={() => setOpenRevertAssessmentDraftDialog(true)}
         >
           <IconArrowBackUp />
@@ -456,7 +452,7 @@ const AssessmentClient = ({
       {isFilling && (
         <CButton
           className="ml-auto mt-2 w-fit"
-          enableTopLeftChip={pendingSaveFromDraft}
+          enableTopLeftChip={pendingSave}
           topLeftChipLabel="!"
           onClick={() => responseFormRef.current?.submit()}
         >
@@ -494,17 +490,16 @@ const AssessmentClient = ({
         onSaveSuccess={(newUpdatedAt) => {
           savedUpdatedAtRef.current = newUpdatedAt;
           setSavedUpdatedAtState(newUpdatedAt);
-          setPendingSaveFromDraft(false);
-          responsesAreDirtyRef.current = false;
-          nonResponseItemsIsDirtyRef.current = false;
+          setPendingSave(false);
+          isDirtyRef.current = false;
         }}
         onClose={() => setOpenSaveDialog(false)}
         onIsFinalizedChange={(value) => {
-          nonResponseItemsIsDirtyRef.current = true;
+          isDirtyRef.current = true;
           setIsFinalized(value);
         }}
         onEndDateChange={(value) => {
-          nonResponseItemsIsDirtyRef.current = true;
+          isDirtyRef.current = true;
           setEndDate(value);
         }}
         onIsSQLiteAssessmentChange={onIsSQLiteAssessmentChange}
@@ -532,7 +527,7 @@ const AssessmentClient = ({
         isFilling={isFilling}
         onClose={() => setOpenDriveFolderUrlDialog(false)}
         onConfirm={(url) => {
-          nonResponseItemsIsDirtyRef.current = true;
+          isDirtyRef.current = true;
           setDriveFolderUrl(url);
           scheduleDraftSave();
         }}
