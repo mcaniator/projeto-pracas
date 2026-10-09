@@ -7,6 +7,7 @@ import { useFetchCities } from "@/lib/serverFunctions/apiCalls/city";
 import { useFetchFormStructure } from "@/lib/serverFunctions/apiCalls/form";
 import {
   useCreateLocation,
+  useFetchLocationFormSubmission,
   useUpdateLocation,
 } from "@/lib/serverFunctions/apiCalls/location";
 import { useFetchLocationCategories } from "@/lib/serverFunctions/apiCalls/locationCategory";
@@ -133,6 +134,17 @@ const LocationRegisterDialog = ({
       },
     },
   });
+  const [fetchLocationFormSubmission, isLoadingLocationFormSubmission] =
+    useFetchLocationFormSubmission({
+      callbacks: {
+        onSuccess: (response) => {
+          setFormSubmission(response.data ?? null);
+        },
+        onError: () => {
+          setFormSubmission(null);
+        },
+      },
+    });
 
   const reset = () => {
     setHasEditedImage(false);
@@ -241,12 +253,19 @@ const LocationRegisterDialog = ({
     }
 
     if (step === 4) {
+      const isLoadingForm =
+        isLoadingFormStructure || isLoadingLocationFormSubmission;
       setEnableNextStep(
-        parkData.formId === null ||
-          (!isLoadingFormStructure && formSubmission !== null),
+        parkData.formId === null || (!isLoadingForm && formSubmission !== null),
       );
     }
-  }, [step, formSubmission, isLoadingFormStructure, parkData.formId]);
+  }, [
+    formSubmission,
+    isLoadingFormStructure,
+    isLoadingLocationFormSubmission,
+    parkData.formId,
+    step,
+  ]);
 
   useEffect(() => {
     setFormSubmission(null);
@@ -255,12 +274,30 @@ const LocationRegisterDialog = ({
       return;
     }
 
+    if (
+      location?.formSubmissionId !== null &&
+      location?.formSubmissionId !== undefined
+    ) {
+      void fetchLocationFormSubmission({
+        params: {
+          locationId: location.id,
+        },
+      });
+      return;
+    }
+
     void fetchFormStructure({
       params: {
         formId: parkData.formId,
       },
     });
-  }, [fetchFormStructure, parkData.formId, step]);
+  }, [
+    fetchFormStructure,
+    fetchLocationFormSubmission,
+    location,
+    parkData.formId,
+    step,
+  ]);
 
   const mutationCallbacks = {
     onSuccess() {
@@ -499,13 +536,18 @@ const LocationRegisterDialog = ({
         )}
         {step === 4 && (
           <div className="flex min-h-0 flex-1 flex-col">
-            {isLoadingFormStructure && <LinearProgress />}
-            {!isLoadingFormStructure && parkData.formId === null && (
-              <p className="p-4 text-center">
-                Selecione um formulário para preencher os dados da praça.
-              </p>
+            {(isLoadingFormStructure || isLoadingLocationFormSubmission) && (
+              <LinearProgress />
             )}
             {!isLoadingFormStructure &&
+              !isLoadingLocationFormSubmission &&
+              parkData.formId === null && (
+                <p className="p-4 text-center">
+                  Nenhum formulário foi selecionado para essa praça.
+                </p>
+              )}
+            {!isLoadingFormStructure &&
+              !isLoadingLocationFormSubmission &&
               parkData.formId !== null &&
               formSubmission && (
                 <ResponseFormV2

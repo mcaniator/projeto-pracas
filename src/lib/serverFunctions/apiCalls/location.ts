@@ -10,6 +10,8 @@ import type {
   UpdateLocationVisibilityData,
 } from "../mutations/locationUtil";
 import type {
+  FetchLocationFormSubmissionParams,
+  FetchLocationFormSubmissionResponse,
   FetchLocationsParams,
   FetchLocationsResponse,
 } from "../queries/location";
@@ -23,6 +25,21 @@ export const useFetchLocations = (
     url,
     callbacks: params?.callbacks,
     offlineFallback: fetchAdminSQLiteLocations,
+    options: {
+      method: "GET",
+    },
+  });
+};
+
+export const useFetchLocationFormSubmission = (
+  params?: UseFetchAPIParams<FetchLocationFormSubmissionResponse>,
+) => {
+  return useFetchAPI<
+    FetchLocationFormSubmissionResponse,
+    FetchLocationFormSubmissionParams
+  >({
+    url: "/api/admin/locations/formSubmission",
+    callbacks: params?.callbacks,
     options: {
       method: "GET",
     },

@@ -1,3 +1,4 @@
+import { getFormSubmissionData } from "@/lib/serverFunctions/queries/formSubmission";
 import { buildImageUrl } from "@/lib/utils/image";
 import { LocationForMap } from "@customTypes/location/location";
 import { prisma } from "@lib/prisma";
@@ -114,6 +115,71 @@ export const fetchLocations = async (
     };
   }
 };
+
+export const fetchLocationFormSubmissionParamsSchema = z.object({
+  locationId: z.coerce.number().int().positive(),
+});
+
+export type FetchLocationFormSubmissionParams = z.infer<
+  typeof fetchLocationFormSubmissionParamsSchema
+>;
+
+export const fetchLocationFormSubmission = async (
+  request: APIRequestParams<FetchLocationFormSubmissionParams>,
+) => {
+  const params = request.params!;
+
+  try {
+    const location = await prisma.location.findUnique({
+      where: { id: params.locationId },
+      select: { formSubmissionId: true },
+    });
+
+    if (!location) {
+      return {
+        responseInfo: {
+          statusCode: 404,
+          message: "Praça não encontrada!",
+        } as APIResponseInfo,
+        data: null,
+      };
+    }
+
+    if (location.formSubmissionId === null) {
+      return {
+        responseInfo: {
+          statusCode: 404,
+          message: "A praça não possui preenchimento de formulário!",
+        } as APIResponseInfo,
+        data: null,
+      };
+    }
+
+    const formSubmission = await getFormSubmissionData({
+      formSubmissionId: location.formSubmissionId,
+      includeCalculations: true,
+    });
+
+    return {
+      responseInfo: {
+        statusCode: 200,
+      } as APIResponseInfo,
+      data: formSubmission,
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar preenchimento do formulário da praça!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+};
+
+export type FetchLocationFormSubmissionResponse = NonNullable<
+  Awaited<ReturnType<typeof fetchLocationFormSubmission>>["data"]
+>;
 
 export const fetchLocationsAssociatedWithAdministrativeUnit = async (
   administrativeUnitId: number,
