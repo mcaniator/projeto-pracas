@@ -17,6 +17,10 @@ import type { GetFormSubmissionDataResult } from "@/lib/serverFunctions/queries/
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
 import { FetchLocationCategoriesResponse } from "@/lib/serverFunctions/queries/locationCategory";
 import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
+import type {
+  ResponseFormGeometry,
+  SerializedFormValues,
+} from "@/lib/types/formSubmission/responseFormTypes";
 import { getImageFromUrl } from "@/lib/utils/image";
 import { LinearProgress, Step, StepLabel, Stepper } from "@mui/material";
 import {
@@ -24,7 +28,13 @@ import {
   IconArrowForwardUp,
   IconCheck,
 } from "@tabler/icons-react";
-import { useCallback, useEffect, useImperativeHandle, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 
 import CDialog from "../../../../components/ui/dialog/cDialog";
 import { ParkRegisterData } from "../../../../lib/types/parks/parkRegister";
@@ -120,14 +130,19 @@ const LocationRegisterDialog = ({
   });
   const [formSubmission, setFormSubmission] =
     useState<GetFormSubmissionDataResult | null>(null);
+  const serializedFormValuesRef = useRef<SerializedFormValues>({});
+  const geometriesRef = useRef<ResponseFormGeometry[]>([]);
 
   const [fetchFormStructure, isLoadingFormStructure] = useFetchFormStructure({
     callbacks: {
       onSuccess: (response) => {
         const formStructure = response.data?.formStructure;
-        setFormSubmission(
-          formStructure ? buildFormPreviewSubmission({ formStructure }) : null,
-        );
+        const previewSubmission =
+          formStructure ? buildFormPreviewSubmission({ formStructure }) : null;
+        setFormSubmission(previewSubmission);
+        serializedFormValuesRef.current =
+          previewSubmission?.responsesFormValues ?? {};
+        geometriesRef.current = previewSubmission?.geometries ?? [];
       },
       onError: () => {
         setFormSubmission(null);
@@ -139,6 +154,9 @@ const LocationRegisterDialog = ({
       callbacks: {
         onSuccess: (response) => {
           setFormSubmission(response.data ?? null);
+          serializedFormValuesRef.current =
+            response.data?.responsesFormValues ?? {};
+          geometriesRef.current = response.data?.geometries ?? [];
         },
         onError: () => {
           setFormSubmission(null);
@@ -148,6 +166,8 @@ const LocationRegisterDialog = ({
 
   const reset = () => {
     setHasEditedImage(false);
+    serializedFormValuesRef.current = {};
+    geometriesRef.current = [];
     if (!location) {
       setParkData(defaultParkData);
       setStep(1);
@@ -269,18 +289,23 @@ const LocationRegisterDialog = ({
 
   useEffect(() => {
     setFormSubmission(null);
+    serializedFormValuesRef.current = {};
+    geometriesRef.current = [];
 
     if (step !== 4 || parkData.formId === null) {
       return;
     }
 
-    if (
-      location?.formSubmissionId !== null &&
-      location?.formSubmissionId !== undefined
-    ) {
+    const formSubmissionId = location?.formSubmissionId;
+    const hasExistingFormSubmission =
+      formSubmissionId !== null &&
+      formSubmissionId !== undefined &&
+      location?.formId === parkData.formId;
+
+    if (hasExistingFormSubmission) {
       void fetchLocationFormSubmission({
         params: {
-          locationId: location.id,
+          formSubmissionId,
         },
       });
       return;
@@ -340,6 +365,13 @@ const LocationRegisterDialog = ({
     if (parkData.formId !== null) {
       formData.append("formId", parkData.formId.toString());
     }
+    formData.append(
+      "formSubmission",
+      JSON.stringify({
+        responses: serializedFormValuesRef.current,
+        geometries: geometriesRef.current,
+      }),
+    );
 
     if (hasEditedImage) {
       formData.append("hasEditedImage", "true");
@@ -554,6 +586,12 @@ const LocationRegisterDialog = ({
                   formSubmission={formSubmission}
                   readOnly={false}
                   locationPolygonGeoJson={featuresGeoJson || null}
+                  onValuesChange={({ serializedValues }) => {
+                    serializedFormValuesRef.current = serializedValues;
+                  }}
+                  onGeometriesChange={({ geometries }) => {
+                    geometriesRef.current = geometries;
+                  }}
                 />
               )}
           </div>

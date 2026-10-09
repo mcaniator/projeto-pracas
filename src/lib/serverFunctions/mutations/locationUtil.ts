@@ -8,6 +8,10 @@ import { booleanFromString, locationSchema } from "@/lib/zodValidators";
 import { Image } from "@prisma/client";
 import { addPolygon } from "@serverOnly/geometries";
 import { z } from "zod";
+import {
+  formSubmissionDataSchema,
+  getFormSubmissionUpdateTransactions,
+} from "./formSubmission";
 
 export const deleteLocationDataSchema = z.instanceof(FormData);
 export type DeleteLocationData = z.infer<typeof deleteLocationDataSchema>;
@@ -126,6 +130,11 @@ const _updateLocation = async (request: APIRequestData<UpdateLocationData>) => {
     const hasEditedImage = booleanFromString.parse(
       formData.get("hasEditedImage"),
     );
+    const formSubmissionValue = formData.get("formSubmission");
+    const formSubmission =
+      formSubmissionValue === null ? null : (
+        formSubmissionDataSchema.parse(JSON.parse(String(formSubmissionValue)))
+      );
     try {
       let image: Image | null = null;
       if (hasEditedImage) {
@@ -179,7 +188,7 @@ const _updateLocation = async (request: APIRequestData<UpdateLocationData>) => {
             name: true,
           },
         });
-        await prisma.location.update({
+        const locationWithFormSubmission = await prisma.location.update({
           where: { id: location.id },
           data:
             formId === null ?
@@ -196,7 +205,21 @@ const _updateLocation = async (request: APIRequestData<UpdateLocationData>) => {
                   },
                 },
               },
+          select: {
+            formSubmission: {
+              select: { id: true },
+            },
+          },
         });
+        if (locationWithFormSubmission.formSubmission && formSubmission) {
+          const formSubmissionTransactions =
+            await getFormSubmissionUpdateTransactions({
+              formSubmissionId: locationWithFormSubmission.formSubmission.id,
+              formSubmission,
+              prismaClient: prisma,
+            });
+          await Promise.all(formSubmissionTransactions);
+        }
         const featuresGeoJson = z
           .string()
           .nullish()
@@ -244,6 +267,11 @@ const _createLocation = async (request: APIRequestData<CreateLocationData>) => {
     const formId =
       formIdValue === null ? null : (
         z.coerce.number().int().positive().parse(formIdValue)
+      );
+    const formSubmissionValue = formData.get("formSubmission");
+    const formSubmission =
+      formSubmissionValue === null ? null : (
+        formSubmissionDataSchema.parse(JSON.parse(String(formSubmissionValue)))
       );
     const locationData = locationSchema.parse({
       name: z.coerce
@@ -304,8 +332,9 @@ const _createLocation = async (request: APIRequestData<CreateLocationData>) => {
             name: true,
           },
         });
+        let formSubmissionId: number | null = null;
         if (formId !== null) {
-          await prisma.location.update({
+          const locationWithFormSubmission = await prisma.location.update({
             where: { id: location.id },
             data: {
               formSubmission: {
@@ -314,7 +343,23 @@ const _createLocation = async (request: APIRequestData<CreateLocationData>) => {
                 },
               },
             },
+            select: {
+              formSubmission: {
+                select: { id: true },
+              },
+            },
           });
+          formSubmissionId =
+            locationWithFormSubmission.formSubmission?.id ?? null;
+        }
+        if (formSubmissionId !== null && formSubmission) {
+          const formSubmissionTransactions =
+            await getFormSubmissionUpdateTransactions({
+              formSubmissionId,
+              formSubmission,
+              prismaClient: prisma,
+            });
+          await Promise.all(formSubmissionTransactions);
         }
         // Após a criação da localização, adicionar os polígonos
         const featuresGeoJson = z

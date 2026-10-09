@@ -117,7 +117,7 @@ export const fetchLocations = async (
 };
 
 export const fetchLocationFormSubmissionParamsSchema = z.object({
-  locationId: z.coerce.number().int().positive(),
+  formSubmissionId: z.coerce.number().int().positive(),
 });
 
 export type FetchLocationFormSubmissionParams = z.infer<
@@ -130,34 +130,10 @@ export const fetchLocationFormSubmission = async (
   const params = request.params!;
 
   try {
-    const location = await prisma.location.findUnique({
-      where: { id: params.locationId },
-      select: { formSubmissionId: true },
-    });
-
-    if (!location) {
-      return {
-        responseInfo: {
-          statusCode: 404,
-          message: "Praça não encontrada!",
-        } as APIResponseInfo,
-        data: null,
-      };
-    }
-
-    if (location.formSubmissionId === null) {
-      return {
-        responseInfo: {
-          statusCode: 404,
-          message: "A praça não possui preenchimento de formulário!",
-        } as APIResponseInfo,
-        data: null,
-      };
-    }
-
     const formSubmission = await getFormSubmissionData({
-      formSubmissionId: location.formSubmissionId,
+      formSubmissionId: params.formSubmissionId,
       includeCalculations: true,
+      publicQuestionsOnly: false,
     });
 
     return {
