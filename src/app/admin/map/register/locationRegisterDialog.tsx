@@ -1,8 +1,10 @@
 "use client";
 
-import OptionalInfoStep from "@/app/admin/map/register/registerSteps/optionalnfoStep";
 import FormManager from "@/components/form/formManager/formManager";
+import { buildFormPreviewSubmission } from "@/components/form/formPreviewUtils";
+import ResponseFormV2 from "@/components/ui/responseForm/responseFormV2";
 import { useFetchCities } from "@/lib/serverFunctions/apiCalls/city";
+import { useFetchFormStructure } from "@/lib/serverFunctions/apiCalls/form";
 import {
   useCreateLocation,
   useUpdateLocation,
@@ -10,6 +12,7 @@ import {
 import { useFetchLocationCategories } from "@/lib/serverFunctions/apiCalls/locationCategory";
 import { useFetchLocationTypes } from "@/lib/serverFunctions/apiCalls/locationType";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
+import type { GetFormSubmissionDataResult } from "@/lib/serverFunctions/queries/formSubmission";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
 import { FetchLocationCategoriesResponse } from "@/lib/serverFunctions/queries/locationCategory";
 import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
@@ -113,6 +116,22 @@ const LocationRegisterDialog = ({
     narrow: [],
     intermediate: [],
     broad: [],
+  });
+  const [formSubmission, setFormSubmission] =
+    useState<GetFormSubmissionDataResult | null>(null);
+
+  const [fetchFormStructure, isLoadingFormStructure] = useFetchFormStructure({
+    callbacks: {
+      onSuccess: (response) => {
+        const formStructure = response.data?.formStructure;
+        setFormSubmission(
+          formStructure ? buildFormPreviewSubmission({ formStructure }) : null,
+        );
+      },
+      onError: () => {
+        setFormSubmission(null);
+      },
+    },
   });
 
   const reset = () => {
@@ -218,8 +237,30 @@ const LocationRegisterDialog = ({
   useEffect(() => {
     if (step === 3) {
       setEnableNextStep(true);
+      return;
     }
-  }, [step]);
+
+    if (step === 4) {
+      setEnableNextStep(
+        parkData.formId === null ||
+          (!isLoadingFormStructure && formSubmission !== null),
+      );
+    }
+  }, [step, formSubmission, isLoadingFormStructure, parkData.formId]);
+
+  useEffect(() => {
+    setFormSubmission(null);
+
+    if (step !== 4 || parkData.formId === null) {
+      return;
+    }
+
+    void fetchFormStructure({
+      params: {
+        formId: parkData.formId,
+      },
+    });
+  }, [fetchFormStructure, parkData.formId, step]);
 
   const mutationCallbacks = {
     onSuccess() {
@@ -386,7 +427,7 @@ const LocationRegisterDialog = ({
       onCancel={goToPreviousStep}
       fullScreen
     >
-      <div className="flex flex-col gap-1">
+      <div className="flex h-full min-h-0 flex-col gap-1">
         <Stepper activeStep={step - 1}>
           {steps.map((label, index) => (
             <Step key={index}>
@@ -457,11 +498,23 @@ const LocationRegisterDialog = ({
           />
         )}
         {step === 4 && (
-          <OptionalInfoStep
-            parkData={parkData}
-            setEnableNextStep={setEnableNextStep}
-            setParkData={setParkData}
-          />
+          <div className="flex min-h-0 flex-1 flex-col">
+            {isLoadingFormStructure && <LinearProgress />}
+            {!isLoadingFormStructure && parkData.formId === null && (
+              <p className="p-4 text-center">
+                Selecione um formulário para preencher os dados da praça.
+              </p>
+            )}
+            {!isLoadingFormStructure &&
+              parkData.formId !== null &&
+              formSubmission && (
+                <ResponseFormV2
+                  formSubmission={formSubmission}
+                  readOnly={false}
+                  locationPolygonGeoJson={featuresGeoJson || null}
+                />
+              )}
+          </div>
         )}
       </div>
     </CDialog>
