@@ -83,40 +83,6 @@ const LocationInfo = ({
           )}
         </>
       )}
-
-      {(location.usableArea || location.legalArea || location.incline) && (
-        <>
-          <Divider />
-          <h4 className="font-semibold">Características Físicas</h4>
-          {location.legalArea && (
-            <span>{`Área oficial (prefeitura): ${location.legalArea} m²`}</span>
-          )}
-          {location.usableArea && (
-            <span>{`Área útil: ${location.usableArea} m²`}</span>
-          )}
-          {location.incline && (
-            <span>{`Inclinação: ${location.incline} %`}</span>
-          )}
-        </>
-      )}
-
-      {(location.creationYear ||
-        location.lastMaintenanceYear ||
-        location.legislation) && (
-        <>
-          <Divider />
-          <h4 className="font-semibold">Histórico</h4>
-          {location.creationYear && (
-            <span>{`Ano de criação: ${location.creationYear}`}</span>
-          )}
-          {location.lastMaintenanceYear && (
-            <span>{`Última manutenção: ${location.lastMaintenanceYear}`}</span>
-          )}
-          {location.legislation && (
-            <span>{`Legislação: ${location.legislation}`}</span>
-          )}
-        </>
-      )}
       <Divider />
       {fetchLatestAssessmentDetailsLoading && (
         <CLinearProgress label="Carregando mais informações..." />
@@ -142,14 +108,6 @@ const LocationInfo = ({
         label="Inativo ou não encontrado"
         disabled
       />
-
-      {location.notes && (
-        <>
-          <Divider />
-          <h4 className="font-semibold">Observações gerais</h4>
-          <div className="whitespace-pre-wrap">{location.notes}</div>
-        </>
-      )}
     </div>
   );
 };
