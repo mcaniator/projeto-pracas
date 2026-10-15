@@ -236,6 +236,8 @@ export const fetchAssessmentsParamsSchema = z.object({
   broadUnitId: z.coerce.number().optional(),
   cityId: z.coerce.number().optional(),
   finalizationStatus: z.coerce.number().optional(),
+  page: z.coerce.number().int().positive(),
+  itemsPerPage: z.coerce.number().int().positive().max(100),
 });
 
 export type FetchAssessmentsParams = z.infer<
@@ -276,9 +278,9 @@ const fetchAssessments = async (
           broadAdministrativeUnitId: params.broadUnitId,
         },
       },
-      orderBy: {
-        startDate: "desc",
-      },
+      orderBy: [{ startDate: "desc" }, { id: "desc" }],
+      skip: (params.page - 1) * params.itemsPerPage,
+      take: params.itemsPerPage + 1,
       select: {
         id: true,
         startDate: true,
@@ -302,10 +304,13 @@ const fetchAssessments = async (
         },
       },
     });
+    const hasMore = assessments.length > params.itemsPerPage;
+    const slicedAssessments = assessments.slice(0, params.itemsPerPage);
     return {
       responseInfo: { statusCode: 200 } as APIResponseInfo,
       data: {
-        assessments,
+        assessments: slicedAssessments,
+        hasMore,
       },
     };
   } catch (e) {
@@ -316,6 +321,7 @@ const fetchAssessments = async (
       } as APIResponseInfo,
       data: {
         assessments: [],
+        hasMore: false,
       },
     };
   }

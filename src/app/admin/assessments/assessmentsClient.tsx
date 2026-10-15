@@ -24,10 +24,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import CAdminHeader from "../../../components/ui/cAdminHeader";
 import CButton from "../../../components/ui/cButton";
-import CSkeletonGroup from "../../../components/ui/cSkeletonGroup";
 import type { FetchAssessmentsResponse } from "../../../lib/serverFunctions/queries/assessment";
 import AssessmentsFilterSidebar from "./assessmentsFilterSidebar";
 import AssessmentsList from "./assessmentsList";
+
+const ASSESSMENTS_PER_PAGE = 100;
 
 export type AssessmentsFilterType =
   | "LOCATION_ID"
@@ -55,9 +56,14 @@ const AssessmentsClient = () => {
   const unsavedAssessmentIdsPromiseRef = useRef<Promise<Set<number>> | null>(
     null,
   );
+  const nextPageRef = useRef(1);
+  const isLoadingMoreRef = useRef(false);
+  const hasMoreAssessmentsRef = useRef(false);
+  const lastQueryVersionRef = useRef(0);
   const [assessments, setAssessments] = useState<AssessmentWithSyncStatus[]>(
     [],
   );
+  const [isLoadingMore, setIsLoadingMore] = useState(true);
 
   const [openAssessmentCreationDialog, setOpenAssessmentCreationDialog] =
     useState(false);
@@ -84,7 +90,6 @@ const AssessmentsClient = () => {
     },
   });
   //Filters
-  const [isLoading, setIsLoading] = useState(true);
   const [locationId, setLocationId] = useState<number | undefined>(undefined);
   const [formId, setFormId] = useState<number>();
   const [startDate, setStartDate] = useState<Date>();
@@ -97,10 +102,12 @@ const AssessmentsClient = () => {
   const [finalizationStatus, setFinalizationStatus] = useState<number>();
 
   const onNoCitiesFound = useCallback(() => {
-    setIsLoading(false);
+    isLoadingMoreRef.current = false;
+    setIsLoadingMore(false);
   }, []);
 
   const getUnsavedAssessmentIds = useCallback(async () => {
+    // Drafts are fetched only when the page loads. They are not fetched again when the filters are changed.
     if (!unsavedAssessmentIdsPromiseRef.current) {
       unsavedAssessmentIdsPromiseRef.current = fetchAssessmentDraftIds();
     }
@@ -227,104 +234,171 @@ const AssessmentsClient = () => {
 
   const handleVisibilityChange = useCallback(
     (id: number, isPublic: boolean) => {
-      const newAssessments = assessments.map((assessment) => {
-        if (assessment.id === id) {
-          return { ...assessment, isPublic: isPublic };
-        }
-        return assessment;
+      setAssessments((currentAssessments) => {
+        return currentAssessments.map((assessment) => {
+          if (assessment.id === id) {
+            return { ...assessment, isPublic };
+          }
+          return assessment;
+        });
       });
-      setAssessments(newAssessments);
     },
-    [assessments],
+    [],
   );
 
-  const fetchAssessments = useCallback(async () => {
-    if (
-      !locationId &&
-      !formId &&
-      !userId &&
-      !startDate &&
-      !endDate &&
-      !cityId &&
-      !broadUnitId &&
-      !intermediateUnitId &&
-      !narrowUnitId &&
-      !finalizationStatus
-    ) {
-      // The initial state for all filters is null/undefined, so we avoid fetching data when there's no filter applied.
-      setAssessments([]);
+  const fetchAssessments = useCallback(
+    async (page: number) => {
+      const append = page > 1;
+      if (!append) {
+        lastQueryVersionRef.current++;
+      }
+      const queryVersion = lastQueryVersionRef.current;
+
+      if (
+        !locationId &&
+        !formId &&
+        !userId &&
+        !startDate &&
+        !endDate &&
+        !cityId &&
+        !broadUnitId &&
+        !intermediateUnitId &&
+        !narrowUnitId &&
+        !finalizationStatus
+      ) {
+        // The initial state for all filters is null/undefined, so we avoid fetching data when there's no filter applied.
+        setAssessments([]);
+        hasMoreAssessmentsRef.current = false;
+        isLoadingMoreRef.current = false;
+        setIsLoadingMore(false);
+        return;
+      }
+
+      if (startDate) {
+        if (isNaN(startDate.getTime())) {
+          hasMoreAssessmentsRef.current = false;
+          isLoadingMoreRef.current = false;
+          setIsLoadingMore(false);
+          return;
+        }
+      }
+      if (endDate) {
+        if (isNaN(endDate.getTime())) {
+          hasMoreAssessmentsRef.current = false;
+          isLoadingMoreRef.current = false;
+          setIsLoadingMore(false);
+          return;
+        }
+      }
+
+      if (append && isLoadingMoreRef.current) {
+        return;
+      }
+
+      isLoadingMoreRef.current = true;
+      setIsLoadingMore(true);
+      if (!append) {
+        nextPageRef.current = 1;
+        hasMoreAssessmentsRef.current = false;
+      }
+
+      try {
+        let fetchedAssessments: FetchAssessmentsResponse["assessments"] = [];
+        let hasMore = false;
+        const hasSQLiteAssessmentsResponse =
+          await fetchAdminSQLiteHasAssessments({});
+        if (hasSQLiteAssessmentsResponse.data?.hasAssessments) {
+          // If there are SQLite assessments, we cannot show server assessments until they are synced
+          setHasSQLiteAssessments(true);
+          const offlineResponse = await fetchAdminSQLiteAssessments({
+            params: {
+              page,
+              itemsPerPage: ASSESSMENTS_PER_PAGE,
+            },
+          });
+          fetchedAssessments = offlineResponse.data?.assessments ?? [];
+          hasMore = offlineResponse.data?.hasMore ?? false;
+        } else {
+          setHasSQLiteAssessments(false);
+          const response = await _fetchAssessments({
+            params: {
+              locationId,
+              formId,
+              startDate,
+              endDate,
+              userId,
+              cityId,
+              broadUnitId,
+              intermediateUnitId,
+              narrowUnitId,
+              finalizationStatus,
+              page,
+              itemsPerPage: ASSESSMENTS_PER_PAGE,
+            },
+          });
+          fetchedAssessments = response.data?.assessments ?? [];
+          hasMore = response.data?.hasMore ?? false;
+        }
+
+        const formattedAssessmentsPromises =
+          await formatAssessmentsWithUnsavedFilling(fetchedAssessments);
+        const formattedAssessments = await Promise.all(
+          formattedAssessmentsPromises,
+        );
+        if (queryVersion !== lastQueryVersionRef.current) {
+          return;
+        }
+
+        setAssessments((currentAssessments) => {
+          if (!append) {
+            return formattedAssessments;
+          }
+
+          const currentAssessmentIds = new Set(
+            currentAssessments.map((assessment) => assessment.id),
+          );
+          return [
+            ...currentAssessments,
+            ...formattedAssessments.filter(
+              (assessment) => !currentAssessmentIds.has(assessment.id),
+            ),
+          ];
+        });
+        hasMoreAssessmentsRef.current = hasMore;
+        nextPageRef.current = page + 1;
+      } finally {
+        if (queryVersion === lastQueryVersionRef.current) {
+          isLoadingMoreRef.current = false;
+          setIsLoadingMore(false);
+        }
+      }
+    },
+    [
+      _fetchAssessments,
+      formatAssessmentsWithUnsavedFilling,
+      locationId,
+      formId,
+      startDate,
+      endDate,
+      userId,
+      cityId,
+      broadUnitId,
+      intermediateUnitId,
+      narrowUnitId,
+      finalizationStatus,
+    ],
+  );
+
+  const loadMoreAssessments = useCallback(() => {
+    if (!hasMoreAssessmentsRef.current || isLoadingMoreRef.current) {
       return;
     }
 
-    if (startDate) {
-      if (isNaN(startDate.getTime())) {
-        return;
-      }
-    }
-    if (endDate) {
-      if (isNaN(endDate.getTime())) {
-        return;
-      }
-    }
-
-    setIsLoading(true);
-
-    let assessments: FetchAssessmentsResponse["assessments"] = [];
-    const hasSQLiteAssessmentsResponse = await fetchAdminSQLiteHasAssessments(
-      {},
-    );
-    if (hasSQLiteAssessmentsResponse.data?.hasAssessments) {
-      // If there are SQLite assessments, we cannot show server assessments until they are synced
-      setHasSQLiteAssessments(true);
-      const offlineResponse = await fetchAdminSQLiteAssessments({});
-      const SQLiteAssessments = offlineResponse.data?.assessments ?? [];
-      assessments = SQLiteAssessments;
-    } else {
-      setHasSQLiteAssessments(false);
-      const response = await _fetchAssessments({
-        params: {
-          locationId,
-          formId,
-          startDate,
-          endDate,
-          userId,
-          cityId,
-          broadUnitId,
-          intermediateUnitId,
-          narrowUnitId,
-          finalizationStatus: finalizationStatus,
-        },
-      });
-      assessments = response.data?.assessments ?? [];
-    }
-
-    const formattedAssessmentsPromises =
-      await formatAssessmentsWithUnsavedFilling(assessments);
-    if (formattedAssessmentsPromises) {
-      const formattedAssessments = await Promise.all(
-        formattedAssessmentsPromises,
-      );
-      setAssessments(formattedAssessments);
-    } else {
-      setAssessments([]);
-    }
-    setIsLoading(false);
-  }, [
-    _fetchAssessments,
-    formatAssessmentsWithUnsavedFilling,
-    locationId,
-    formId,
-    startDate,
-    endDate,
-    userId,
-    cityId,
-    broadUnitId,
-    intermediateUnitId,
-    narrowUnitId,
-    finalizationStatus,
-  ]);
+    void fetchAssessments(nextPageRef.current);
+  }, [fetchAssessments]);
 
   useEffect(() => {
+    // This is executed only when the component mounts.
     void fetchForms({
       params: { formUse: "ASSESSMENT", finalizedOnly: true },
     });
@@ -332,8 +406,9 @@ const AssessmentsClient = () => {
   }, [fetchAssessmentUsers, fetchForms]);
 
   useEffect(() => {
+    // This is executed after every filter change.
     const fetch = async () => {
-      await fetchAssessments();
+      await fetchAssessments(1);
     };
     void fetch();
   }, [fetchAssessments]);
@@ -412,17 +487,16 @@ const AssessmentsClient = () => {
         <div
           className={`${isMobileView ? "basis-full" : "basis-3/5"} overflow-auto`}
         >
-          {isLoading ?
-            <CSkeletonGroup quantity={5} height={120} />
-          : <AssessmentsList
-              assessments={assessments}
-              hasSQLiteAssessments={hasSQLiteAssessments}
-              handleVisibilityChange={handleVisibilityChange}
-              fetchAssessments={() => {
-                void fetchAssessments();
-              }}
-            />
-          }
+          <AssessmentsList
+            assessments={assessments}
+            hasSQLiteAssessments={hasSQLiteAssessments}
+            handleVisibilityChange={handleVisibilityChange}
+            isLoadingMore={isLoadingMore}
+            onNearScrollEnd={loadMoreAssessments}
+            fetchAssessments={() => {
+              void fetchAssessments(1);
+            }}
+          />
         </div>
 
         <AssessmentsFilterSidebar
