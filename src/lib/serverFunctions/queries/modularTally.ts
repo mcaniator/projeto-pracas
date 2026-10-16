@@ -71,6 +71,8 @@ export const fetchModularTallysParamsSchema = z.object({
   broadUnitId: z.coerce.number().optional(),
   cityId: z.coerce.number().optional(),
   finalizationStatus: z.coerce.number().optional(),
+  page: z.coerce.number().int().positive(),
+  itemsPerPage: z.coerce.number().int().positive().max(100),
 });
 
 export type FetchModularTallysParams = z.infer<
@@ -111,7 +113,9 @@ export const fetchModularTallys = async (
           broadAdministrativeUnitId: params.broadUnitId,
         },
       },
-      orderBy: { startDate: "desc" },
+      orderBy: [{ startDate: "desc" }, { id: "desc" }],
+      skip: (params.page - 1) * params.itemsPerPage,
+      take: params.itemsPerPage + 1,
       select: {
         id: true,
         startDate: true,
@@ -137,10 +141,12 @@ export const fetchModularTallys = async (
         },
       },
     });
+    const hasMore = modularTallys.length > params.itemsPerPage;
+    const slicedModularTallys = modularTallys.slice(0, params.itemsPerPage);
 
     return {
       responseInfo: { statusCode: 200 } as APIResponseInfo,
-      data: { modularTallys },
+      data: { modularTallys: slicedModularTallys, hasMore },
     };
   } catch {
     return {
@@ -148,7 +154,7 @@ export const fetchModularTallys = async (
         statusCode: 500,
         message: "Erro ao consultar contagens!",
       } as APIResponseInfo,
-      data: { modularTallys: [] },
+      data: { modularTallys: [], hasMore: false },
     };
   }
 };

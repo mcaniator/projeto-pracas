@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  fetchModularTallyDraft,
+  fetchModularTallyDraftIds,
+} from "@/app/admin/modularTally/details/modularTallyDraft";
 import ModularTallyCreationDialog from "@/app/admin/tallys/modularTallyCreation/modularTallyCreationDialog";
 import ModularTallysFilterSidebar from "@/app/admin/tallys/modularTallysFilterSidebar";
 import ModularTallysList from "@/app/admin/tallys/modularTallysList";
@@ -18,8 +22,17 @@ import type {
 } from "@/lib/serverFunctions/queries/modularTally";
 import { IconFilter, IconPlus } from "@tabler/icons-react";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { GrGroup } from "react-icons/gr";
+
+const MODULAR_TALLYS_PER_PAGE = 100;
 
 export type ModularTallysFilterType =
   | "LOCATION_ID"
@@ -33,12 +46,25 @@ export type ModularTallysFilterType =
   | "CITY_ID"
   | "FINALIZATION_STATUS";
 
+export type ModularTallyWithSyncStatus =
+  FetchModularTallysResponse["modularTallys"][number] & {
+    hasPendingSaveFromDraft: boolean;
+  };
+
 const ModularTallysClient = () => {
   const searchParams = useSearchParams();
   const [isMobileView, setIsMobileView] = useState(true);
+  const unsavedModularTallyIdsPromiseRef = useRef<Promise<Set<number>> | null>(
+    null,
+  );
+  const nextPageRef = useRef(1);
+  const isLoadingMoreRef = useRef(false);
+  const hasMoreModularTallysRef = useRef(false);
+  const lastQueryVersionRef = useRef(0); // Detects when the query params have changed. This is used to prevent a previous query from being used after a new fetch is called.
   const [modularTallys, setModularTallys] = useState<
-    FetchModularTallysResponse["modularTallys"]
+    ModularTallyWithSyncStatus[]
   >([]);
+  const [isLoadingMore, setIsLoadingMore] = useState(true);
   const [users, setUsers] = useState<FetchModularTallyUsersResponse["users"]>(
     [],
   );
@@ -47,7 +73,6 @@ const ModularTallysClient = () => {
   >([]);
   const [openCreationDialog, setOpenCreationDialog] = useState(false);
   const [openFiltersDialog, setOpenFiltersDialog] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [locationId, setLocationId] = useState<number>();
   const [modularTallyTemplateId, setModularTallyTemplateId] =
     useState<number>();
@@ -60,7 +85,7 @@ const ModularTallysClient = () => {
   const [narrowUnitId, setNarrowUnitId] = useState<number>();
   const [finalizationStatus, setFinalizationStatus] = useState<number>();
 
-  const [fetchModularTallys] = useFetchModularTallys();
+  const [_fetchModularTallys] = useFetchModularTallys();
   const [fetchModularTallyUsers, isLoadingUsers] = useFetchModularTallyUsers({
     callbacks: {
       onSuccess: ({ data }) => setUsers(data?.users ?? []),
@@ -74,6 +99,54 @@ const ModularTallysClient = () => {
         },
       },
     });
+
+  const onNoCitiesFound = useCallback(() => {
+    isLoadingMoreRef.current = false;
+    setIsLoadingMore(false);
+  }, []);
+
+  const getUnsavedModularTallyIds = useCallback(async () => {
+    // Drafts are fetched only when the page loads. They are not fetched again when the filters are changed.
+    if (!unsavedModularTallyIdsPromiseRef.current) {
+      unsavedModularTallyIdsPromiseRef.current = fetchModularTallyDraftIds();
+    }
+
+    return unsavedModularTallyIdsPromiseRef.current;
+  }, []);
+
+  const formatModularTallysWithUnsavedFilling = useCallback(
+    async (modularTallys: FetchModularTallysResponse["modularTallys"]) => {
+      const unsavedModularTallyIds = await getUnsavedModularTallyIds();
+      return modularTallys.map(async (modularTally) => {
+        if (unsavedModularTallyIds.has(modularTally.id)) {
+          //If the tally has unsynced filling, we need to fetch some metadata from draft and insert the local unsynced data into the tally
+          const localModularTally = await fetchModularTallyDraft(
+            modularTally.id,
+          );
+          if (!localModularTally) {
+            return {
+              ...modularTally,
+              hasPendingSaveFromDraft: false,
+            };
+          }
+
+          return {
+            ...modularTally,
+            startDate: localModularTally.startDate,
+            endDate: localModularTally.endDate,
+            isFinalized: localModularTally.isFinalized,
+            hasPendingSaveFromDraft: true,
+          };
+        }
+
+        return {
+          ...modularTally,
+          hasPendingSaveFromDraft: false,
+        };
+      });
+    },
+    [getUnsavedModularTallyIds],
+  );
 
   const handleFilterChange = ({
     type,
@@ -156,69 +229,154 @@ const ModularTallysClient = () => {
     }
   };
 
-  const loadModularTallys = useCallback(async () => {
-    if (
-      !locationId &&
-      !modularTallyTemplateId &&
-      !userId &&
-      !startDate &&
-      !endDate &&
-      !cityId &&
-      !broadUnitId &&
-      !intermediateUnitId &&
-      !narrowUnitId &&
-      !finalizationStatus
-    ) {
-      setModularTallys([]);
+  const fetchModularTallys = useCallback(
+    async (page: number) => {
+      const append = page > 1;
+      if (!append) {
+        lastQueryVersionRef.current++;
+      }
+      const queryVersion = lastQueryVersionRef.current;
+
+      if (
+        !locationId &&
+        !modularTallyTemplateId &&
+        !userId &&
+        !startDate &&
+        !endDate &&
+        !cityId &&
+        !broadUnitId &&
+        !intermediateUnitId &&
+        !narrowUnitId &&
+        !finalizationStatus
+      ) {
+        setModularTallys([]);
+        hasMoreModularTallysRef.current = false;
+        isLoadingMoreRef.current = false;
+        setIsLoadingMore(false);
+        return;
+      }
+
+      if (startDate) {
+        if (Number.isNaN(startDate.getTime())) {
+          hasMoreModularTallysRef.current = false;
+          isLoadingMoreRef.current = false;
+          setIsLoadingMore(false);
+          return;
+        }
+      }
+      if (endDate) {
+        if (Number.isNaN(endDate.getTime())) {
+          hasMoreModularTallysRef.current = false;
+          isLoadingMoreRef.current = false;
+          setIsLoadingMore(false);
+          return;
+        }
+      }
+
+      if (append && isLoadingMoreRef.current) {
+        return;
+      }
+
+      isLoadingMoreRef.current = true;
+      setIsLoadingMore(true);
+      if (!append) {
+        nextPageRef.current = 1;
+        hasMoreModularTallysRef.current = false;
+      }
+
+      try {
+        let fetchedModularTallys: FetchModularTallysResponse["modularTallys"] =
+          [];
+        let hasMore = false;
+        const response = await _fetchModularTallys({
+          params: {
+            locationId,
+            modularTallyTemplateId,
+            startDate,
+            endDate,
+            userId,
+            cityId,
+            broadUnitId,
+            intermediateUnitId,
+            narrowUnitId,
+            finalizationStatus,
+            page,
+            itemsPerPage: MODULAR_TALLYS_PER_PAGE,
+          },
+        });
+        fetchedModularTallys = response.data?.modularTallys ?? [];
+        hasMore = response.data?.hasMore ?? false;
+
+        const formattedModularTallysPromises =
+          await formatModularTallysWithUnsavedFilling(fetchedModularTallys);
+        const formattedModularTallys = await Promise.all(
+          formattedModularTallysPromises,
+        );
+        if (queryVersion !== lastQueryVersionRef.current) {
+          return;
+        }
+
+        setModularTallys((currentModularTallys) => {
+          if (!append) {
+            return formattedModularTallys;
+          }
+
+          const currentModularTallyIds = new Set(
+            currentModularTallys.map((modularTally) => modularTally.id),
+          );
+          return [
+            ...currentModularTallys,
+            ...formattedModularTallys.filter(
+              (modularTally) => !currentModularTallyIds.has(modularTally.id),
+            ),
+          ];
+        });
+        hasMoreModularTallysRef.current = hasMore;
+        nextPageRef.current = page + 1;
+      } finally {
+        if (queryVersion === lastQueryVersionRef.current) {
+          isLoadingMoreRef.current = false;
+          setIsLoadingMore(false);
+        }
+      }
+    },
+    [
+      _fetchModularTallys,
+      broadUnitId,
+      cityId,
+      endDate,
+      finalizationStatus,
+      formatModularTallysWithUnsavedFilling,
+      intermediateUnitId,
+      locationId,
+      modularTallyTemplateId,
+      narrowUnitId,
+      startDate,
+      userId,
+    ],
+  );
+
+  const loadMoreModularTallys = useCallback(() => {
+    if (!hasMoreModularTallysRef.current || isLoadingMoreRef.current) {
       return;
     }
 
-    if (
-      (startDate && Number.isNaN(startDate.getTime())) ||
-      (endDate && Number.isNaN(endDate.getTime()))
-    ) {
-      return;
-    }
-
-    setIsLoading(true);
-    const response = await fetchModularTallys({
-      params: {
-        locationId,
-        modularTallyTemplateId,
-        startDate,
-        endDate,
-        userId,
-        cityId,
-        broadUnitId,
-        intermediateUnitId,
-        narrowUnitId,
-        finalizationStatus,
-      },
-    });
-    setModularTallys(response.data?.modularTallys ?? []);
-    setIsLoading(false);
-  }, [
-    broadUnitId,
-    cityId,
-    endDate,
-    fetchModularTallys,
-    finalizationStatus,
-    intermediateUnitId,
-    locationId,
-    modularTallyTemplateId,
-    narrowUnitId,
-    startDate,
-    userId,
-  ]);
+    void fetchModularTallys(nextPageRef.current);
+  }, [fetchModularTallys]);
 
   useEffect(() => {
+    // This is executed only when the component mounts.
     void fetchModularTallyUsers();
     void fetchModularTallyTemplates({ params: { finalizedOnly: true } });
   }, [fetchModularTallyTemplates, fetchModularTallyUsers]);
 
   useEffect(() => {
-    void loadModularTallys();
-  }, [loadModularTallys]);
+    // This is executed after every filter change.
+    const fetch = async () => {
+      await fetchModularTallys(1);
+    };
+    void fetch();
+  }, [fetchModularTallys]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -289,15 +447,17 @@ const ModularTallysClient = () => {
         <div
           className={`${isMobileView ? "basis-full" : "basis-3/5"} overflow-auto`}
         >
-          {isLoading ?
-            <CSkeletonGroup quantity={5} height={120} />
-          : <ModularTallysList modularTallys={modularTallys} />}
+          <ModularTallysList
+            modularTallys={modularTallys}
+            isLoadingMore={isLoadingMore}
+            onNearScrollEnd={loadMoreModularTallys}
+          />
         </div>
         <Suspense fallback={<CSkeletonGroup quantity={5} />}>
           <ModularTallysFilterSidebar
             openDialog={openFiltersDialog}
             isDialog={isMobileView}
-            onNoCitiesFound={() => setIsLoading(false)}
+            onNoCitiesFound={onNoCitiesFound}
             onCloseDialog={() => setOpenFiltersDialog(false)}
             defaultLocationId={
               searchParams.get("locationId") ?

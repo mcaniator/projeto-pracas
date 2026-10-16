@@ -1,31 +1,50 @@
 import CButton from "@/components/ui/cButton";
 import CIconChip from "@/components/ui/cIconChip";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
-import type { FetchModularTallysResponse } from "@/lib/serverFunctions/queries/modularTally";
-import { Chip, Divider } from "@mui/material";
+import { Chip, CircularProgress, Divider } from "@mui/material";
 import {
   IconCalendar,
   IconClipboardList,
+  IconDeviceFloppy,
   IconExternalLink,
   IconFilePencil,
   IconUser,
 } from "@tabler/icons-react";
 import { Virtuoso } from "react-virtuoso";
 
+import type { ModularTallyWithSyncStatus } from "./modularTallysClient";
+
 const ModularTallysList = ({
   modularTallys,
+  isLoadingMore,
+  onNearScrollEnd,
 }: {
-  modularTallys: FetchModularTallysResponse["modularTallys"];
+  modularTallys: ModularTallyWithSyncStatus[];
+  isLoadingMore: boolean;
+  onNearScrollEnd: () => void;
 }) => {
   return (
     <div className="flex h-full flex-col gap-1">
-      {modularTallys.length === 0 && (
+      {modularTallys.length === 0 && !isLoadingMore && (
         <div className="text-center text-xl font-semibold">
           Nenhuma contagem corresponde aos filtros!
         </div>
       )}
       <Virtuoso
         data={modularTallys}
+        rangeChanged={({ endIndex }) => {
+          if (endIndex >= modularTallys.length - 10) {
+            onNearScrollEnd();
+          }
+        }}
+        components={{
+          Footer: () =>
+            isLoadingMore ?
+              <div className="flex justify-center py-2">
+                <CircularProgress size={28} />
+              </div>
+            : null,
+        }}
         style={{ height: "100%", overflowX: "hidden", minHeight: "300px" }}
         itemContent={(_, modularTally) => (
           <div className="pb-4" key={modularTally.id}>
@@ -46,6 +65,18 @@ const ModularTallysList = ({
                   />
                 </span>
                 <Divider />
+                {modularTally.hasPendingSaveFromDraft && (
+                  <>
+                    <span className="flex items-center text-base sm:text-xl">
+                      <Chip
+                        icon={<IconDeviceFloppy />}
+                        label="Contagem não salva!"
+                        color="error"
+                      />
+                    </span>
+                    <Divider />
+                  </>
+                )}
                 <span className="flex items-center text-base sm:text-xl">
                   <CIconChip
                     icon={<IconClipboardList />}
@@ -70,6 +101,7 @@ const ModularTallysList = ({
                 <span className="flex items-center gap-2 text-base sm:text-xl">
                   <CButton
                     square
+                    loadingOnClick
                     href={`/admin/modularTally/details?modularTallyId=${modularTally.id}`}
                   >
                     <IconExternalLink />

@@ -59,7 +59,7 @@ const AssessmentsClient = () => {
   const nextPageRef = useRef(1);
   const isLoadingMoreRef = useRef(false);
   const hasMoreAssessmentsRef = useRef(false);
-  const lastQueryVersionRef = useRef(0);
+  const lastQueryVersionRef = useRef(0); // Detects when the query params have changed. This is used to prevent a previous query from being used after a new fetch is called.
   const [assessments, setAssessments] = useState<AssessmentWithSyncStatus[]>(
     [],
   );
@@ -120,7 +120,7 @@ const AssessmentsClient = () => {
       const unsavedAssessmentIds = await getUnsavedAssessmentIds();
       return assessments.map(async (assessment) => {
         if (unsavedAssessmentIds.has(assessment.id)) {
-          //If the assessment has unsynced filling, we need to fetch it from draft and insert the local unsynced data into the assessment
+          //If the assessment has unsynced filling, we need to fetch some metadata from draft and insert the local unsynced data into the assessment
           const localAssessment = await fetchAssessmentResponsesDraft(
             assessment.id,
           );
@@ -275,7 +275,7 @@ const AssessmentsClient = () => {
       }
 
       if (startDate) {
-        if (isNaN(startDate.getTime())) {
+        if (Number.isNaN(startDate.getTime())) {
           hasMoreAssessmentsRef.current = false;
           isLoadingMoreRef.current = false;
           setIsLoadingMore(false);
@@ -283,7 +283,7 @@ const AssessmentsClient = () => {
         }
       }
       if (endDate) {
-        if (isNaN(endDate.getTime())) {
+        if (Number.isNaN(endDate.getTime())) {
           hasMoreAssessmentsRef.current = false;
           isLoadingMoreRef.current = false;
           setIsLoadingMore(false);
