@@ -490,7 +490,7 @@ const LocationRegisterDialog = ({
       fullScreen
     >
       <div className="flex h-full min-h-0 flex-col gap-1">
-        <Stepper activeStep={step - 1}>
+        <Stepper activeStep={step - 1} className="py-2">
           {steps.map((label, index) => (
             <Step key={index}>
               <StepLabel>{label}</StepLabel>
