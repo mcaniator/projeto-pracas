@@ -43,8 +43,7 @@ const SaveFormDialog = ({
         Formulários salvos como finalizados não poderão mais ser editados.
       </div>
       <div>
-        Apenas formulários salvos como finalizados podem ser utilizados para
-        avaliações.
+        Apenas formulários salvos como finalizados podem ser utilizados.
       </div>
     </CDialog>
   );

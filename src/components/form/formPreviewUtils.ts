@@ -21,6 +21,7 @@ const getInitialQuestionValue = (
     return question.optionType === OptionTypes.CHECKBOX ? [] : null;
   }
   if (question.questionType === "BOOLEAN") return false;
+  if (question.questionType === "COUNTER") return 0;
   if (
     question.characterType === QuestionResponseCharacterTypes.NUMBER ||
     question.characterType === QuestionResponseCharacterTypes.PERCENTAGE ||

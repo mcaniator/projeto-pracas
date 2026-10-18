@@ -125,6 +125,9 @@ export const getFormSubmissionData = async ({
       } else {
         responsesFormValues[question.questionId] = response ?? null;
       }
+    } else if (question.questionType === "COUNTER") {
+      responsesFormValues[question.questionId] =
+        response ? Number(response) : 0;
     } else if (question.questionType === "OPTIONS") {
       if (question.optionType === "RADIO") {
         const optionResponse = optionResponses[0];

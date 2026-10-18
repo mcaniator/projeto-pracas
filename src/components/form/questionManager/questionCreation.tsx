@@ -441,6 +441,8 @@ const QuestionCreation = ({
         (step === 1 &&
           (hasAssociatedGeometry === null ||
             selectedIconKey === null ||
+            characterType === null ||
+            type === null ||
             (characterType === "SCALE" &&
               (minValue === null || maxValue === null)))) ||
         (step === 2 && !pendingFormData)

@@ -231,7 +231,7 @@ const ModularTallyClient = ({
         await deleteModularTallyDraft(modularTallyDetails.id);
         setPendingSave(false);
         setDraftUpdatedAt(undefined);
-      } catch {
+      } catch (e) {
         enqueueSnackbar("Erro ao remover dados locais!", {
           variant: "error",
         });

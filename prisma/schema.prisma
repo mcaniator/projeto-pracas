@@ -59,6 +59,7 @@ enum QuestionTypes {
   WRITTEN
   OPTIONS
   BOOLEAN
+  COUNTER
 
   @@map("question_types")
 }

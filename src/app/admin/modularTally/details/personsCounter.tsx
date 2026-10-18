@@ -2,12 +2,12 @@
 
 import CButton from "@/components/ui/cButton";
 import CCheckbox from "@/components/ui/cCheckbox";
+import CCounterButtons from "@/components/ui/cCounterButtons";
 import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
 import CPersonCharacteristicLegend from "@/components/ui/personCharacteristic/cPersonCharacteristicLegend";
 import type { GetModularTallySubmissionDataResult } from "@/lib/serverFunctions/queries/modularTally";
 import { Paper } from "@mui/material";
-import { IconMoodPlus, IconTrash } from "@tabler/icons-react";
 import { enqueueSnackbar } from "notistack";
 import { useMemo, useState } from "react";
 import { GrGroup } from "react-icons/gr";
@@ -44,38 +44,13 @@ const CounterButton = ({
       <CDynamicIcon iconKey={characteristic.personCharacteristic.iconKey} />
       {characteristic.personCharacteristic.name}
     </h6>
-    <div className="flex w-20 flex-col gap-1">
-      <CButton
-        disabled={readOnly}
-        sx={{
-          width: "100%",
-          fontSize: "20px",
-          backgroundColor: characteristic.personCharacteristic.color,
-          "&:hover": {
-            backgroundColor: characteristic.personCharacteristic.color,
-          },
-        }}
-        onClick={onIncrement}
-      >
-        {`+ ${count}`}
-      </CButton>
-      <CButton
-        disabled={readOnly || count === 0}
-        sx={{
-          py: 0,
-          width: "100%",
-          fontSize: "20px",
-          height: "24px",
-          backgroundColor: characteristic.personCharacteristic.color,
-          "&:hover": {
-            backgroundColor: characteristic.personCharacteristic.color,
-          },
-        }}
-        onClick={onDecrement}
-      >
-        -
-      </CButton>
-    </div>
+    <CCounterButtons
+      count={count}
+      readOnly={readOnly}
+      color={characteristic.personCharacteristic.color}
+      onIncrement={onIncrement}
+      onDecrement={onDecrement}
+    />
   </div>
 );
 
@@ -186,11 +161,7 @@ const PersonsCounter = ({
       backgroundColor: personWasAdded ? "#43a047" : "#d32f2f",
       node: (
         <div className="flex items-center gap-2">
-          <span>
-            {personWasAdded ?
-              <IconMoodPlus />
-            : <IconTrash />}
-          </span>
+          <span>{personWasAdded ? "+ 1" : "- 1"}</span>
           <div className="flex flex-wrap gap-1">
             {characteristics.map((characteristic) => (
               <span

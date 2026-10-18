@@ -74,6 +74,7 @@ const CategoryDeletionDialog = ({
       open={open}
       onClose={handleClose}
       confirmChildren={<>Excluir</>}
+      confirmColor="error"
       title="Excluir categoria"
       subtitle={categoryName}
       confirmLoading={isPending}

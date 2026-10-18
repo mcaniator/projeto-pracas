@@ -34,7 +34,8 @@ const _questionSubmit = async (
 }> => {
   const formData = request.data!;
   const questionType = formData.get("questionType");
-  const questionCharacterType = formData.get("characterType");
+  const questionCharacterType =
+    questionType === "COUNTER" ? "NUMBER" : formData.get("characterType");
   const notes = formData.get("notes") as string;
   const iconKey = formData.get("iconKey");
   const isPublic = formData.get("isPublic") === "true";
@@ -54,11 +55,12 @@ const _questionSubmit = async (
 
   switch (questionType) {
     case "WRITTEN":
-    case "BOOLEAN": {
-      let writtenOrBooleanQuestionParsed;
+    case "BOOLEAN":
+    case "COUNTER": {
+      let nonOptionsQuestionParsed;
 
       try {
-        writtenOrBooleanQuestionParsed = questionSchema.parse({
+        nonOptionsQuestionParsed = questionSchema.parse({
           formUse: formData.get("formUse"),
           name: formData.get("name"),
           iconKey: iconKey,
@@ -103,9 +105,7 @@ const _questionSubmit = async (
 
       try {
         if (
-          !(await isSupportedDynamicIconKey(
-            writtenOrBooleanQuestionParsed.iconKey,
-          ))
+          !(await isSupportedDynamicIconKey(nonOptionsQuestionParsed.iconKey))
         ) {
           return {
             responseInfo: {
@@ -117,7 +117,7 @@ const _questionSubmit = async (
         }
         await prisma.$transaction(async (prisma) => {
           await prisma.question.create({
-            data: writtenOrBooleanQuestionParsed,
+            data: nonOptionsQuestionParsed,
           });
         });
         return {
@@ -323,7 +323,8 @@ const _questionUpdate = async (
   try {
     const questionId = Number(formData.get("questionId"));
     const questionType = formData.get("questionType");
-    const questionCharacterType = formData.get("characterType");
+    const questionCharacterType =
+      questionType === "COUNTER" ? "NUMBER" : formData.get("characterType");
     const notes = (formData.get("notes") as string | null) ?? "";
     const minValue = Number(formData.get("minValue"));
     const maxValue = Number(formData.get("maxValue"));
