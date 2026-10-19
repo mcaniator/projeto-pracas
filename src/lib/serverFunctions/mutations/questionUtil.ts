@@ -326,11 +326,23 @@ const _questionUpdate = async (
     const questionCharacterType =
       questionType === "COUNTER" ? "NUMBER" : formData.get("characterType");
     const notes = (formData.get("notes") as string | null) ?? "";
-    const minValue = Number(formData.get("minValue"));
-    const maxValue = Number(formData.get("maxValue"));
     const iconKey = formData.get("iconKey");
     const isPublic = formData.get("isPublic") === "true";
     const rawOptions = parseQuestionOptions(formData, questionId);
+
+    const parseScaleBounds = () => {
+      const minValue = Number(formData.get("minValue"));
+      const maxValue = Number(formData.get("maxValue"));
+      if (!Number.isFinite(minValue) || !Number.isFinite(maxValue)) {
+        return { minValue: null, maxValue: null };
+      }
+      if (minValue >= maxValue) {
+        return { minValue: null, maxValue: null };
+      }
+      return { minValue, maxValue };
+    };
+
+    const { minValue, maxValue } = parseScaleBounds();
 
     if (!Number.isInteger(questionId) || questionId <= 0) {
       return { responseInfo: { statusCode: 400, message: "Dados inválidos!" } };
