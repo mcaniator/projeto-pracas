@@ -249,10 +249,11 @@ const ModularTallysClient = () => {
         !narrowUnitId &&
         !finalizationStatus
       ) {
+        // The initial state for all filters is null/undefined, so we avoid fetching data when there's no filter applied.
         setModularTallys([]);
         hasMoreModularTallysRef.current = false;
         isLoadingMoreRef.current = false;
-        setIsLoadingMore(false);
+        // Here we do not set isLoadingMore to false, because we want to keep the loading indicator visible while the cities options are being fetched.
         return;
       }
 

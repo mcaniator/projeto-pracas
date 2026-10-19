@@ -270,7 +270,7 @@ const AssessmentsClient = () => {
         setAssessments([]);
         hasMoreAssessmentsRef.current = false;
         isLoadingMoreRef.current = false;
-        setIsLoadingMore(false);
+        // Here we do not set isLoadingMore to false, because we want to keep the loading indicator visible while the cities options are being fetched.
         return;
       }
 
