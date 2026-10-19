@@ -34,7 +34,6 @@ export const deleteModularTallyDraft = async (modularTallyId: number) => {
     // TODO: implement SQLite draft.
     return;
   }
-  console.log("deleteModularTallyDraft", modularTallyId);
   await dexieDb.modularTallyDrafts.delete(modularTallyId);
 };
 

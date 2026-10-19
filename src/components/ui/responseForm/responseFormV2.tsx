@@ -35,6 +35,7 @@ import {
   useEffect,
   useImperativeHandle,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { type Control, useForm } from "react-hook-form";
@@ -179,6 +180,39 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         mode: "onChange",
         defaultValues: defaultResponseFormValues,
       });
+    const changeSourceRef = useRef<ResponseFormChangeSource>("reset");
+    const serializeValue = useCallback(
+      (questionId: string, value: FormValues[string] | undefined) => {
+        const normalizedValue = value === undefined ? null : value;
+
+        if (dayjs.isDayjs(normalizedValue)) {
+          const format = dateFormatByQuestionId.get(questionId);
+          return format && normalizedValue.isValid() ?
+              normalizedValue.format(format)
+            : null;
+        }
+
+        return normalizedValue as SerializedResponseQuestionValue;
+      },
+      [dateFormatByQuestionId],
+    );
+    const serializeAllValues = useCallback(
+      (values: FormValues): SerializedFormValues => {
+        const serializedValues: SerializedFormValues = {};
+        Object.entries(values).forEach(([questionId, value]) => {
+          serializedValues[questionId] = serializeValue(questionId, value);
+        });
+        return serializedValues;
+      },
+      [serializeValue],
+    );
+    const serializedValuesRef = useRef(
+      serializeAllValues(defaultResponseFormValues),
+    );
+
+    const markUserChange = useCallback(() => {
+      changeSourceRef.current = "user";
+    }, []);
     const hasHeader = header !== undefined && header !== null;
     const hasFooter = footer !== undefined && footer !== null;
     const virtuosoComponents = useMemo(
@@ -237,6 +271,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
 
     const resetSerializedValues = useCallback(
       (values: SerializedFormValues) => {
+        changeSourceRef.current = "reset";
         reset(deserializeResponseFormValues(values, categories));
       },
       [categories, reset],
@@ -268,45 +303,41 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     );
 
     useEffect(() => {
-      const serializeValue = (
-        questionId: string,
-        value: FormValues[string] | undefined,
-      ) => {
-        const normalizedValue = value === undefined ? null : value;
-
-        if (dayjs.isDayjs(normalizedValue)) {
-          const format = dateFormatByQuestionId.get(questionId);
-          return format && normalizedValue.isValid() ?
-              normalizedValue.format(format)
-            : null;
-        }
-
-        return normalizedValue as SerializedResponseQuestionValue;
-      };
-
-      const notifyValuesChange = (
-        values: FormValues,
-        source: ResponseFormChangeSource,
-      ) => {
-        const serializedValues: SerializedFormValues = {};
-        Object.entries(values).forEach(([questionId, value]) => {
-          serializedValues[questionId] = serializeValue(questionId, value);
-        });
-        onValuesChange?.({
-          values,
-          serializedValues,
-          source,
-        });
-      };
-
-      notifyValuesChange(getValues(), "reset");
-      return subscribe({
+      const unsubscribe = subscribe({
         formState: { values: true },
         callback: ({ values, name }) => {
-          notifyValuesChange(values, name === undefined ? "reset" : "user");
+          if (name === undefined) {
+            // If name is undefined, this is a reset, so we need to serialize all values
+            serializedValuesRef.current = serializeAllValues(values);
+          } else {
+            serializedValuesRef.current[name] = serializeValue(
+              name,
+              values[name],
+            );
+          }
+
+          // Notify the parent with the new values in their unserialized and serialized format
+          onValuesChange?.({
+            values,
+            serializedValues: serializedValuesRef.current,
+            source: changeSourceRef.current,
+          });
         },
       });
-    }, [dateFormatByQuestionId, getValues, onValuesChange, subscribe]);
+
+      // Trigger the initial value notification
+      changeSourceRef.current = "reset";
+      reset(getValues());
+
+      return unsubscribe;
+    }, [
+      getValues,
+      onValuesChange,
+      reset,
+      serializeAllValues,
+      serializeValue,
+      subscribe,
+    ]);
 
     const handleCategoryExpandedChange = useCallback(
       (categoryId: number, expanded: boolean) => {
@@ -404,6 +435,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
                   locationPolygonGeoJson={locationPolygonGeoJson}
                   onResponseGeometryChange={handleResponseGeometryChange}
                   control={control}
+                  onUserChange={markUserChange}
                 />
               </div>
             )}
@@ -442,6 +474,7 @@ type SharedQuestionProps = {
   onResponseGeometryChange: (params: ResponseFormGeometry) => void;
   control: Control<FormValues, unknown, FormValues>;
   readOnly: boolean;
+  onUserChange: () => void;
 };
 
 const Category = ({
@@ -453,6 +486,7 @@ const Category = ({
   onResponseGeometryChange,
   control,
   readOnly,
+  onUserChange,
   expanded,
   onExpandedChange,
   expandedSubcategoryIds,
@@ -487,6 +521,7 @@ const Category = ({
               onResponseGeometryChange,
               control,
               readOnly,
+              onUserChange,
             }}
             subcategory={child}
             expanded={expandedSubcategoryIds.has(child.subcategoryId)}
@@ -502,6 +537,7 @@ const Category = ({
               onResponseGeometryChange,
               control,
               readOnly,
+              onUserChange,
             }}
             question={child}
           />,
@@ -548,6 +584,7 @@ const Question = ({
   onResponseGeometryChange,
   control,
   readOnly,
+  onUserChange,
 }: SharedQuestionProps & { question: FormSubmissionQuestionItem }) => {
   const calculation = calculationByQuestionId.get(question.questionId);
 
@@ -573,6 +610,7 @@ const Question = ({
         calculationExpression={calculation?.expression}
         control={control}
         finalized={readOnly}
+        onUserChange={onUserChange}
       />
     </ResponseFormQuestionCard>
   );
