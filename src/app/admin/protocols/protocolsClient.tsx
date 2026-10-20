@@ -15,7 +15,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { IconClipboard } from "@tabler/icons-react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 type ProtocolType = "FORMS" | "TALLYS" | "BEHAVIORAL_MAPS";
@@ -32,8 +32,16 @@ const protocolTypeByQueryParam = {
   behavioralMap: "BEHAVIORAL_MAPS",
 } as const satisfies Record<string, ProtocolType>;
 
+const queryParamByProtocolType: Record<ProtocolType, string> = {
+  FORMS: "form",
+  TALLYS: "tally",
+  BEHAVIORAL_MAPS: "behavioralMap",
+};
+
 const ProtocolsClient = () => {
   const theme = useTheme();
+  const pathname = usePathname();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const initialProtocolType =
@@ -48,6 +56,12 @@ const ProtocolsClient = () => {
 
   const selectProtocolType = (nextProtocolType: ProtocolType) => {
     setProtocolType(nextProtocolType);
+    const nextSearchParams = new URLSearchParams(searchParams.toString());
+    nextSearchParams.set("type", queryParamByProtocolType[nextProtocolType]);
+    router.replace(`${pathname}?${nextSearchParams.toString()}`, {
+      scroll: false,
+    });
+
     setVisitedProtocolTypes((currentTypes) => {
       if (currentTypes.has(nextProtocolType)) return currentTypes;
 
