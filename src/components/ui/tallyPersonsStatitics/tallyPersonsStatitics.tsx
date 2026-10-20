@@ -108,6 +108,7 @@ const TallyPersonsStatitics = ({
                   ],
                 }}
                 options={{
+                  animation: false,
                   indexAxis: "y",
                   maintainAspectRatio: false,
                   responsive: true,
