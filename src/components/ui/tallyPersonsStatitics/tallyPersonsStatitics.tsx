@@ -1,145 +1,46 @@
 "use client";
 
-import {
-  BarElement,
-  CategoryScale,
-  Chart as ChartJS,
-  LinearScale,
-  Tooltip,
-} from "chart.js";
-import CPersonCharacteristicGroupTypeChip from "@/components/ui/personCharacteristic/cPersonCharacteristicGroupTypeChip";
-import ChartDataLabels from "chartjs-plugin-datalabels";
-import { useMemo } from "react";
-import { Bar } from "react-chartjs-2";
+import CTabs from "@/components/ui/cTabs";
+import { Tab } from "@mui/material";
+import { useState } from "react";
+import type { TallyPersonsStatiticsProps } from "./tallyPersonsStatiticsTypes";
+import TallyPersonsStatiticsChart from "./tallyPersonsStatiticsChart";
+import TallyPersonsStatiticsChartPercentage from "./tallyPersonsStatiticsChartPercentage";
+import TallyPersonsStatiticsTables from "./tallyPersonsStatiticsTables";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Tooltip,
-  ChartDataLabels,
-);
+export type {
+  TallyPersonsStatiticsObservation,
+  TallyPersonsStatiticsProps,
+  TallyPersonsStatiticsStructure,
+} from "./tallyPersonsStatiticsTypes";
 
-export type TallyPersonsStatiticsObservation = {
-  quantity: number;
-  characteristics: { personCharacteristicId: number }[];
-};
+type TallyPersonsStatiticsTab = "charts" | "chartsPercentage" | "tables";
 
-export type TallyPersonsStatiticsStructure = {
-  tallyTemplateGroups: {
-    id: number;
-    personCharacteristicGroup: { title: string; isTagGroup: boolean };
-    characteristics: {
-      personCharacteristic: {
-        id: number;
-        name: string;
-        color: string;
-      };
-    }[];
-  }[];
-};
-
-export type TallyPersonsStatiticsProps = {
-  modularTallyTemplateStructure: TallyPersonsStatiticsStructure;
-  personObservations: TallyPersonsStatiticsObservation[];
-};
-
-const TallyPersonsStatitics = ({
-  modularTallyTemplateStructure,
-  personObservations,
-}: TallyPersonsStatiticsProps) => {
-  const quantityByCharacteristicId = useMemo(() => {
-    const quantities = new Map<number, number>();
-
-    personObservations.forEach((observation) => {
-      observation.characteristics.forEach(({ personCharacteristicId }) => {
-        quantities.set(
-          personCharacteristicId,
-          (quantities.get(personCharacteristicId) ?? 0) +
-            observation.quantity,
-        );
-      });
-    });
-
-    return quantities;
-  }, [personObservations]);
+const TallyPersonsStatitics = (props: TallyPersonsStatiticsProps) => {
+  const [selectedTab, setSelectedTab] =
+    useState<TallyPersonsStatiticsTab>("charts");
 
   return (
-    <div className="flex w-full flex-col gap-3">
-      {modularTallyTemplateStructure.tallyTemplateGroups.map((group) => {
-        const characteristics = group.characteristics;
-        const chartHeight = Math.max(180, characteristics.length * 48 + 64);
+    <div className="flex h-full min-h-0 flex-col">
+      <CTabs
+        value={selectedTab}
+        onChange={(_, value: TallyPersonsStatiticsTab) =>
+          setSelectedTab(value)
+        }
+        aria-label="Estatísticas de pessoas"
+      >
+        <Tab value="charts" label="Gráficos" />
+        <Tab value="chartsPercentage" label="Gráficos (%)" />
+        <Tab value="tables" label="Tabelas" />
+      </CTabs>
 
-        return (
-          <section
-            key={group.id}
-            className="rounded border border-gray-300 bg-slate-50 p-2"
-          >
-            <h3 className="mb-2 flex items-center gap-2 text-lg font-semibold">
-              {group.personCharacteristicGroup.title}
-              <CPersonCharacteristicGroupTypeChip
-                isTagGroup={group.personCharacteristicGroup.isTagGroup}
-              />
-            </h3>
-            <div style={{ height: chartHeight }}>
-              <Bar
-                data={{
-                  labels: characteristics.map(
-                    ({ personCharacteristic }) => personCharacteristic.name,
-                  ),
-                  datasets: [
-                    {
-                      data: characteristics.map(
-                        ({ personCharacteristic }) =>
-                          quantityByCharacteristicId.get(
-                            personCharacteristic.id,
-                          ) ?? 0,
-                      ),
-                      backgroundColor: characteristics.map(
-                        ({ personCharacteristic }) =>
-                          personCharacteristic.color,
-                      ),
-                      borderColor: characteristics.map(
-                        ({ personCharacteristic }) =>
-                          personCharacteristic.color,
-                      ),
-                      borderWidth: 1,
-                    },
-                  ],
-                }}
-                options={{
-                  animation: false,
-                  indexAxis: "y",
-                  maintainAspectRatio: false,
-                  responsive: true,
-                  plugins: {
-                    legend: { display: false },
-                    datalabels: {
-                      anchor: "end",
-                      align: "right",
-                      clamp: true,
-                      color: "black",
-                      font: { weight: "bold" },
-                      formatter: (value) => String(value),
-                    },
-                  },
-                  scales: {
-                    x: {
-                      beginAtZero: true,
-                      grace: "10%",
-                      ticks: { precision: 0 },
-                    },
-                    y: {
-                      grid: { display: false },
-                      ticks: { color: "black" },
-                    },
-                  },
-                }}
-              />
-            </div>
-          </section>
-        );
-      })}
+      <div className="min-h-0 flex-1 overflow-auto pt-2">
+        {selectedTab === "charts" && <TallyPersonsStatiticsChart {...props} />}
+        {selectedTab === "chartsPercentage" && (
+          <TallyPersonsStatiticsChartPercentage {...props} />
+        )}
+        {selectedTab === "tables" && <TallyPersonsStatiticsTables {...props} />}
+      </div>
     </div>
   );
 };
