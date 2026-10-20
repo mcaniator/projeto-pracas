@@ -550,6 +550,7 @@ export const createModularTallyTemplate = async (
       const sourceTemplate = await prisma.modularTallyTemplate.findUnique({
         where: { id: data.cloneModularTallyTemplateId },
         select: {
+          formId: true,
           tallyTemplateGroups: {
             select: {
               personCharacteristicGroupId: true,
@@ -578,7 +579,10 @@ export const createModularTallyTemplate = async (
 
       await prisma.$transaction(async (tx) => {
         const modularTallyTemplate = await tx.modularTallyTemplate.create({
-          data: { name: data.name },
+          data: {
+            name: data.name,
+            formId: sourceTemplate.formId,
+          },
           select: { id: true },
         });
 
