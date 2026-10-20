@@ -363,7 +363,7 @@ const FormManager = forwardRef<FormManagerRef, FormManagerProps>(
     ];
 
     return (
-      <div className="flex min-h-0 flex-1 flex-col gap-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 p-1">
         <div
           className={`flex items-center gap-2 ${title ? "justify-between" : "justify-end"}`}
         >
