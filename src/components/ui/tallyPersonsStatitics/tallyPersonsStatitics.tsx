@@ -7,6 +7,7 @@ import {
   LinearScale,
   Tooltip,
 } from "chart.js";
+import CPersonCharacteristicGroupTypeChip from "@/components/ui/personCharacteristic/cPersonCharacteristicGroupTypeChip";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import { useMemo } from "react";
 import { Bar } from "react-chartjs-2";
@@ -27,7 +28,7 @@ export type TallyPersonsStatiticsObservation = {
 export type TallyPersonsStatiticsStructure = {
   tallyTemplateGroups: {
     id: number;
-    personCharacteristicGroup: { title: string };
+    personCharacteristicGroup: { title: string; isTagGroup: boolean };
     characteristics: {
       personCharacteristic: {
         id: number;
@@ -74,8 +75,11 @@ const TallyPersonsStatitics = ({
             key={group.id}
             className="rounded border border-gray-300 bg-slate-50 p-2"
           >
-            <h3 className="mb-2 text-lg font-semibold">
+            <h3 className="mb-2 flex items-center gap-2 text-lg font-semibold">
               {group.personCharacteristicGroup.title}
+              <CPersonCharacteristicGroupTypeChip
+                isTagGroup={group.personCharacteristicGroup.isTagGroup}
+              />
             </h3>
             <div style={{ height: chartHeight }}>
               <Bar

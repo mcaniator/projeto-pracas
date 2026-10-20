@@ -1,3 +1,6 @@
+"use client";
+
+import ModularTallyResultDialog from "@/app/admin/tallys/modularTallyResultDialog";
 import CButton from "@/components/ui/cButton";
 import CIconChip from "@/components/ui/cIconChip";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
@@ -7,9 +10,11 @@ import {
   IconClipboardList,
   IconDeviceFloppy,
   IconExternalLink,
+  IconEye,
   IconFilePencil,
   IconUser,
 } from "@tabler/icons-react";
+import { useState } from "react";
 import { Virtuoso } from "react-virtuoso";
 
 import type { ModularTallyWithSyncStatus } from "./modularTallysClient";
@@ -23,6 +28,9 @@ const ModularTallysList = ({
   isLoadingMore: boolean;
   onNearScrollEnd: () => void;
 }) => {
+  const [selectedModularTallyToView, setSelectedModularTallyToView] =
+    useState<ModularTallyWithSyncStatus | null>(null);
+
   return (
     <div className="flex h-full flex-col gap-1">
       {modularTallys.length === 0 && !isLoadingMore && (
@@ -99,19 +107,37 @@ const ModularTallysList = ({
                 </span>
                 <Divider />
                 <span className="flex items-center gap-2 text-base sm:text-xl">
-                  <CButton
-                    square
-                    loadingOnClick
-                    href={`/admin/modularTally/details?modularTallyId=${modularTally.id}`}
-                  >
-                    <IconExternalLink />
-                    Acessar
-                  </CButton>
+                  {(
+                    modularTally.isFinalized &&
+                    !modularTally.hasPendingSaveFromDraft
+                  ) ?
+                    <CButton
+                      square
+                      onClick={() => {
+                        setSelectedModularTallyToView(modularTally);
+                      }}
+                    >
+                      <IconEye /> Resultados
+                    </CButton>
+                  : <CButton
+                      square
+                      loadingOnClick
+                      href={`/admin/modularTally/details?modularTallyId=${modularTally.id}`}
+                    >
+                      <IconExternalLink />
+                      Acessar
+                    </CButton>
+                  }
                 </span>
               </div>
             </div>
           </div>
         )}
+      />
+      <ModularTallyResultDialog
+        modularTally={selectedModularTallyToView}
+        open={!!selectedModularTallyToView}
+        onClose={() => setSelectedModularTallyToView(null)}
       />
     </div>
   );

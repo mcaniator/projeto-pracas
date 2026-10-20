@@ -353,7 +353,7 @@ export type FetchModularTallyDetailsResponse = NonNullable<
   Awaited<ReturnType<typeof fetchModularTallyDetails>>["data"]
 >;
 
-type ModularTallyLocationPolygon = {
+export type ModularTallyLocationPolygon = {
   st_asgeojson: string | null;
 };
 
