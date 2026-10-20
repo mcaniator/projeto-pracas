@@ -141,7 +141,13 @@ const TallyPersonsStatiticsChartPercentage = ({
                     responsive: true,
                     plugins: {
                       legend: { position: "right" },
-                      datalabels: dataLabelsOptions,
+                      datalabels: {
+                        ...dataLabelsOptions,
+                        color: "white",
+                        backgroundColor: "#333333",
+                        borderRadius: 4,
+                        padding: 4,
+                      },
                     },
                   }}
                 />}
