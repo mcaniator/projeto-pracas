@@ -19,6 +19,7 @@ const TallyPersonsDialog = ({
 }) => (
   <CDialog
     open={open}
+    keepMounted
     onClose={onClose}
     title="Estatísticas"
     disableDialogActions
