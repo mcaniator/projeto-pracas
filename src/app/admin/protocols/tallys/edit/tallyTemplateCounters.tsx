@@ -35,6 +35,7 @@ import {
   type TallyTemplateDraftGroup,
   type TallyTemplateDraftSpecialGroup,
   isTallyTemplateDraftCommonGroup,
+  reorderTallyTemplateDraftGroups,
   tallyTemplateGroupDisplayModes,
 } from "./tallyTemplateDraft";
 
@@ -335,31 +336,18 @@ const TallyTemplateCounters = ({
     nextMode: TallyTemplateDraftSpecialGroup["displayMode"],
     groupId: string | undefined,
   ) => {
-    const currentSpecialGroup = groups.find(
-      (group) => group.displayMode === nextMode,
-    );
-    const nextCommonPosition =
-      Math.max(0, ...commonGroups.map((group) => group.position)) + 1;
+    const nextGroups = groups.map((group): TallyTemplateDraftGroup => {
+      if (group.id === groupId) return { ...group, displayMode: nextMode };
+      if (group.displayMode === nextMode) {
+        return {
+          ...group,
+          displayMode: tallyTemplateGroupDisplayModes.COMMON,
+        };
+      }
+      return group;
+    });
 
-    onChangeGroups(
-      groups.map((group) => {
-        if (group.id === groupId) {
-          return {
-            ...group,
-            displayMode: nextMode,
-            position: null,
-          };
-        }
-        if (group.id === currentSpecialGroup?.id) {
-          return {
-            ...group,
-            displayMode: tallyTemplateGroupDisplayModes.COMMON,
-            position: nextCommonPosition,
-          };
-        }
-        return group;
-      }),
-    );
+    onChangeGroups(reorderTallyTemplateDraftGroups(nextGroups));
   };
 
   const handleCommonGroupDragEnd = ({ active, over }: DragEndEvent) => {
@@ -373,18 +361,19 @@ const TallyTemplateCounters = ({
     );
     if (oldIndex === -1 || newIndex === -1) return;
 
-    const commonGroupPositions = commonGroups.map((group) => group.position);
     const reorderedGroups = arrayMove(commonGroups, oldIndex, newIndex).map(
       (group, index) => ({
         ...group,
-        position: commonGroupPositions[index]!,
+        position: index + (screenContextGroup ? 2 : 1),
       }),
     );
     const reorderedGroupsById = new Map(
       reorderedGroups.map((group) => [group.id, group]),
     );
     onChangeGroups(
-      groups.map((group) => reorderedGroupsById.get(group.id) ?? group),
+      reorderTallyTemplateDraftGroups(
+        groups.map((group) => reorderedGroupsById.get(group.id) ?? group),
+      ),
     );
   };
 
@@ -428,7 +417,7 @@ const TallyTemplateCounters = ({
         },
       ];
     });
-    onChangeGroups(nextGroups);
+    onChangeGroups(reorderTallyTemplateDraftGroups(nextGroups));
   };
 
   const handleCounterDragEnd = ({ active, over }: DragEndEvent) => {

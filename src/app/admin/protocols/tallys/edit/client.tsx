@@ -20,6 +20,7 @@ import SaveTallyTemplateDialog from "./saveTallyTemplateDialog";
 import {
   type TallyTemplateDraftGroup,
   buildTallyTemplateDraftGroups,
+  reorderTallyTemplateDraftGroups,
   tallyTemplateGroupDisplayModes,
 } from "./tallyTemplateDraft";
 import TallyTemplateEditor from "./tallyTemplateEditor";
@@ -129,26 +130,16 @@ const TallyTemplateClient = ({
             },
           ],
         };
-        const newGroup: TallyTemplateDraftGroup =
-          currentGroups.length === 0 ?
-            {
-              ...newGroupBase,
-              position: null,
-              displayMode: tallyTemplateGroupDisplayModes.COUNTERS,
-            } // The first group is always counters, because it's the mandatory interaction during tally
-          : {
-              ...newGroupBase,
-              position:
-                Math.max(
-                  0,
-                  ...currentGroups.flatMap((group) =>
-                    group.position === null ? [] : [group.position],
-                  ),
-                ) + 1,
-              displayMode: tallyTemplateGroupDisplayModes.COMMON,
-            };
+        const newGroup: TallyTemplateDraftGroup = {
+          ...newGroupBase,
+          position: currentGroups.length + 1,
+          displayMode:
+            currentGroups.length === 0 ?
+              tallyTemplateGroupDisplayModes.COUNTERS
+            : tallyTemplateGroupDisplayModes.COMMON,
+        };
 
-        return [...currentGroups, newGroup];
+        return reorderTallyTemplateDraftGroups([...currentGroups, newGroup]);
       });
     },
     [templateGroups],
@@ -178,17 +169,9 @@ const TallyTemplateClient = ({
               })),
             };
 
-            if (group.displayMode === tallyTemplateGroupDisplayModes.COMMON) {
-              return {
-                ...baseGroup,
-                position: group.position,
-                displayMode: tallyTemplateGroupDisplayModes.COMMON,
-              };
-            }
-
             return {
               ...baseGroup,
-              position: null,
+              position: group.position,
               displayMode: group.displayMode,
             };
           }),

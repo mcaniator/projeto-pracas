@@ -675,7 +675,7 @@ const commonTallyTemplateGroupDataSchema = z.object({
 
 const specialTallyTemplateGroupDataSchema = z.object({
   personCharacteristicGroupId: z.number().int().positive(),
-  position: z.null(),
+  position: z.number().int().positive(),
   displayMode: z.enum(["COUNTERS", "SCREEN_CONTEXT_SELECTOR"]),
   characteristics: z.array(tallyTemplateCharacteristicDataSchema),
 });

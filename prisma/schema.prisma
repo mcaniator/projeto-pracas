@@ -735,7 +735,7 @@ model TallyTemplateGroup {
   personCharacteristicGroupId Int                       @map("person_characteristic_group_id")
   personCharacteristicGroup   PersonCharacteristicGroup @relation(fields: [personCharacteristicGroupId], references: [id])
 
-  position    Int?
+  position    Int
   displayMode TallyTemplateGroupDisplayModes @map("display_mode")
 
   characteristics TallyTemplateCharacteristic[] @relation("tally_template_group_characteristics")

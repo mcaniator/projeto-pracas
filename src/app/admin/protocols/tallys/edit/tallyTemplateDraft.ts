@@ -25,6 +25,7 @@ type TallyTemplateDraftGroupBase = {
   id: string;
   tallyTemplateGroupId?: number;
   personCharacteristicGroupId: number;
+  position: number;
   personCharacteristicGroup: {
     id: number;
     title: string;
@@ -34,12 +35,10 @@ type TallyTemplateDraftGroupBase = {
 };
 
 export type TallyTemplateDraftCommonGroup = TallyTemplateDraftGroupBase & {
-  position: number;
   displayMode: typeof tallyTemplateGroupDisplayModes.COMMON;
 };
 
 export type TallyTemplateDraftSpecialGroup = TallyTemplateDraftGroupBase & {
-  position: null;
   displayMode: Exclude<
     TallyTemplateGroupDisplayMode,
     typeof tallyTemplateGroupDisplayModes.COMMON
@@ -55,15 +54,38 @@ export const isTallyTemplateDraftCommonGroup = (
 ): group is TallyTemplateDraftCommonGroup =>
   group.displayMode === tallyTemplateGroupDisplayModes.COMMON;
 
+export const reorderTallyTemplateDraftGroups = (
+  groups: TallyTemplateDraftGroup[],
+) => {
+  const screenContextGroup = groups.find(
+    (group) =>
+      group.displayMode ===
+      tallyTemplateGroupDisplayModes.SCREEN_CONTEXT_SELECTOR,
+  );
+  const counterGroup = groups.find(
+    (group) => group.displayMode === tallyTemplateGroupDisplayModes.COUNTERS,
+  );
+  const commonGroups = groups
+    .filter(isTallyTemplateDraftCommonGroup)
+    .sort((first, second) => first.position - second.position);
+
+  return [
+    ...(screenContextGroup ? [screenContextGroup] : []),
+    ...commonGroups,
+    ...(counterGroup ? [counterGroup] : []),
+  ].map((group, index) => ({ ...group, position: index + 1 }));
+};
+
 export const buildTallyTemplateDraftGroups = (
   groups: FetchModularTallyTemplateStructureResponse["modularTallyTemplate"]["tallyTemplateGroups"],
 ): TallyTemplateDraftGroup[] =>
-  groups
-    .map((group): TallyTemplateDraftGroup => {
+  reorderTallyTemplateDraftGroups(
+    groups.map((group): TallyTemplateDraftGroup => {
       const baseGroup = {
         id: `person-characteristic-group-${group.personCharacteristicGroup.id}`,
         tallyTemplateGroupId: group.id,
         personCharacteristicGroupId: group.personCharacteristicGroup.id,
+        position: group.position,
         personCharacteristicGroup: group.personCharacteristicGroup,
         characteristics: group.characteristics.map((characteristic) => ({
           id: `person-characteristic-${characteristic.personCharacteristic.id}`,
@@ -74,20 +96,15 @@ export const buildTallyTemplateDraftGroups = (
       };
 
       if (group.displayMode === tallyTemplateGroupDisplayModes.COMMON) {
-        if (group.position === null) {
-          throw new Error("Grupo comum sem posição.");
-        }
-
         return {
           ...baseGroup,
-          position: group.position,
           displayMode: tallyTemplateGroupDisplayModes.COMMON,
         };
       }
 
       return {
         ...baseGroup,
-        position: null,
         displayMode: group.displayMode,
       };
-    });
+    }),
+  );
