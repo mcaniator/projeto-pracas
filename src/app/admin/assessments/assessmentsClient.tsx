@@ -1,6 +1,7 @@
 "use client";
 
 import AssessmentCreationDialog from "@/app/admin/assessments/assessmentCreation/assessmentCreationDialog";
+import AssessmentsExportDialog from "@/app/admin/assessments/assessmentsExportDialog";
 import {
   fetchAssessmentDraftIds,
   fetchAssessmentResponsesDraft,
@@ -16,7 +17,12 @@ import {
 import { useFetchForms } from "@/lib/serverFunctions/apiCalls/form";
 import type { FetchAssessmentUsersResponse } from "@/lib/serverFunctions/queries/assessment";
 import type { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
-import { IconFilter, IconListCheck, IconPlus } from "@tabler/icons-react";
+import {
+  IconFilter,
+  IconListCheck,
+  IconPlus,
+  IconTableExport,
+} from "@tabler/icons-react";
 import { useRouter } from "next-nprogress-bar";
 import { useSearchParams } from "next/navigation";
 import { usePathname } from "next/navigation";
@@ -66,6 +72,8 @@ const AssessmentsClient = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(true);
 
   const [openAssessmentCreationDialog, setOpenAssessmentCreationDialog] =
+    useState(false);
+  const [openAssessmentExportDialog, setOpenAssessmentExportDialog] =
     useState(false);
   const [openFiltersDialog, setOpenFiltersDialog] = useState(false);
   const [forms, setForms] = useState<FetchFormsResponse["forms"]>([]);
@@ -475,6 +483,14 @@ const AssessmentsClient = () => {
 
             <CButton
               square={isMobileView}
+              onClick={() => setOpenAssessmentExportDialog(true)}
+            >
+              <IconTableExport />
+              {isMobileView ? "" : "Exportar"}
+            </CButton>
+
+            <CButton
+              square={isMobileView}
               onClick={() => setOpenAssessmentCreationDialog(true)}
             >
               <IconPlus />
@@ -522,6 +538,13 @@ const AssessmentsClient = () => {
         onClose={() => {
           setOpenAssessmentCreationDialog(false);
         }}
+      />
+      <AssessmentsExportDialog
+        open={openAssessmentExportDialog}
+        onClose={() => setOpenAssessmentExportDialog(false)}
+        forms={forms}
+        users={users}
+        isLoading={loadingForms || loadingUsers}
       />
     </div>
   );

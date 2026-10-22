@@ -6,6 +6,7 @@ import { Divider } from "@mui/material";
 import { IconExternalLink } from "@tabler/icons-react";
 import { useRouter } from "next-nprogress-bar";
 import { useState } from "react";
+import type { BrazilianStates } from "@prisma/client";
 
 import CAutocomplete from "../../../components/ui/cAutoComplete";
 import CDateTimePicker from "../../../components/ui/cDateTimePicker";
@@ -95,6 +96,8 @@ const AssessmentsFilter = ({
   selectedLocationId,
   defaultLocationId,
   onNoCitiesFound,
+  clearableStateAndCitySelection,
+  onSelectedStateChange,
   handleFilterChange,
 }: {
   forms: FetchFormsResponse["forms"];
@@ -103,6 +106,8 @@ const AssessmentsFilter = ({
   selectedLocationId: number | undefined;
   defaultLocationId: number | undefined;
   onNoCitiesFound?: () => void;
+  clearableStateAndCitySelection?: boolean;
+  onSelectedStateChange?: (state: BrazilianStates | null) => void;
   handleFilterChange: (params: {
     type: AssessmentsFilterType;
     newValue: string | number | Date | null;
@@ -114,7 +119,9 @@ const AssessmentsFilter = ({
       <LocationSelector
         defaultLocationId={defaultLocationId}
         selectedLocationId={selectedLocationId}
+        clearableStateAndCitySelection={clearableStateAndCitySelection}
         onNoCitiesFound={onNoCitiesFound}
+        onSelectedStateChange={onSelectedStateChange}
         onSelectedLocationChange={(v) => {
           handleFilterChange({ type: "LOCATION_ID", newValue: v?.id ?? null });
         }}
