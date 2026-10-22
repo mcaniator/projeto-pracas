@@ -46,7 +46,7 @@ export type GetFormSubmissionDataParams = {
   publicQuestionsOnly?: boolean;
 };
 
-const getFormSubmissionResponsesAndFilterEmptyCategoriesAndSubcategories =
+export const getFormSubmissionResponsesAndFilterEmptyCategoriesAndSubcategories =
   async ({
     categories,
     formSubmissionId,

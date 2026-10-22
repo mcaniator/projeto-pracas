@@ -1,8 +1,5 @@
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
-import {
-  dateFormatter,
-  dateTimeWithoutSecondsFormater,
-} from "@/lib/formatters/dateFormatters";
+import { dateTimeWithoutSecondsFormater } from "@/lib/formatters/dateFormatters";
 import { prisma } from "@lib/prisma";
 import { BrazilianStates } from "@prisma/client";
 import ExcelJS from "exceljs";
@@ -16,6 +13,11 @@ import {
   autoWidthWorksheetColumns,
   getWorksheetName,
 } from "../../utils/exceljs";
+import { getFormStructure } from "./form";
+import {
+  insertFormHeaderInWorkSheet,
+  insertFormSubmissionDataInWorkSheet,
+} from "./formSubmissionExport";
 
 export const fetchAssessmentsExportParamsSchema = z.object({
   startDate: z.coerce.date().optional(),
@@ -145,6 +147,7 @@ export const fetchAssessmentsExport = async (
       orderBy: [{ startDate: "desc" }, { id: "desc" }],
       select: {
         id: true,
+        formSubmissionId: true,
         startDate: true,
         endDate: true,
         formId: true,
@@ -212,11 +215,17 @@ export const fetchAssessmentsExport = async (
     const workbook = new ExcelJS.Workbook();
     workbook.creator = "Projeto Praças";
 
-    assessmentsByFormId.forEach(({ name, assessments }) => {
+    for (const [formId, { name, assessments }] of assessmentsByFormId) {
       const worksheet = workbook.addWorksheet(getWorksheetName(name));
       addAssessmentMetadataHeader(worksheet);
+      const { categories } = await getFormStructure({
+        formId,
+        publicQuestionsOnly: false,
+        includeCalculations: false,
+      });
+      insertFormHeaderInWorkSheet({ categories, workSheet: worksheet });
 
-      assessments.forEach((assessment) => {
+      for (const assessment of assessments) {
         const { location } = assessment;
         const durationInMinutes =
           assessment.endDate ?
@@ -245,11 +254,19 @@ export const fetchAssessmentsExport = async (
           assessment.id,
           assessment.user.username,
           dateTimeWithoutSecondsFormater.format(assessment.startDate),
-          assessment.endDate ? dateFormatter.format(assessment.endDate) : null,
+          assessment.endDate ?
+            dateTimeWithoutSecondsFormater.format(assessment.endDate)
+          : null,
           durationInMinutes,
         ]);
-      });
-    });
+
+        await insertFormSubmissionDataInWorkSheet({
+          formSubmissionId: assessment.formSubmissionId,
+          categories,
+          workSheet: worksheet,
+        });
+      }
+    }
 
     workbook.eachSheet((worksheet) => {
       autoWidthWorksheetColumns(worksheet);
