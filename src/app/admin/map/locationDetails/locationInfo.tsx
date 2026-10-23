@@ -1,11 +1,10 @@
 import { useUserContext } from "@/components/context/UserContext";
 import CLinearProgress from "@/components/ui/CLinearProgress";
-import CButton from "@/components/ui/cButton";
 import CCheckbox from "@/components/ui/cCheckbox";
 import CIconChip from "@/components/ui/cIconChip";
 import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
-import ResponseFormV2 from "@/components/ui/responseForm/responseFormV2";
+import FormSubmissionViewer from "@/components/ui/formSubmissionViewer/formSubmissionViewer";
 import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
 import {
   useFetchLocationFormSubmission,
@@ -18,7 +17,6 @@ import {
   IconCheck,
   IconCircleDashedLetterC,
   IconCircleDashedLetterT,
-  IconExternalLink,
   IconRoad,
   IconX,
 } from "@tabler/icons-react";
@@ -34,7 +32,6 @@ const LocationInfo = ({
   const { user } = useUserContext();
 
   const [openVisibilityDialog, setOpenVisibilityDialog] = useState(false);
-  const [openLocationFormDialog, setOpenLocationFormDialog] = useState(false);
   const [pendingVisibility, setPendingVisibility] = useState<boolean | null>(
     null,
   );
@@ -48,7 +45,7 @@ const LocationInfo = ({
           setLocationFormSubmission(response.data ?? null);
         },
       },
-  });
+    });
 
   const [updateLocationVisibility, updateLocationVisibilityLoading] =
     useUpdateLocationVisibility({
@@ -71,7 +68,6 @@ const LocationInfo = ({
   useEffect(() => {
     setPendingVisibility(null);
     setOpenVisibilityDialog(false);
-    setOpenLocationFormDialog(false);
     setLocationFormSubmission(null);
     if (location.formSubmissionId) {
       void fetchLocationFormSubmission({
@@ -143,28 +139,10 @@ const LocationInfo = ({
         <CLinearProgress label="Carregando formulário..." />
       )}
       {locationFormSubmission && (
-        <div className="flex items-center justify-between rounded border border-gray-300 bg-gray-50 p-2">
-          <div className="flex min-w-0 flex-col">
-              <span className="truncate font-medium">
-                {locationFormSubmission.formStructure.formName}
-              </span>
-              <span className="text-sm text-gray-600">
-                Visualização do cadastro da praça
-              </span>
-          </div>
-          <CButton
-            square
-            dense
-            variant="outlined"
-            tooltip="Visualizar formulário de cadastro"
-            aria-label="Visualizar formulário de cadastro"
-            onClick={() => {
-              setOpenLocationFormDialog(true);
-            }}
-          >
-            <IconExternalLink />
-          </CButton>
-        </div>
+        <FormSubmissionViewer
+          formSubmission={locationFormSubmission}
+          locationPolygonGeoJson={location.st_asgeojson}
+        />
       )}
       {!fetchLocationFormSubmissionLoading &&
         !locationFormSubmission &&
@@ -173,27 +151,6 @@ const LocationInfo = ({
             Nenhum formulário de cadastro preenchido.
           </span>
         )}
-      <CDialog
-        open={openLocationFormDialog}
-        title={locationFormSubmission?.formStructure.formName ?? "Formulário de cadastro"}
-        subtitle="Visualização somente leitura"
-        fullScreen
-        disableDialogActions
-        disableContentPadding
-        onClose={() => {
-          setOpenLocationFormDialog(false);
-        }}
-      >
-        {locationFormSubmission && (
-          <div className="flex h-full min-h-0 flex-col">
-            <ResponseFormV2
-              formSubmission={locationFormSubmission}
-              readOnly
-              locationPolygonGeoJson={location.st_asgeojson}
-            />
-          </div>
-        )}
-      </CDialog>
       <CDialog
         open={openVisibilityDialog}
         onClose={() => {

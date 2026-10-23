@@ -1,13 +1,10 @@
 import CLinearProgress from "@/components/ui/CLinearProgress";
-import CButton from "@/components/ui/cButton";
 import CCheckbox from "@/components/ui/cCheckbox";
 import CIconChip from "@/components/ui/cIconChip";
-import CDialog from "@/components/ui/dialog/cDialog";
 import FormSubmissionViewer from "@/components/ui/formSubmissionViewer/formSubmissionViewer";
 import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
-import ResponseFormV2 from "@/components/ui/responseForm/responseFormV2";
-import { usePublicFetchLocationFormSubmission } from "@/lib/serverFunctions/apiCalls/public/location";
 import { usePublicFetchPublicAssessmentDetails } from "@/lib/serverFunctions/apiCalls/public/assessment";
+import { usePublicFetchLocationFormSubmission } from "@/lib/serverFunctions/apiCalls/public/location";
 import { PublicFetchPublicAssessmentDetailsResponse } from "@/lib/serverFunctions/queries/public/assessment";
 import {
   PublicFetchLocationFormSubmissionResponse,
@@ -17,7 +14,6 @@ import { Divider } from "@mui/material";
 import {
   IconCircleDashedLetterC,
   IconCircleDashedLetterT,
-  IconExternalLink,
   IconRoad,
 } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
@@ -41,24 +37,19 @@ const LocationInfo = ({
       },
     });
 
-  const [openLocationFormDialog, setOpenLocationFormDialog] = useState(false);
-
   const [locationFormSubmission, setLocationFormSubmission] =
     useState<PublicFetchLocationFormSubmissionResponse | null>(null);
 
-  const [
-    fetchLocationFormSubmission,
-    fetchLocationFormSubmissionLoading,
-  ] = usePublicFetchLocationFormSubmission({
-    callbacks: {
-      onSuccess: (response) => {
-        setLocationFormSubmission(response.data ?? null);
+  const [fetchLocationFormSubmission, fetchLocationFormSubmissionLoading] =
+    usePublicFetchLocationFormSubmission({
+      callbacks: {
+        onSuccess: (response) => {
+          setLocationFormSubmission(response.data ?? null);
+        },
       },
-    },
-  });
+    });
 
   useEffect(() => {
-    setOpenLocationFormDialog(false);
     setLocationFormSubmission(null);
 
     if (location.formSubmissionId) {
@@ -121,6 +112,33 @@ const LocationInfo = ({
         </>
       )}
       <Divider />
+      <h4 className="font-semibold">Formulário de cadastro</h4>
+      {fetchLocationFormSubmissionLoading && (
+        <CLinearProgress label="Carregando formulário..." />
+      )}
+      {locationFormSubmission && (
+        <FormSubmissionViewer
+          formSubmission={locationFormSubmission}
+          locationPolygonGeoJson={location.st_asgeojson}
+        />
+      )}
+      {!fetchLocationFormSubmissionLoading &&
+        !locationFormSubmission &&
+        !location.formSubmissionId && (
+          <span className="text-sm text-gray-600">
+            Nenhum formulário de cadastro preenchido.
+          </span>
+      )}
+      <Divider />
+      <h4 className="font-semibold">Situação cadastral</h4>
+      <CCheckbox checked={location.isPark} label="É praça" disabled />
+      <CCheckbox
+        checked={location.inactiveNotFound}
+        label="Inativo ou não encontrado"
+        disabled
+      />
+      <Divider />
+      <h4 className="font-semibold">Formulário de avaliação</h4>
       {fetchLatestAssessmentDetailsLoading && (
         <CLinearProgress label="Carregando mais informações..." />
       )}
@@ -138,70 +156,6 @@ const LocationInfo = ({
           <Divider />
         </>
       )}
-      <h4 className="font-semibold">Situação cadastral</h4>
-      <CCheckbox checked={location.isPark} label="É praça" disabled />
-      <CCheckbox
-        checked={location.inactiveNotFound}
-        label="Inativo ou não encontrado"
-        disabled
-      />
-      <Divider />
-      <h4 className="font-semibold">Formulário de cadastro</h4>
-      {fetchLocationFormSubmissionLoading && (
-        <CLinearProgress label="Carregando formulário..." />
-      )}
-      {locationFormSubmission && (
-        <div className="flex items-center justify-between rounded border border-gray-300 bg-gray-50 p-2">
-          <div className="flex min-w-0 flex-col">
-              <span className="truncate font-medium">
-                {locationFormSubmission.formStructure.formName}
-              </span>
-              <span className="text-sm text-gray-600">
-                Visualização do cadastro da praça
-              </span>
-          </div>
-          <CButton
-            square
-            dense
-            variant="outlined"
-            tooltip="Visualizar formulário de cadastro"
-            aria-label="Visualizar formulário de cadastro"
-            onClick={() => {
-              setOpenLocationFormDialog(true);
-            }}
-          >
-            <IconExternalLink />
-          </CButton>
-        </div>
-      )}
-      {!fetchLocationFormSubmissionLoading &&
-        !locationFormSubmission &&
-        !location.formSubmissionId && (
-          <span className="text-sm text-gray-600">
-            Nenhum formulário de cadastro preenchido.
-          </span>
-        )}
-      <CDialog
-        open={openLocationFormDialog}
-        title={locationFormSubmission?.formStructure.formName ?? "Formulário de cadastro"}
-        subtitle="Visualização somente leitura"
-        fullScreen
-        disableDialogActions
-        disableContentPadding
-        onClose={() => {
-          setOpenLocationFormDialog(false);
-        }}
-      >
-        {locationFormSubmission && (
-          <div className="flex h-full min-h-0 flex-col">
-            <ResponseFormV2
-              formSubmission={locationFormSubmission}
-              readOnly
-              locationPolygonGeoJson={location.st_asgeojson}
-            />
-          </div>
-        )}
-      </CDialog>
     </div>
   );
 };
