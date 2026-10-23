@@ -1,3 +1,4 @@
+import dayjs from "@/lib/dayjs";
 import type {
   CategoryItem,
   QuestionItem,
@@ -69,6 +70,58 @@ const getQuestionResponseCellValue = (
   }
 
   return null;
+};
+
+const getQuestionResponseCellData = (
+  question: QuestionItem,
+  value: unknown,
+): { value: ExcelJS.CellValue | null; numFmt?: string } => {
+  if (question.questionType === "WRITTEN" && typeof value === "string") {
+    switch (question.characterType) {
+      case "DATE": {
+        const date = dayjs(value, "DD/MM/YYYY", true);
+        if (date.isValid()) {
+          return {
+            value: new Date(Date.UTC(date.year(), date.month(), date.date())),
+            numFmt: "dd/mm/yyyy",
+          };
+        }
+        break;
+      }
+      case "TIME": {
+        const time = dayjs(value, "HH:mm", true);
+        if (time.isValid()) {
+          return {
+            value: new Date(Date.UTC(1899, 11, 30, time.hour(), time.minute())),
+            numFmt: "hh:mm",
+          };
+        }
+        break;
+      }
+      case "DATETIME": {
+        const dateTime = dayjs(value, "DD/MM/YYYY HH:mm", true);
+        if (dateTime.isValid()) {
+          return {
+            value: new Date(
+              Date.UTC(
+                dateTime.year(),
+                dateTime.month(),
+                dateTime.date(),
+                dateTime.hour(),
+                dateTime.minute(),
+              ),
+            ),
+            numFmt: "dd/mm/yyyy hh:mm",
+          };
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  return { value: getQuestionResponseCellValue(question, value) };
 };
 
 export const insertFormHeaderInWorkSheet = ({
@@ -167,10 +220,14 @@ export const insertFormSubmissionDataInWorkSheet = async ({
   const firstQuestionColumn =
     workSheet.actualColumnCount - questions.length + 1;
   questions.forEach((question, index) => {
-    workSheet.getCell(responseRow, firstQuestionColumn + index).value =
-      getQuestionResponseCellValue(
-        question,
-        responsesFormValues[question.questionId],
-      );
+    const cell = workSheet.getCell(responseRow, firstQuestionColumn + index);
+    const questionResponseCellData = getQuestionResponseCellData(
+      question,
+      responsesFormValues[question.questionId],
+    );
+
+    cell.value = questionResponseCellData.value;
+    if (questionResponseCellData.numFmt)
+      cell.numFmt = questionResponseCellData.numFmt;
   });
 };

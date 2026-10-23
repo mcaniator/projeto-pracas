@@ -1,5 +1,4 @@
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
-import { dateTimeWithoutSecondsFormater } from "@/lib/formatters/dateFormatters";
 import { prisma } from "@lib/prisma";
 import { BrazilianStates } from "@prisma/client";
 import ExcelJS from "exceljs";
@@ -235,7 +234,7 @@ export const fetchAssessmentsExport = async (
             )
           : null;
 
-        worksheet.addRow([
+        const assessmentRow = worksheet.addRow([
           location.id,
           location.name,
           location.popularName,
@@ -253,18 +252,26 @@ export const fetchAssessmentsExport = async (
           location.narrowAdministrativeUnit?.name,
           assessment.id,
           assessment.user.username,
-          dateTimeWithoutSecondsFormater.format(assessment.startDate),
-          assessment.endDate ?
-            dateTimeWithoutSecondsFormater.format(assessment.endDate)
-          : null,
+          assessment.startDate,
+          assessment.endDate,
           durationInMinutes,
         ]);
+        assessmentRow.getCell(18).numFmt = "dd/mm/yyyy hh:mm";
+        assessmentRow.getCell(19).numFmt = "dd/mm/yyyy hh:mm";
 
         await insertFormSubmissionDataInWorkSheet({
           formSubmissionId: assessment.formSubmissionId,
           categories,
           workSheet: worksheet,
         });
+      }
+
+      const lastRow = worksheet.lastRow?.number;
+      if (lastRow && lastRow >= 3) {
+        worksheet.autoFilter = {
+          from: { row: 3, column: 1 },
+          to: { row: lastRow, column: worksheet.actualColumnCount },
+        };
       }
     }
 
