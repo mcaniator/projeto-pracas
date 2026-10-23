@@ -100,14 +100,12 @@ export const fetchAssessmentsExport = async (
       worksheet.mergeCells(1, startColumn, 1, endColumn);
       const cell = worksheet.getCell(1, startColumn);
       cell.value = name;
-      cell.font = { name: "Calibri", bold: true };
     });
 
     metaSubcategories.forEach(({ name, startColumn, endColumn }) => {
       worksheet.mergeCells(2, startColumn, 2, endColumn);
       const cell = worksheet.getCell(2, startColumn);
       cell.value = name;
-      cell.font = { name: "Calibri", bold: true };
     });
 
     worksheet.addRow(metaQuestions);
@@ -264,6 +262,10 @@ export const fetchAssessmentsExport = async (
           categories,
           workSheet: worksheet,
         });
+
+        assessmentRow.alignment = { horizontal: "center" };
+        assessmentRow.getCell(1).alignment = { horizontal: "right" };
+        assessmentRow.getCell(2).alignment = { horizontal: "left" };
       }
 
       const lastRow = worksheet.lastRow?.number;
@@ -276,6 +278,25 @@ export const fetchAssessmentsExport = async (
     }
 
     workbook.eachSheet((worksheet) => {
+      const lastRow = worksheet.lastRow?.number ?? 0;
+
+      for (let rowNumber = 1; rowNumber <= lastRow; rowNumber += 1) {
+        const row = worksheet.getRow(rowNumber);
+        row.font = {
+          ...row.font,
+          size: rowNumber <= 2 ? 11 : 10,
+          name: "Calibri",
+          bold: rowNumber <= 3,
+        };
+
+        if (rowNumber <= 2) {
+          row.alignment = {
+            ...row.alignment,
+            horizontal: "center",
+          };
+        }
+      }
+
       autoWidthWorksheetColumns(worksheet);
     });
 

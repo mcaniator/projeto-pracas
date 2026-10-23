@@ -133,7 +133,6 @@ export const insertFormHeaderInWorkSheet = ({
   workSheet: ExcelJS.Worksheet;
   publicQuestionsOnly?: boolean;
 }) => {
-  const headerFont: Partial<ExcelJS.Font> = { name: "Calibri", bold: true };
   let currentColumn = workSheet.actualColumnCount + 1;
 
   categories.forEach((category) => {
@@ -150,14 +149,12 @@ export const insertFormHeaderInWorkSheet = ({
         questions.forEach((question) => {
           const questionCell = workSheet.getCell(3, currentColumn);
           questionCell.value = question.name;
-          questionCell.font = headerFont;
           currentColumn += 1;
         });
 
         const subcategoryEndColumn = currentColumn - 1;
         const subcategoryCell = workSheet.getCell(2, subcategoryStartColumn);
         subcategoryCell.value = child.name;
-        subcategoryCell.font = headerFont;
         if (subcategoryEndColumn > subcategoryStartColumn) {
           workSheet.mergeCells(
             2,
@@ -173,7 +170,6 @@ export const insertFormHeaderInWorkSheet = ({
 
       const questionCell = workSheet.getCell(3, currentColumn);
       questionCell.value = child.name;
-      questionCell.font = headerFont;
       currentColumn += 1;
     });
 
@@ -182,7 +178,6 @@ export const insertFormHeaderInWorkSheet = ({
 
     const categoryCell = workSheet.getCell(1, categoryStartColumn);
     categoryCell.value = category.name;
-    categoryCell.font = headerFont;
     if (categoryEndColumn > categoryStartColumn) {
       workSheet.mergeCells(1, categoryStartColumn, 1, categoryEndColumn);
     }
