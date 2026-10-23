@@ -23,13 +23,6 @@ const locationsSchema = z.array(
     fourthStreet: z.string().nullable(),
     formSubmissionId: z.null(),
     formId: z.null(),
-    notes: z.string().nullable(),
-    creationYear: z.coerce.number().nullable(),
-    lastMaintenanceYear: z.coerce.number().nullable(),
-    legislation: z.string().nullable(),
-    usableArea: z.coerce.number().nullable(),
-    legalArea: z.coerce.number().nullable(),
-    incline: z.coerce.number().nullable(),
     isPark: sqliteBooleanSchema,
     inactiveNotFound: sqliteBooleanSchema,
     narrowAdministrativeUnitId: z.coerce.number().nullable(),
@@ -86,13 +79,6 @@ const fetchAdminSQLiteLocations = async (
           l.fourth_street AS fourthStreet,
           NULL AS formSubmissionId,
           NULL AS formId,
-          l.notes AS notes,
-          l.creation_year AS creationYear,
-          l.last_maintenance_year AS lastMaintenanceYear,
-          l.legislation AS legislation,
-          l.usable_area AS usableArea,
-          l.legal_area AS legalArea,
-          l.incline AS incline,
           l.is_park AS isPark,
           l.inactive_not_found AS inactiveNotFound,
           l.narrow_administrative_unit_id AS narrowAdministrativeUnitId,
@@ -126,8 +112,7 @@ const fetchAdminSQLiteLocations = async (
         WHERE ${where.join(" AND ")}
         GROUP BY
           1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
-          19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
-          35, 36
+          19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31
       `,
       values,
     });
