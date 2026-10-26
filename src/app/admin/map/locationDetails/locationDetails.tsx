@@ -90,8 +90,8 @@ const LocationDetails = ({
                   </Link>
                 </div>
                 <div className="flex items-center rounded-lg border border-gray-300 bg-gray-100 pl-1 text-sm">
-                  {location.modularTallyCount} contagens{" "}
-                  <Link href={`/admin/modularTallys?locationId=${location.id}`}>
+                  {location.tallyCount} contagens{" "}
+                  <Link href={`/admin/tallys?locationId=${location.id}`}>
                     <CButton square dense variant="text">
                       <IconExternalLink />
                     </CButton>

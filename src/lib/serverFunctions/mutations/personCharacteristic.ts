@@ -45,7 +45,7 @@ export const savePersonCharacteristicGroup = async (
 
       if (currentGroup.isTagGroup !== data.isTagGroup) {
         const [templateUses, observationUses] = await Promise.all([
-          prisma.tallyTemplateGroup.count({
+          prisma.tallyProtocolGroup.count({
             where: {
               personCharacteristicGroupId: data.personCharacteristicGroupId,
             },
@@ -149,12 +149,12 @@ export const deletePersonCharacteristicGroup = async (
 
     const [templateGroupUses, templateCharacteristicUses, observationUses] =
       await Promise.all([
-        prisma.tallyTemplateGroup.count({
+        prisma.tallyProtocolGroup.count({
           where: {
             personCharacteristicGroupId: data.personCharacteristicGroupId,
           },
         }),
-        prisma.tallyTemplateCharacteristic.count({
+        prisma.tallyProtocolCharacteristic.count({
           where: {
             personCharacteristic: {
               groupId: data.personCharacteristicGroupId,
@@ -333,7 +333,7 @@ export const deletePersonCharacteristic = async (
     }
 
     const [templateUses, observationUses] = await Promise.all([
-      prisma.tallyTemplateCharacteristic.count({
+      prisma.tallyProtocolCharacteristic.count({
         where: { personCharacteristicId: data.personCharacteristicId },
       }),
       prisma.personObservationCharacteristic.count({

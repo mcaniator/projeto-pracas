@@ -29,7 +29,7 @@ const _deleteLocation = async (request: APIRequestData<DeleteLocationData>) => {
             },
           },
           _count: {
-            select: { modularTally: true, assessment: true },
+            select: { tally: true, assessment: true },
           },
         },
       });
@@ -42,7 +42,7 @@ const _deleteLocation = async (request: APIRequestData<DeleteLocationData>) => {
         };
       }
 
-      const tallyCount = location._count.modularTally;
+      const tallyCount = location._count.tally;
       if (tallyCount > 0 || location._count.assessment > 0) {
         return {
           responseInfo: {

@@ -85,7 +85,7 @@ export const fetchForms = async (
         _count: {
           select: {
             assessment: params.formUse === FormUse.ASSESSMENT,
-            modularTallyTemplates:
+            tallyProtocols:
               params.formUse === FormUse.TALLY_AND_BEHAVIORAL_MAP,
           },
         },
@@ -104,7 +104,7 @@ export const fetchForms = async (
       usageCount:
         params.formUse === FormUse.ASSESSMENT ?
           (_count.assessment ?? 0)
-        : (_count.modularTallyTemplates ?? 0),
+        : (_count.tallyProtocols ?? 0),
     }));
 
     return {

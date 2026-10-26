@@ -49,7 +49,7 @@ const locationsSchema = z.array(
     st_asgeojson: z.string().nullable(),
     latestAssessmentId: z.null(),
     assessmentCount: z.coerce.number(),
-    modularTallyCount: z.literal(0),
+    tallyCount: z.literal(0),
   }),
 );
 
@@ -110,7 +110,7 @@ const fetchAdminSQLiteLocations = async (
           l.polygon AS st_asgeojson,
           NULL AS latestAssessmentId,
           COUNT(DISTINCT a.id) AS assessmentCount,
-          0 AS modularTallyCount
+          0 AS tallyCount
         FROM location l
         LEFT JOIN assessment a ON a.location_id = l.id
         LEFT JOIN narrow_administrative_unit nau ON nau.id = l.narrow_administrative_unit_id

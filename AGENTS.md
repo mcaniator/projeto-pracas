@@ -242,7 +242,7 @@ const useFetchResource = (
 
   ```tsx
   onSave={() => {
-    void saveTallyTemplate();
+    void saveTallyProtocol();
   }}
   ```
 
@@ -315,4 +315,4 @@ const useFetchResource = (
 ### Regras condicionais
 
 - Antes de criar ou alterar o front-end de um editor de templates de contagem,
-  ler integralmente `.agents/tally-template-editor.md`.
+  ler integralmente `.agents/tally-protocol-editor.md`.

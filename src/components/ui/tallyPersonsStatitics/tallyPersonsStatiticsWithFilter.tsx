@@ -3,22 +3,22 @@
 import { useEffect, useMemo, useState } from "react";
 import CButton from "@/components/ui/cButton";
 import CDialog from "@/components/ui/dialog/cDialog";
-import type { GetModularTallySubmissionDataResult } from "@/lib/serverFunctions/queries/modularTally";
+import type { GetTallySubmissionDataResult } from "@/lib/serverFunctions/queries/tally";
 import { IconFilter } from "@tabler/icons-react";
 
-import { ModularTallyResultFilterBox } from "./modularTallyResultFilters";
+import { TallyResultFilterBox } from "./tallyResultFilters";
 import TallyPersonsStatitics from "./tallyPersonsStatitics";
 
 type TallyPersonsStatiticsWithFilterProps = Pick<
-  GetModularTallySubmissionDataResult,
-  "modularTallyTemplateStructure" | "personObservations"
+  GetTallySubmissionDataResult,
+  "tallyProtocolStructure" | "personObservations"
 >;
 
 const TallyPersonsStatiticsWithFilter = ({
-  modularTallyTemplateStructure,
+  tallyProtocolStructure,
   personObservations,
 }: TallyPersonsStatiticsWithFilterProps) => {
-  const templateGroups = modularTallyTemplateStructure.tallyTemplateGroups;
+  const templateGroups = tallyProtocolStructure.tallyProtocolGroups;
   const [activeCharacteristicIds, setActiveCharacteristicIds] = useState(
     () =>
       new Set(
@@ -174,8 +174,8 @@ const TallyPersonsStatiticsWithFilter = ({
         fullScreen
         disableDialogActions
       >
-        <ModularTallyResultFilterBox
-          modularTallyTemplateStructure={modularTallyTemplateStructure}
+        <TallyResultFilterBox
+          tallyProtocolStructure={tallyProtocolStructure}
           activeCharacteristicIds={activeCharacteristicIds}
           noTagFilterGroupIds={noTagFilterGroupIds}
           onCharacteristicActiveChange={handleCharacteristicActiveChange}
@@ -185,14 +185,14 @@ const TallyPersonsStatiticsWithFilter = ({
       <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 lg:flex-row">
         <main className="min-h-0 min-w-0 flex-1 overflow-auto">
           <TallyPersonsStatitics
-            modularTallyTemplateStructure={modularTallyTemplateStructure}
+            tallyProtocolStructure={tallyProtocolStructure}
             personObservations={filteredPersonObservations}
           />
         </main>
         <aside className="hidden min-h-0 w-80 shrink-0 lg:block">
           <div className="h-full overflow-auto">
-            <ModularTallyResultFilterBox
-              modularTallyTemplateStructure={modularTallyTemplateStructure}
+            <TallyResultFilterBox
+              tallyProtocolStructure={tallyProtocolStructure}
               activeCharacteristicIds={activeCharacteristicIds}
               noTagFilterGroupIds={noTagFilterGroupIds}
               onCharacteristicActiveChange={handleCharacteristicActiveChange}

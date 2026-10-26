@@ -89,12 +89,12 @@ enum OptionTypes {
   @@map("option_types")
 }
 
-enum TallyTemplateGroupDisplayModes {
+enum TallyProtocolGroupDisplayModes {
   COMMON
   COUNTERS
   SCREEN_CONTEXT_SELECTOR
 
-  @@map("tally_template_group_display_modes")
+  @@map("tally_protocol_group_display_modes")
 }
 
 enum ImageHosts {
@@ -151,7 +151,7 @@ model User {
 
   response       Response[]
   responseOption ResponseOption[]
-  modularTally   ModularTally[]
+  tally   Tally[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -400,7 +400,7 @@ model FormSubmission {
   form   Form @relation(fields: [formId], references: [id])
 
   assessment         Assessment?
-  modularTally       ModularTally?
+  tally       Tally?
   responseGeometries ResponseGeometry[]
   responses          Response[]
   responseOptions    ResponseOption[]
@@ -420,7 +420,7 @@ model Form {
   calculations          Calculation[]
   formSubmissions       FormSubmission[]
   formItems             FormItem[]
-  modularTallyTemplates ModularTallyTemplate[]
+  tallyProtocols TallyProtocol[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -495,7 +495,7 @@ model Location {
   broadAdministrativeUnit          BroadAdministrativeUnit?        @relation(fields: [broadAdministrativeUnitId], references: [id])
 
   assessment   Assessment[]
-  modularTally ModularTally[]
+  tally Tally[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -634,7 +634,7 @@ model Assessment {
 //  Campos das Avaliações Não Relacionadas à Avaliação Física
 //  ------------------------------------------------------------------------------------------------------------
 
-// #region Contagens Modulares
+// #region Contagens
 //  ------------------------------------------------------------------------------------------------------------
 
 model PersonCharacteristicGroup {
@@ -644,7 +644,7 @@ model PersonCharacteristicGroup {
   isTagGroup Boolean @default(false) @map("is_tag_group")
 
   personCharacteristics PersonCharacteristic[]
-  tallyTemplateGroups   TallyTemplateGroup[]
+  tallyProtocolGroups   TallyProtocolGroup[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -662,7 +662,7 @@ model PersonCharacteristic {
   groupId Int                       @map("group_id")
   group   PersonCharacteristicGroup @relation(fields: [groupId], references: [id])
 
-  tallyTemplateCharacteristics TallyTemplateCharacteristic[]
+  tallyProtocolCharacteristics TallyProtocolCharacteristic[]
   observationCharacteristics   PersonObservationCharacteristic[]
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -672,7 +672,7 @@ model PersonCharacteristic {
   @@map("person_characteristic")
 }
 
-model ModularTallyTemplate {
+model TallyProtocol {
   id Int @id @default(autoincrement())
 
   name      String  @db.VarChar(255)
@@ -682,50 +682,50 @@ model ModularTallyTemplate {
   formId Int?  @map("form_id")
   form   Form? @relation(fields: [formId], references: [id])
 
-  tallyTemplateGroups TallyTemplateGroup[]
-  modularTally        ModularTally[]
+  tallyProtocolGroups TallyProtocolGroup[]
+  tally        Tally[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("modular_tally_template")
+  @@map("tally_protocol")
 }
 
-model TallyTemplateGroup {
+model TallyProtocolGroup {
   id Int @id @default(autoincrement())
 
-  modularTallyTemplateId      Int                       @map("modular_tally_template_id")
-  modularTallyTemplate        ModularTallyTemplate      @relation(fields: [modularTallyTemplateId], references: [id])
+  tallyProtocolId      Int                       @map("tally_protocol_id")
+  tallyProtocol        TallyProtocol      @relation(fields: [tallyProtocolId], references: [id])
   personCharacteristicGroupId Int                       @map("person_characteristic_group_id")
   personCharacteristicGroup   PersonCharacteristicGroup @relation(fields: [personCharacteristicGroupId], references: [id])
 
   position    Int
-  displayMode TallyTemplateGroupDisplayModes @map("display_mode")
+  displayMode TallyProtocolGroupDisplayModes @map("display_mode")
 
-  characteristics TallyTemplateCharacteristic[] @relation("tally_template_group_characteristics")
+  characteristics TallyProtocolCharacteristic[] @relation("tally_protocol_group_characteristics")
 
-  @@unique([modularTallyTemplateId, personCharacteristicGroupId])
+  @@unique([tallyProtocolId, personCharacteristicGroupId])
   @@index([personCharacteristicGroupId])
-  @@map("tally_template_group")
+  @@map("tally_protocol_group")
 }
 
-model TallyTemplateCharacteristic {
+model TallyProtocolCharacteristic {
   id Int @id @default(autoincrement())
 
-  tallyTemplateGroupId   Int                  @map("tally_template_group_id")
-  tallyTemplateGroup     TallyTemplateGroup   @relation("tally_template_group_characteristics", fields: [tallyTemplateGroupId], references: [id])
+  tallyProtocolGroupId   Int                  @map("tally_protocol_group_id")
+  tallyProtocolGroup     TallyProtocolGroup   @relation("tally_protocol_group_characteristics", fields: [tallyProtocolGroupId], references: [id])
   personCharacteristicId Int                  @map("person_characteristic_id")
   personCharacteristic   PersonCharacteristic @relation(fields: [personCharacteristicId], references: [id])
 
   position Int
 
-  @@unique([tallyTemplateGroupId, personCharacteristicId])
-  @@unique([tallyTemplateGroupId, position])
+  @@unique([tallyProtocolGroupId, personCharacteristicId])
+  @@unique([tallyProtocolGroupId, position])
   @@index([personCharacteristicId])
-  @@map("tally_template_characteristic")
+  @@map("tally_protocol_characteristic")
 }
 
-model ModularTally {
+model Tally {
   id Int @id @default(autoincrement())
 
   startDate   DateTime  @map("start_date") @db.Timestamptz(0)
@@ -738,8 +738,8 @@ model ModularTally {
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
 
-  modularTallyTemplateId Int                  @map("modular_tally_template_id")
-  modularTallyTemplate   ModularTallyTemplate @relation(fields: [modularTallyTemplateId], references: [id])
+  tallyProtocolId Int                  @map("tally_protocol_id")
+  tallyProtocol   TallyProtocol @relation(fields: [tallyProtocolId], references: [id])
 
   formSubmissionId Int?            @unique @map("form_submission_id")
   formSubmission   FormSubmission? @relation(fields: [formSubmissionId], references: [id])
@@ -751,20 +751,20 @@ model ModularTally {
 
   @@index([userId])
   @@index([locationId])
-  @@index([modularTallyTemplateId])
-  @@map("modular_tally")
+  @@index([tallyProtocolId])
+  @@map("tally")
 }
 
 model PersonObservation {
   id Int @id @default(autoincrement())
 
-  modularTallyId Int          @map("modular_tally_id")
-  modularTally   ModularTally @relation(fields: [modularTallyId], references: [id], onDelete: Cascade)
+  tallyId Int          @map("tally_id")
+  tally   Tally @relation(fields: [tallyId], references: [id], onDelete: Cascade)
   quantity       Int
 
   characteristics PersonObservationCharacteristic[]
 
-  @@index([modularTallyId])
+  @@index([tallyId])
   @@map("person_observation")
 }
 

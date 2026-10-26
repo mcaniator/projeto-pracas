@@ -1,23 +1,16 @@
-import type { ModularTallyDraft } from "@/app/admin/modularTallys/details/modularTallyDraft";
+import type { TallyDraft } from "@/app/admin/tallys/details/tallyDraft";
 import type { AssessmentDraft } from "@/lib/types/assessments/assessmentDraft";
 import { Dexie, type EntityTable } from "dexie";
 
 const dexieDb = new Dexie("PracasLocal") as Dexie & {
-  assessments: EntityTable<
-    AssessmentDraft,
-    "id" // primary key "id"
-  >;
-  modularTallyDrafts: EntityTable<
-    ModularTallyDraft,
-    "id" // primary key "id"
-  >;
+  assessments: EntityTable<AssessmentDraft, "id">;
+  tallyDrafts: EntityTable<TallyDraft, "id">;
 };
 
-// Schema declaration:
-dexieDb.version(2).stores({
+dexieDb.version(1).stores({
   assessments:
     "id, userId, username, savedUpdatedAt, draftUpdatedAt, isFinalized, startDate, endDate, driveFolderUrl, responseFormValues, geometries",
-  modularTallyDrafts:
+  tallyDrafts:
     "id, userId, username, savedUpdatedAt, draftUpdatedAt, isFinalized, startDate, endDate, responseFormValues, geometries, personObservations",
 });
 

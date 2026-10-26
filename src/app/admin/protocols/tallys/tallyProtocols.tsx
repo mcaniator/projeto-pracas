@@ -1,14 +1,14 @@
 "use client";
 
-import ModularTallyTemplateArchiveDialog from "@/app/admin/protocols/tallys/modularTallyTemplateArchiveDialog";
-import ModularTallyTemplateCreationDialog from "@/app/admin/protocols/tallys/modularTallyTemplateCreationDialog";
+import TallyProtocolArchiveDialog from "@/app/admin/protocols/tallys/tallyProtocolArchiveDialog";
+import TallyProtocolCreationDialog from "@/app/admin/protocols/tallys/tallyProtocolCreationDialog";
 import PermissionGuard from "@/components/auth/permissionGuard";
 import { useNetwork } from "@/components/context/networkContext";
 import CButton from "@/components/ui/cButton";
 import CMenu from "@/components/ui/menu/cMenu";
 import { dateTimeWithoutSecondsFormater } from "@/lib/formatters/dateFormatters";
-import { useFetchModularTallyTemplates } from "@/lib/serverFunctions/apiCalls/modularTally";
-import { FetchModularTallyTemplatesResponse } from "@/lib/serverFunctions/queries/modularTally";
+import { useFetchTallyProtocols } from "@/lib/serverFunctions/apiCalls/tally";
+import { FetchTallyProtocolsResponse } from "@/lib/serverFunctions/queries/tally";
 import { Chip, useMediaQuery, useTheme } from "@mui/material";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import {
@@ -21,46 +21,46 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { FaTrashRestore } from "react-icons/fa";
 
-type ModularTallyTemplateRow =
-  FetchModularTallyTemplatesResponse["modularTallyTemplates"][number];
+type TallyProtocolRow =
+  FetchTallyProtocolsResponse["tallyProtocols"][number];
 
 const TallyProtocols = () => {
   const theme = useTheme();
   const { isConnected } = useNetwork();
   const isMobileView = useMediaQuery(theme.breakpoints.down("lg"));
-  const [_fetchModularTallyTemplates, loading] =
-    useFetchModularTallyTemplates({
+  const [_fetchTallyProtocols, loading] =
+    useFetchTallyProtocols({
       callbacks: {
         onSuccess: ({ data }) => {
           if (data) {
-            setModularTallyTemplates(data.modularTallyTemplates);
+            setTallyProtocols(data.tallyProtocols);
           }
         },
       },
     });
 
-  const loadModularTallyTemplates = useCallback(
+  const loadTallyProtocols = useCallback(
     ({ invalidateCache }: { invalidateCache?: boolean } = {}) => {
-      void _fetchModularTallyTemplates({
+      void _fetchTallyProtocols({
         params: { includeArchived: true },
         requestOptions: {
           cache: invalidateCache ? "reload" : "default",
         },
       });
     },
-    [_fetchModularTallyTemplates],
+    [_fetchTallyProtocols],
   );
 
   useEffect(() => {
-    void loadModularTallyTemplates();
-  }, [loadModularTallyTemplates]);
+    void loadTallyProtocols();
+  }, [loadTallyProtocols]);
 
-  const [modularTallyTemplates, setModularTallyTemplates] = useState<
-    FetchModularTallyTemplatesResponse["modularTallyTemplates"]
+  const [tallyProtocols, setTallyProtocols] = useState<
+    FetchTallyProtocolsResponse["tallyProtocols"]
   >([]);
   const [openCreationDialog, setOpenCreationDialog] = useState(false);
   const [openArchiveDialog, setOpenArchiveDialog] = useState(false);
-  const [selectedModularTallyTemplate, setSelectedModularTallyTemplate] =
+  const [selectedTallyProtocol, setSelectedTallyProtocol] =
     useState<{
       id: number;
       name: string;
@@ -68,27 +68,27 @@ const TallyProtocols = () => {
       finalized: boolean;
     }>();
 
-  const handleClone = (modularTallyTemplate: {
+  const handleClone = (tallyProtocol: {
     id: number;
     name: string;
     archived: boolean;
     finalized: boolean;
   }) => {
-    setSelectedModularTallyTemplate(modularTallyTemplate);
+    setSelectedTallyProtocol(tallyProtocol);
     setOpenCreationDialog(true);
   };
 
-  const handleArchive = (modularTallyTemplate: {
+  const handleArchive = (tallyProtocol: {
     id: number;
     name: string;
     archived: boolean;
     finalized: boolean;
   }) => {
-    setSelectedModularTallyTemplate(modularTallyTemplate);
+    setSelectedTallyProtocol(tallyProtocol);
     setOpenArchiveDialog(true);
   };
 
-  const columns: GridColDef<ModularTallyTemplateRow>[] = [
+  const columns: GridColDef<TallyProtocolRow>[] = [
     {
       field: "actions",
       headerName: "",
@@ -96,7 +96,7 @@ const TallyProtocols = () => {
       sortable: false,
       filterable: false,
       hideable: false,
-      renderCell: (params: GridRenderCellParams<ModularTallyTemplateRow>) => (
+      renderCell: (params: GridRenderCellParams<TallyProtocolRow>) => (
         <CMenu
           options={[
             {
@@ -110,7 +110,7 @@ const TallyProtocols = () => {
                     <IconPencil />
                     Editar
                   </div>,
-              href: `/admin/protocols/tallys/edit?modularTallyTemplateId=${params.row.id}`,
+              href: `/admin/protocols/tallys/edit?tallyProtocolId=${params.row.id}`,
             },
             {
               label: (
@@ -171,7 +171,7 @@ const TallyProtocols = () => {
         row.archived ? "Arquivado"
         : row.finalized ? "Finalizado"
         : "Em construção",
-      renderCell: (params: GridRenderCellParams<ModularTallyTemplateRow>) => (
+      renderCell: (params: GridRenderCellParams<TallyProtocolRow>) => (
         <Chip
           sx={{ width: "120px" }}
           color={
@@ -188,18 +188,18 @@ const TallyProtocols = () => {
       ),
     },
     {
-      field: "modularTallyCount",
+      field: "tallyCount",
       headerName: "Usos",
       width: 110,
       align: "center",
-      renderCell: (params: GridRenderCellParams<ModularTallyTemplateRow>) =>
-        params.row._count.modularTally,
+      renderCell: (params: GridRenderCellParams<TallyProtocolRow>) =>
+        params.row._count.tally,
     },
     {
       field: "updatedAt",
       headerName: "Última edição",
       width: 180,
-      renderCell: (params: GridRenderCellParams<ModularTallyTemplateRow>) =>
+      renderCell: (params: GridRenderCellParams<TallyProtocolRow>) =>
         dateTimeWithoutSecondsFormater.format(params.row.updatedAt),
     },
   ];
@@ -216,7 +216,7 @@ const TallyProtocols = () => {
               isConnected ? "" : "Conecte-se para criar um protocolo de contagem"
             }
             onClick={() => {
-              setSelectedModularTallyTemplate(undefined);
+              setSelectedTallyProtocol(undefined);
               setOpenCreationDialog(true);
             }}
           >
@@ -228,26 +228,26 @@ const TallyProtocols = () => {
       <DataGrid
         className="min-h-0 flex-1"
         loading={loading}
-        rows={modularTallyTemplates}
+        rows={tallyProtocols}
         columns={columns}
         autoHeight={false}
       />
 
-      <ModularTallyTemplateCreationDialog
+      <TallyProtocolCreationDialog
         open={openCreationDialog}
-        cloneModularTallyTemplate={selectedModularTallyTemplate}
-        reloadModularTallyTemplates={() => {
-          loadModularTallyTemplates({ invalidateCache: true });
+        cloneTallyProtocol={selectedTallyProtocol}
+        reloadTallyProtocols={() => {
+          loadTallyProtocols({ invalidateCache: true });
         }}
         onClose={() => setOpenCreationDialog(false)}
       />
-      <ModularTallyTemplateArchiveDialog
+      <TallyProtocolArchiveDialog
         open={openArchiveDialog}
         onClose={() => setOpenArchiveDialog(false)}
-        reloadModularTallyTemplates={() => {
-          loadModularTallyTemplates({ invalidateCache: true });
+        reloadTallyProtocols={() => {
+          loadTallyProtocols({ invalidateCache: true });
         }}
-        modularTallyTemplate={selectedModularTallyTemplate}
+        tallyProtocol={selectedTallyProtocol}
       />
     </div>
   );

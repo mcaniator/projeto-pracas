@@ -31,7 +31,7 @@ ChartJS.register(
 );
 
 const TallyPersonsStatiticsChartPercentage = ({
-  modularTallyTemplateStructure,
+  tallyProtocolStructure,
   personObservations,
 }: TallyPersonsStatiticsProps) => {
   const quantityByCharacteristicId = useMemo(
@@ -45,7 +45,7 @@ const TallyPersonsStatiticsChartPercentage = ({
 
   return (
     <div className="flex w-full flex-col gap-3">
-      {modularTallyTemplateStructure.tallyTemplateGroups.map((group) => {
+      {tallyProtocolStructure.tallyProtocolGroups.map((group) => {
         const characteristics = group.characteristics;
         const values = characteristics.map(
           ({ personCharacteristic }) =>

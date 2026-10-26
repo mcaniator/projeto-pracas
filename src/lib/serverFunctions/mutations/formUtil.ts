@@ -388,7 +388,7 @@ const _updateFormArchiveStatus = async (
         _count: {
           select: {
             assessment: true,
-            modularTallyTemplates: true,
+            tallyProtocols: true,
           },
         },
       },
@@ -407,7 +407,7 @@ const _updateFormArchiveStatus = async (
       });
     } else {
       const hasUses =
-        dbForm._count.assessment > 0 || dbForm._count.modularTallyTemplates > 0;
+        dbForm._count.assessment > 0 || dbForm._count.tallyProtocols > 0;
 
       if (hasUses) {
         archivedDueToUses = true;

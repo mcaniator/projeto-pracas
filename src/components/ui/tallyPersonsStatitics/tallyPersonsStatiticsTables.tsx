@@ -20,7 +20,7 @@ import {
 } from "./tallyPersonsStatiticsUtils";
 
 const TallyPersonsStatiticsTables = ({
-  modularTallyTemplateStructure,
+  tallyProtocolStructure,
   personObservations,
 }: TallyPersonsStatiticsProps) => {
   const quantityByCharacteristicId = useMemo(
@@ -34,7 +34,7 @@ const TallyPersonsStatiticsTables = ({
 
   return (
     <div className="flex w-full flex-col gap-3">
-      {modularTallyTemplateStructure.tallyTemplateGroups.map((group) => (
+      {tallyProtocolStructure.tallyProtocolGroups.map((group) => (
         <section
           key={group.id}
           className="rounded border border-gray-300 bg-slate-50 p-2"

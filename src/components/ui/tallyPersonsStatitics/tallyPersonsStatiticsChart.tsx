@@ -23,7 +23,7 @@ ChartJS.register(
 );
 
 const TallyPersonsStatiticsChart = ({
-  modularTallyTemplateStructure,
+  tallyProtocolStructure,
   personObservations,
 }: TallyPersonsStatiticsProps) => {
   const quantityByCharacteristicId = useMemo(
@@ -33,7 +33,7 @@ const TallyPersonsStatiticsChart = ({
 
   return (
     <div className="flex w-full flex-col gap-3">
-      {modularTallyTemplateStructure.tallyTemplateGroups.map((group) => {
+      {tallyProtocolStructure.tallyProtocolGroups.map((group) => {
         const characteristics = group.characteristics;
         const chartHeight = Math.max(180, characteristics.length * 48 + 64);
 

@@ -4,7 +4,7 @@ export type TallyPersonsStatiticsObservation = {
 };
 
 export type TallyPersonsStatiticsStructure = {
-  tallyTemplateGroups: {
+  tallyProtocolGroups: {
     id: number;
     personCharacteristicGroup: { title: string; isTagGroup: boolean };
     characteristics: {
@@ -18,6 +18,6 @@ export type TallyPersonsStatiticsStructure = {
 };
 
 export type TallyPersonsStatiticsProps = {
-  modularTallyTemplateStructure: TallyPersonsStatiticsStructure;
+  tallyProtocolStructure: TallyPersonsStatiticsStructure;
   personObservations: TallyPersonsStatiticsObservation[];
 };
