@@ -93,59 +93,6 @@ export const fetchTallys = async (
   }
 };
 
-export type FetchRecentlyCompletedTallyResponse = NonNullable<
-  Awaited<ReturnType<typeof fetchRecentlyCompletedTallys>>["data"]
->;
-const fetchRecentlyCompletedTallys = async () => {
-  try {
-    const tallys = await prisma.tally.findMany({
-      where: {
-        NOT: {
-          isFinalized: false,
-        },
-      },
-      orderBy: {
-        startDate: "desc",
-      },
-      select: {
-        id: true,
-        startDate: true,
-        endDate: true,
-        isFinalized: true,
-        location: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        user: {
-          select: {
-            username: true,
-          },
-        },
-      },
-    });
-    return {
-      responseInfo: {
-        statusCode: 200,
-      } as APIResponseInfo,
-      data: {
-        tallys,
-      },
-    };
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 500,
-        message: "Erro ao consultar contagens!",
-      } as APIResponseInfo,
-      data: {
-        tallys: [],
-      },
-    };
-  }
-};
-
 export const fetchOngoingTallyParamsSchema = z.object({
   tallyId: z.coerce.number(),
 });
@@ -325,7 +272,6 @@ const fetchFinalizedTallysToDataVisualization = async (
 };
 
 export {
-  fetchRecentlyCompletedTallys,
   fetchOngoingTallyById,
   fetchFinalizedTallysToDataVisualization,
 };

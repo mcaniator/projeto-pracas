@@ -15,64 +15,6 @@ export type {
   FormSubmissionSubcategoryItem as AssessmentSubcategoryItem,
 } from "./formSubmission";
 
-export type GetRecentlyCompletedAssessmentsResponse = NonNullable<
-  Awaited<ReturnType<typeof getRecentlyCompletedAssessments>>["data"]
->;
-const getRecentlyCompletedAssessments = async () => {
-  try {
-    const assessments = await prisma.assessment.findMany({
-      where: {
-        isFinalized: true,
-      },
-      orderBy: {
-        endDate: "desc",
-      },
-      select: {
-        id: true,
-        endDate: true,
-        isFinalized: true,
-        startDate: true,
-        location: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        form: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        user: {
-          select: {
-            username: true,
-          },
-        },
-      },
-      take: 10,
-    });
-    return {
-      responseInfo: {
-        statusCode: 200,
-      } as APIResponseInfo,
-      data: {
-        assessments,
-      },
-    };
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 500,
-        message: "Erro ao consultar avaliações!",
-      } as APIResponseInfo,
-      data: {
-        assessments: [],
-      },
-    };
-  }
-};
-
 export type FetchAssessmentUsersResponse = NonNullable<
   Awaited<ReturnType<typeof fetchAssessmentUsers>>
 >["data"];
@@ -379,7 +321,6 @@ export const fetchPublicAssessments = async (
 };
 
 export {
-  getRecentlyCompletedAssessments,
   fetchAssessmentDetails,
   fetchAssessments,
   getPublicAssessmentDetails,

@@ -8,7 +8,6 @@ import { Capacitor } from "@capacitor/core";
 import {
   IconClipboard,
   IconListCheck,
-  IconLogs,
   IconMapSearch,
   IconMenu2,
   IconTableExport,
@@ -89,16 +88,6 @@ const Sidebar = () => {
       name: "Exportar",
       path: "/admin/export",
       show: isConnected,
-    },
-    {
-      icon: <IconLogs size={34} />,
-      name: "Atividade",
-      path: "/admin/activity",
-      show:
-        isConnected &&
-        checkIfRolesArrayContainsAny(user.roles, {
-          roleGroups: ["ASSESSMENT", "TALLY"],
-        }),
     },
     {
       icon: <IconWifiOff size={34} />,
