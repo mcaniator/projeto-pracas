@@ -29,7 +29,7 @@ const _deleteLocation = async (request: APIRequestData<DeleteLocationData>) => {
             },
           },
           _count: {
-            select: { tally: true, modularTally: true, assessment: true },
+            select: { modularTally: true, assessment: true },
           },
         },
       });
