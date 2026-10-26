@@ -1,4 +1,4 @@
-import type { ModularTallysFilterType } from "@/app/admin/modularTally/modularTallysClient";
+import type { ModularTallysFilterType } from "@/app/admin/modularTallys/modularTallysClient";
 import LocationSelector from "@/components/locationSelector/locationSelector";
 import CAutocomplete from "@/components/ui/cAutoComplete";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";

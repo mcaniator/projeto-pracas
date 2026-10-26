@@ -1,4 +1,4 @@
-import type { ModularTallyDraft } from "@/app/admin/modularTally/details/modularTallyDraft";
+import type { ModularTallyDraft } from "@/app/admin/modularTallys/details/modularTallyDraft";
 import type { AssessmentDraft } from "@/lib/types/assessments/assessmentDraft";
 import { Dexie, type EntityTable } from "dexie";
 

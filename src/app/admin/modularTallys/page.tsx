@@ -1,4 +1,4 @@
-import ModularTallysClient from "@/app/admin/modularTally/modularTallysClient";
+import ModularTallysClient from "@/app/admin/modularTallys/modularTallysClient";
 
 const ModularTallys = () => {
   return <ModularTallysClient />;

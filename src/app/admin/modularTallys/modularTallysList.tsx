@@ -1,6 +1,6 @@
 "use client";
 
-import ModularTallyResultDialog from "@/app/admin/modularTally/modularTallyResultDialog";
+import ModularTallyResultDialog from "@/app/admin/modularTallys/modularTallyResultDialog";
 import CButton from "@/components/ui/cButton";
 import CIconChip from "@/components/ui/cIconChip";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
@@ -122,7 +122,7 @@ const ModularTallysList = ({
                   : <CButton
                       square
                       loadingOnClick
-                      href={`/admin/modularTally/details?modularTallyId=${modularTally.id}`}
+                      href={`/admin/modularTallys/details?modularTallyId=${modularTally.id}`}
                     >
                       <IconExternalLink />
                       Acessar

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ModularTallyWithSyncStatus } from "@/app/admin/modularTally/modularTallysClient";
+import type { ModularTallyWithSyncStatus } from "@/app/admin/modularTallys/modularTallysClient";
 import CLinearProgress from "@/components/ui/CLinearProgress";
 import CDialog from "@/components/ui/dialog/cDialog";
 import ModularTallyViewer from "@/components/ui/tallyPersonsStatitics/modularTallyViewer";
@@ -62,7 +62,7 @@ const ModularTallyResultDialog = ({
         </>
       }
       confirmProps={{
-        href: `/admin/modularTally/details?modularTallyId=${modularTally.id}`,
+        href: `/admin/modularTallys/details?modularTallyId=${modularTally.id}`,
         loadingOnClick: true,
       }}
     >

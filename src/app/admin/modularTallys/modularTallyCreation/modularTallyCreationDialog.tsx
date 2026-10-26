@@ -1,4 +1,4 @@
-import ModularTallyTemplatesDataGrid from "@/app/admin/modularTally/modularTallyCreation/modularTallyTemplatesDataGrid";
+import ModularTallyTemplatesDataGrid from "@/app/admin/modularTallys/modularTallyCreation/modularTallyTemplatesDataGrid";
 import LocationSelector from "@/components/locationSelector/locationSelector";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CDialog from "@/components/ui/dialog/cDialog";
@@ -35,7 +35,7 @@ const ModularTallyCreationDialog = ({
 
         setIsRedirecting(true);
         router.push(
-          `/admin/modularTally/details?modularTallyId=${data.modularTallyId}`,
+          `/admin/modularTallys/details?modularTallyId=${data.modularTallyId}`,
         );
       },
     },

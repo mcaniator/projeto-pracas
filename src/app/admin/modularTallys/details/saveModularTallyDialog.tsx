@@ -1,6 +1,6 @@
 "use client";
 
-import { deleteModularTallyDraft } from "@/app/admin/modularTally/details/modularTallyDraft";
+import { deleteModularTallyDraft } from "@/app/admin/modularTallys/details/modularTallyDraft";
 import { useLoadingOverlay } from "@/components/context/loadingContext";
 import { useNetwork } from "@/components/context/networkContext";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
@@ -64,7 +64,7 @@ const SaveModularTallyDialog = ({
             onClose();
 
             if (data.savedAsFinalized) {
-              router.push("/admin/modularTally");
+              router.push("/admin/modularTallys");
             }
           });
       },

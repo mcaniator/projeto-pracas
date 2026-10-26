@@ -1,4 +1,4 @@
-import { deleteModularTallyDraft } from "@/app/admin/modularTally/details/modularTallyDraft";
+import { deleteModularTallyDraft } from "@/app/admin/modularTallys/details/modularTallyDraft";
 import { useLoadingOverlay } from "@/components/context/loadingContext";
 import { useNetwork } from "@/components/context/networkContext";
 import CDialog from "@/components/ui/dialog/cDialog";
@@ -35,7 +35,7 @@ const DeleteModularTallyDialog = ({
       if (response.responseInfo.statusCode === 200) {
         await deleteModularTallyDraft(modularTallyId);
         setIsRedirecting(true);
-        router.push("/admin/modularTally");
+        router.push("/admin/modularTallys");
       }
     } catch {
       enqueueSnackbar("Erro ao excluir contagem!", { variant: "error" });
