@@ -5,9 +5,10 @@ import {
   SxProps,
   Theme,
 } from "@mui/material";
+import { ReactNode } from "react";
 
 type CCheckboxProps = CheckboxProps & {
-  label?: string;
+  label?: ReactNode;
   formControlLabelSx?: SxProps<Theme>;
 };
 

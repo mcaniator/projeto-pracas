@@ -12,9 +12,7 @@ import { z } from "zod";
 export const deleteLocationDataSchema = z.instanceof(FormData);
 export type DeleteLocationData = z.infer<typeof deleteLocationDataSchema>;
 
-const _deleteLocation = async (
-  request: APIRequestData<DeleteLocationData>,
-) => {
+const _deleteLocation = async (request: APIRequestData<DeleteLocationData>) => {
   const formData = request.data!;
   try {
     const id = z.coerce.number().parse(formData.get("id"));
@@ -44,11 +42,12 @@ const _deleteLocation = async (
         };
       }
 
-      if (location._count.tally > 0 || location._count.assessment > 0) {
+      const tallyCount = location._count.tally;
+      if (tallyCount > 0 || location._count.assessment > 0) {
         return {
           responseInfo: {
             statusCode: 403,
-            message: `Esta praça possui ${location._count.assessment} avaliações e ${location._count.tally} contagens!`,
+            message: `Esta praça possui ${location._count.assessment} avaliações e ${tallyCount} contagens!`,
           } as APIResponseInfo,
         };
       }
@@ -92,9 +91,7 @@ const _deleteLocation = async (
 export const updateLocationDataSchema = z.instanceof(FormData);
 export type UpdateLocationData = z.infer<typeof updateLocationDataSchema>;
 
-const _updateLocation = async (
-  request: APIRequestData<UpdateLocationData>,
-) => {
+const _updateLocation = async (request: APIRequestData<UpdateLocationData>) => {
   const formData = request.data!;
   try {
     const locationData = locationSchema.parse({
@@ -209,9 +206,7 @@ const _updateLocation = async (
 export const createLocationDataSchema = z.instanceof(FormData);
 export type CreateLocationData = z.infer<typeof createLocationDataSchema>;
 
-const _createLocation = async (
-  request: APIRequestData<CreateLocationData>,
-) => {
+const _createLocation = async (request: APIRequestData<CreateLocationData>) => {
   const formData = request.data!;
   try {
     const locationData = locationSchema.parse({

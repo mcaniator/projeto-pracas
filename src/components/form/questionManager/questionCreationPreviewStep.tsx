@@ -4,13 +4,11 @@ import QuestionResponseRenderer from "@/components/ui/formSubmissionViewer/quest
 import ResponseFormCategory from "@/components/ui/responseForm/responseFormCategory";
 import ResponseFormGeometryControls from "@/components/ui/responseForm/responseFormGeometryControls";
 import ResponseFormQuestionCard from "@/components/ui/responseForm/responseFormQuestionCard";
-import ResponseFormQuestionImageControls from "@/components/ui/responseForm/responseFormQuestionImageControls";
 import ResponseFormSubcategory from "@/components/ui/responseForm/responseFormSubcategory";
 import ResponseQuestionFieldRenderer from "@/components/ui/responseForm/responseQuestionFieldRenderer";
 import type { FormSubmissionQuestionItem } from "@/lib/serverFunctions/queries/formSubmission";
 import {
   ResponseFormGeometry,
-  ResponseFormImages,
   ResponseQuestionValue,
 } from "@/lib/types/formSubmission/responseFormTypes";
 import { resolveQuestionValue } from "@/lib/utils/formSubmissionViewer/formSubmissionViewerUtils";
@@ -72,7 +70,8 @@ const QuestionCreationPreviewStep = ({
   );
   const [value, setValue] = useState<ResponseQuestionValue>(null);
   const [geometries, setGeometries] = useState<ResponseFormGeometry[]>([]);
-  const [responseImages, setResponseImages] = useState<ResponseFormImages>({});
+  const [categoryExpanded, setCategoryExpanded] = useState(true);
+  const [subcategoryExpanded, setSubcategoryExpanded] = useState(true);
 
   useEffect(() => {
     // Prevents boolean question from being unfilled, as this does not happens in ResponseForm
@@ -112,17 +111,6 @@ const QuestionCreationPreviewStep = ({
               });
             }}
           />
-          <ResponseFormQuestionImageControls
-            question={previewQuestion}
-            responseImages={responseImages}
-            finalized={false}
-            onQuestionImagesChange={(questionId, images) => {
-              setResponseImages((prev) => ({
-                ...prev,
-                [questionId]: images,
-              }));
-            }}
-          />
         </>
       }
     >
@@ -140,10 +128,16 @@ const QuestionCreationPreviewStep = ({
         <h5 className="text-xl font-bold">Prévia de Preenchimento</h5>
         <ResponseFormCategory
           category={{ name: categoryName ?? "Categoria", notes: null }}
+          expanded={categoryExpanded}
+          onExpandedChange={(nextExpanded) => setCategoryExpanded(nextExpanded)}
         >
           {subcategoryName ?
             <ResponseFormSubcategory
               subcategory={{ name: subcategoryName, notes: null }}
+              expanded={subcategoryExpanded}
+              onExpandedChange={(nextExpanded) =>
+                setSubcategoryExpanded(nextExpanded)
+              }
             >
               <>{questionCard}</>
             </ResponseFormSubcategory>

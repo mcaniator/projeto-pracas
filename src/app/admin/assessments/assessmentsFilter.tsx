@@ -3,6 +3,7 @@ import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import type { FetchAssessmentUsersResponse } from "@/lib/serverFunctions/queries/assessment";
 import type { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
 import { Divider } from "@mui/material";
+import type { BrazilianStates } from "@prisma/client";
 import { IconExternalLink } from "@tabler/icons-react";
 import { useRouter } from "next-nprogress-bar";
 import { useState } from "react";
@@ -95,6 +96,9 @@ const AssessmentsFilter = ({
   selectedLocationId,
   defaultLocationId,
   onNoCitiesFound,
+  clearableStateAndCitySelection,
+  disableDebounce = false,
+  onSelectedStateChange,
   handleFilterChange,
 }: {
   forms: FetchFormsResponse["forms"];
@@ -103,6 +107,9 @@ const AssessmentsFilter = ({
   selectedLocationId: number | undefined;
   defaultLocationId: number | undefined;
   onNoCitiesFound?: () => void;
+  clearableStateAndCitySelection?: boolean;
+  disableDebounce?: boolean;
+  onSelectedStateChange?: (state: BrazilianStates | null) => void;
   handleFilterChange: (params: {
     type: AssessmentsFilterType;
     newValue: string | number | Date | null;
@@ -114,7 +121,9 @@ const AssessmentsFilter = ({
       <LocationSelector
         defaultLocationId={defaultLocationId}
         selectedLocationId={selectedLocationId}
+        clearableStateAndCitySelection={clearableStateAndCitySelection}
         onNoCitiesFound={onNoCitiesFound}
+        onSelectedStateChange={onSelectedStateChange}
         onSelectedLocationChange={(v) => {
           handleFilterChange({ type: "LOCATION_ID", newValue: v?.id ?? null });
         }}
@@ -151,7 +160,7 @@ const AssessmentsFilter = ({
       <h4>Data inicial</h4>
       <CDateTimePicker
         label="Início - Data inicial"
-        debounce={600}
+        debounce={disableDebounce ? undefined : 600}
         clearable
         onAccept={(e) => {
           handleFilterChange({
@@ -162,7 +171,7 @@ const AssessmentsFilter = ({
       />
       <CDateTimePicker
         label="Início - Data final"
-        debounce={600}
+        debounce={disableDebounce ? undefined : 600}
         clearable
         onAccept={(e) => {
           handleFilterChange({

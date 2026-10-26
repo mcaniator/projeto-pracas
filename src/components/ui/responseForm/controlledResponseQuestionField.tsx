@@ -10,11 +10,13 @@ const ControlledResponseQuestionField = ({
   calculationExpression,
   control,
   finalized,
+  onUserChange,
 }: {
   question: FormSubmissionQuestionItem;
   calculationExpression?: string;
   control: Control<FormValues, unknown, FormValues>;
   finalized: boolean;
+  onUserChange: () => void;
 }) => {
   if (calculationExpression) {
     return (
@@ -31,7 +33,10 @@ const ControlledResponseQuestionField = ({
           question={question}
           readOnly={finalized}
           value={field.value ?? null}
-          onChange={field.onChange}
+          onChange={(value) => {
+            onUserChange();
+            field.onChange(value);
+          }}
         />
       )}
     />

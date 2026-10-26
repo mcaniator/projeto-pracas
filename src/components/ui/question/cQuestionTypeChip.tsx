@@ -1,7 +1,7 @@
 import CIconChip from "@components/ui/cIconChip";
 import { IconButtonOwnProps } from "@mui/material";
 import { OptionTypes, QuestionTypes } from "@prisma/client";
-import { IconToggleRight } from "@tabler/icons-react";
+import { IconTallymarks, IconToggleRight } from "@tabler/icons-react";
 import { useState } from "react";
 import { FaKeyboard as IconKeyboard } from "react-icons/fa";
 import { IoMdCheckbox, IoMdRadioButtonOn } from "react-icons/io";
@@ -44,6 +44,9 @@ const CQuestionTypeChip = ({
   } else if (questionType === "BOOLEAN") {
     icon = <IconToggleRight />;
     tooltip = "Questão de verdadeiro ou falso";
+  } else if (questionType === "COUNTER") {
+    icon = <IconTallymarks />;
+    tooltip = "Contador";
   }
 
   const handleChipClick = () => {

@@ -1,8 +1,20 @@
 import type {
-  FetchFinalizedTallysDataVisualizationParams,
-  FetchFinalizedTallysDataVisualizationResponse,
-  FetchOngoingTallyParams,
-  FetchOngoingTallyResponse,
+  CreateTallyData,
+  CreateTallyResponse,
+  CreateTallyProtocolData,
+  DeleteTallyData,
+  TallySubmitData,
+  TallySubmitResponse,
+  UpdateTallyProtocolArchiveStatusData,
+  UpdateTallyProtocolData,
+} from "@/lib/serverFunctions/mutations/tally";
+import type {
+  FetchTallyDetailsParams,
+  FetchTallyDetailsResponse,
+  FetchTallyProtocolStructureParams,
+  FetchTallyProtocolStructureResponse,
+  FetchTallyProtocolsParams,
+  FetchTallyProtocolsResponse,
   FetchTallyUsersResponse,
   FetchTallysParams,
   FetchTallysResponse,
@@ -10,25 +22,39 @@ import type {
 import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
-import type {
-  CreateTallyData,
-  CreateTallyResponse,
-  DeleteTallyData,
-  SaveOngoingTallyData,
-  SaveOngoingTallyResponse,
-} from "../mutations/tallyUtil";
+export const useFetchTallyProtocols = (
+  params?: UseFetchAPIParams<FetchTallyProtocolsResponse>,
+) => {
+  return useFetchAPI<
+    FetchTallyProtocolsResponse,
+    FetchTallyProtocolsParams
+  >({
+    url: "/api/admin/tallyProtocols",
+    callbacks: params?.callbacks,
+    options: { method: "GET" },
+  });
+};
 
 export const useFetchTallys = (
   params?: UseFetchAPIParams<FetchTallysResponse>,
 ) => {
-  const url = `/api/admin/tallys`;
-
   return useFetchAPI<FetchTallysResponse, FetchTallysParams>({
-    url,
+    url: "/api/admin/tallys",
     callbacks: params?.callbacks,
-    options: {
-      method: "GET",
-    },
+    options: { method: "GET" },
+  });
+};
+
+export const useFetchTallyDetails = (
+  params?: UseFetchAPIParams<FetchTallyDetailsResponse>,
+) => {
+  return useFetchAPI<
+    FetchTallyDetailsResponse,
+    FetchTallyDetailsParams
+  >({
+    url: "/api/admin/tallys/details",
+    callbacks: params?.callbacks,
+    options: { method: "GET" },
   });
 };
 
@@ -38,36 +64,7 @@ export const useFetchTallyUsers = (
   return useFetchAPI<FetchTallyUsersResponse, Record<string, never>>({
     url: "/api/admin/tallys/users",
     callbacks: params?.callbacks,
-    options: {
-      method: "GET",
-    },
-  });
-};
-
-export const useFetchOngoingTally = (
-  params?: UseFetchAPIParams<FetchOngoingTallyResponse>,
-) => {
-  return useFetchAPI<FetchOngoingTallyResponse, FetchOngoingTallyParams>({
-    url: "/api/admin/tallys/ongoing",
-    callbacks: params?.callbacks,
-    options: {
-      method: "GET",
-    },
-  });
-};
-
-export const useFetchFinalizedTallysDataVisualization = (
-  params?: UseFetchAPIParams<FetchFinalizedTallysDataVisualizationResponse>,
-) => {
-  return useFetchAPI<
-    FetchFinalizedTallysDataVisualizationResponse,
-    FetchFinalizedTallysDataVisualizationParams
-  >({
-    url: "/api/admin/tallys/finalizedDataVisualization",
-    callbacks: params?.callbacks,
-    options: {
-      method: "GET",
-    },
+    options: { method: "GET" },
   });
 };
 
@@ -81,25 +78,7 @@ export const useCreateTally = (
   >({
     url: "/api/admin/tallys/create",
     callbacks: params?.callbacks,
-    options: {
-      method: "POST",
-    },
-  });
-};
-
-export const useSaveOngoingTallyData = (
-  params?: UseFetchAPIParams<SaveOngoingTallyResponse>,
-) => {
-  return useFetchAPI<
-    SaveOngoingTallyResponse,
-    Record<string, never>,
-    SaveOngoingTallyData
-  >({
-    url: "/api/admin/tallys/ongoing/save",
-    callbacks: params?.callbacks,
-    options: {
-      method: "POST",
-    },
+    options: { method: "POST" },
   });
 };
 
@@ -107,8 +86,69 @@ export const useDeleteTally = (params?: UseFetchAPIParams<null>) => {
   return useFetchAPI<null, Record<string, never>, DeleteTallyData>({
     url: "/api/admin/tallys/delete",
     callbacks: params?.callbacks,
-    options: {
-      method: "POST",
-    },
+    options: { method: "POST" },
+  });
+};
+
+export const useTallySubmit = (
+  params?: UseFetchAPIParams<TallySubmitResponse>,
+) => {
+  return useFetchAPI<
+    TallySubmitResponse,
+    Record<string, never>,
+    TallySubmitData
+  >({
+    url: "/api/admin/tallys/responses",
+    callbacks: params?.callbacks,
+    options: { method: "POST" },
+  });
+};
+
+export const useFetchTallyProtocolStructure = (
+  params?: UseFetchAPIParams<FetchTallyProtocolStructureResponse>,
+) => {
+  return useFetchAPI<
+    FetchTallyProtocolStructureResponse,
+    FetchTallyProtocolStructureParams
+  >({
+    url: "/api/admin/tallyProtocols/details",
+    callbacks: params?.callbacks,
+    options: { method: "GET" },
+  });
+};
+
+export const useCreateTallyProtocol = (
+  params?: UseFetchAPIParams<null>,
+) => {
+  return useFetchAPI<
+    null,
+    Record<string, never>,
+    CreateTallyProtocolData
+  >({
+    url: "/api/admin/tallyProtocols/create",
+    callbacks: params?.callbacks,
+    options: { method: "POST" },
+  });
+};
+
+export const useUpdateTallyProtocol = (params?: UseFetchAPIParams<null>) => {
+  return useFetchAPI<null, Record<string, never>, UpdateTallyProtocolData>({
+    url: "/api/admin/tallyProtocols/update",
+    callbacks: params?.callbacks,
+    options: { method: "POST" },
+  });
+};
+
+export const useUpdateTallyProtocolArchiveStatus = (
+  params?: UseFetchAPIParams<null>,
+) => {
+  return useFetchAPI<
+    null,
+    Record<string, never>,
+    UpdateTallyProtocolArchiveStatusData
+  >({
+    url: "/api/admin/tallyProtocols/archiveStatus",
+    callbacks: params?.callbacks,
+    options: { method: "POST" },
   });
 };

@@ -5,8 +5,8 @@ import type { FormManagerRef } from "@/components/form/formManager/formManager";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CButton from "@/components/ui/cButton";
 import CDialog from "@/components/ui/dialog/cDialog";
-import { useUpdateTallyTemplate } from "@/lib/serverFunctions/apiCalls/modularTally";
-import type { FetchModularTallyTemplateStructureResponse } from "@/lib/serverFunctions/queries/modularTally";
+import { useUpdateTallyProtocol } from "@/lib/serverFunctions/apiCalls/tally";
+import type { FetchTallyProtocolStructureResponse } from "@/lib/serverFunctions/queries/tally";
 import { useRouter } from "next-nprogress-bar";
 import { enqueueSnackbar } from "notistack";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -16,30 +16,31 @@ import type {
   PersonCharacteristic,
   PersonCharacteristicGroup,
 } from "./personCharacteristicManager/types";
-import SaveTallyTemplateDialog from "./saveTallyTemplateDialog";
+import SaveTallyProtocolDialog from "./saveTallyProtocolDialog";
 import {
-  type TallyTemplateDraftGroup,
-  buildTallyTemplateDraftGroups,
-  tallyTemplateGroupDisplayModes,
-} from "./tallyTemplateDraft";
-import TallyTemplateEditor from "./tallyTemplateEditor";
+  type TallyProtocolDraftGroup,
+  buildTallyProtocolDraftGroups,
+  reorderTallyProtocolDraftGroups,
+  tallyProtocolGroupDisplayModes,
+} from "./tallyProtocolDraft";
+import TallyProtocolEditor from "./tallyProtocolEditor";
 
-const TallyTemplateClient = ({
-  modularTallyTemplate,
+const TallyProtocolClient = ({
+  tallyProtocol,
 }: {
-  modularTallyTemplate: FetchModularTallyTemplateStructureResponse["modularTallyTemplate"];
+  tallyProtocol: FetchTallyProtocolStructureResponse["tallyProtocol"];
 }) => {
   const router = useRouter();
   const formManagerRef = useRef<FormManagerRef>(null);
-  const [templateName, setTemplateName] = useState(modularTallyTemplate.name);
+  const [templateName, setTemplateName] = useState(tallyProtocol.name);
   const [selectedForm, setSelectedForm] = useState<{
     id: number;
     name: string;
-  } | null>(modularTallyTemplate.form);
+  } | null>(tallyProtocol.form);
   const [templateGroups, setTemplateGroups] = useState<
-    TallyTemplateDraftGroup[]
+    TallyProtocolDraftGroup[]
   >(() =>
-    buildTallyTemplateDraftGroups(modularTallyTemplate.tallyTemplateGroups),
+    buildTallyProtocolDraftGroups(tallyProtocol.tallyProtocolGroups),
   );
   const [isMobileView, setIsMobileView] = useState(true);
   const [isCharacteristicManagerOpen, setIsCharacteristicManagerOpen] =
@@ -47,7 +48,7 @@ const TallyTemplateClient = ({
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [saveAsFinalized, setSaveAsFinalized] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [updateTallyTemplate, isSaving] = useUpdateTallyTemplate();
+  const [updateTallyProtocol, isSaving] = useUpdateTallyProtocol();
   const addedPersonCharacteristicIds = useMemo(
     () =>
       templateGroups.flatMap((group) =>
@@ -129,32 +130,22 @@ const TallyTemplateClient = ({
             },
           ],
         };
-        const newGroup: TallyTemplateDraftGroup =
-          currentGroups.length === 0 ?
-            {
-              ...newGroupBase,
-              position: null,
-              displayMode: tallyTemplateGroupDisplayModes.COUNTERS,
-            } // The first group is always counters, because it's the mandatory interaction during tally
-          : {
-              ...newGroupBase,
-              position:
-                Math.max(
-                  0,
-                  ...currentGroups.flatMap((group) =>
-                    group.position === null ? [] : [group.position],
-                  ),
-                ) + 1,
-              displayMode: tallyTemplateGroupDisplayModes.COMMON,
-            };
+        const newGroup: TallyProtocolDraftGroup = {
+          ...newGroupBase,
+          position: currentGroups.length + 1,
+          displayMode:
+            currentGroups.length === 0 ?
+              tallyProtocolGroupDisplayModes.COUNTERS
+            : tallyProtocolGroupDisplayModes.COMMON,
+        };
 
-        return [...currentGroups, newGroup];
+        return reorderTallyProtocolDraftGroups([...currentGroups, newGroup]);
       });
     },
     [templateGroups],
   );
 
-  const saveTallyTemplate = async () => {
+  const saveTallyProtocol = async () => {
     if (!templateName.trim()) {
       enqueueSnackbar("Informe o nome do protocolo de contagem.", {
         variant: "error",
@@ -163,9 +154,9 @@ const TallyTemplateClient = ({
     }
 
     try {
-      const response = await updateTallyTemplate({
+      const response = await updateTallyProtocol({
         data: {
-          modularTallyTemplateId: modularTallyTemplate.id,
+          tallyProtocolId: tallyProtocol.id,
           formId: selectedForm?.id ?? null,
           name: templateName,
           finalized: saveAsFinalized,
@@ -178,17 +169,9 @@ const TallyTemplateClient = ({
               })),
             };
 
-            if (group.displayMode === tallyTemplateGroupDisplayModes.COMMON) {
-              return {
-                ...baseGroup,
-                position: group.position,
-                displayMode: tallyTemplateGroupDisplayModes.COMMON,
-              };
-            }
-
             return {
               ...baseGroup,
-              position: null,
+              position: group.position,
               displayMode: group.displayMode,
             };
           }),
@@ -227,14 +210,14 @@ const TallyTemplateClient = ({
       <div className="grid h-full grid-cols-5 gap-2 overflow-auto">
         <div
           className={`${
-            isMobileView || modularTallyTemplate.finalized ?
+            isMobileView || tallyProtocol.finalized ?
               "col-span-5"
             : "col-span-3"
           } overflow-auto`}
         >
-          <TallyTemplateEditor
+          <TallyProtocolEditor
             formManagerRef={formManagerRef}
-            modularTallyTemplate={modularTallyTemplate}
+            tallyProtocol={tallyProtocol}
             name={templateName}
             onNameChange={setTemplateName}
             selectedForm={selectedForm}
@@ -243,7 +226,7 @@ const TallyTemplateClient = ({
             onChangeGroups={setTemplateGroups}
             onSave={() => setIsSaveDialogOpen(true)}
           />
-          {isMobileView && !modularTallyTemplate.finalized && (
+          {isMobileView && !tallyProtocol.finalized && (
             <div className="ml-2 mt-3">
               <PermissionGuard requiresAnyRoles={["TALLY_MANAGER"]}>
                 <CButton onClick={() => setIsCharacteristicManagerOpen(true)}>
@@ -253,7 +236,7 @@ const TallyTemplateClient = ({
             </div>
           )}
         </div>
-        {!isMobileView && !modularTallyTemplate.finalized && (
+        {!isMobileView && !tallyProtocol.finalized && (
           <div
             className="col-span-2 h-full overflow-auto"
             style={{
@@ -269,7 +252,7 @@ const TallyTemplateClient = ({
           </div>
         )}
       </div>
-      {isMobileView && !modularTallyTemplate.finalized && (
+      {isMobileView && !tallyProtocol.finalized && (
         <CDialog
           fullScreen
           keepMounted
@@ -285,7 +268,7 @@ const TallyTemplateClient = ({
           />
         </CDialog>
       )}
-      <SaveTallyTemplateDialog
+      <SaveTallyProtocolDialog
         open={isSaveDialogOpen}
         finalized={saveAsFinalized}
         isRedirecting={isRedirecting}
@@ -293,11 +276,11 @@ const TallyTemplateClient = ({
         onClose={() => setIsSaveDialogOpen(false)}
         onFinalizedChange={setSaveAsFinalized}
         onSave={() => {
-          void saveTallyTemplate();
+          void saveTallyProtocol();
         }}
       />
     </div>
   );
 };
 
-export default TallyTemplateClient;
+export default TallyProtocolClient;

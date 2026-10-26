@@ -252,85 +252,34 @@ export type FetchquestionUsesResponse = NonNullable<
   Awaited<ReturnType<typeof fetchQuestionUses>>["data"]
 >;
 
-type QuestionUses = {
-  numberOfAssessments: number;
-  numberOfForms: number;
-  forms: {
-    id: number;
-    name: string;
-  }[];
-  assessments: {
-    assessmentId: number;
-    location: {
-      name: string;
-    };
-  }[];
-};
-
 export const fetchQuestionUses = async (
   request: APIRequestParams<FetchQuestionUsesParams>,
 ) => {
   const params = request.params!;
   try {
-    const [questionUses] = await prisma.$queryRaw<QuestionUses[]>`
-      WITH question_forms AS (
-        SELECT DISTINCT fi."form_id"
-        FROM "form_item" fi
-        WHERE fi."question_id" = ${params.questionId}
-      ),
-      forms AS (
-        SELECT f.id, f.name
-        FROM "form" f
-        JOIN question_forms qf ON qf."form_id" = f.id
-      ),
-      assessments AS (
-        SELECT
-          a.id AS "assessmentId",
-          l.name AS "locationName"
-        FROM "assessment" a
-        JOIN question_forms qf ON qf."form_id" = a."form_id"
-        JOIN "location" l ON l.id = a."location_id"
-      )
-      SELECT
-        (SELECT COUNT(*)::int FROM assessments) AS "numberOfAssessments",
-        (SELECT COUNT(*)::int FROM forms) AS "numberOfForms",
-        COALESCE(
-          (
-            SELECT json_agg(
-              json_build_object(
-                'id', forms.id,
-                'name', forms.name
-              ) ORDER BY forms.name ASC
-            )
-            FROM forms
-          ),
-          '[]'::json
-        ) AS forms,
-        COALESCE(
-          (
-            SELECT json_agg(
-              json_build_object(
-                'assessmentId', assessments."assessmentId",
-                'location', json_build_object(
-                  'name', assessments."locationName"
-                )
-              ) ORDER BY assessments."assessmentId" ASC
-            )
-            FROM assessments
-          ),
-          '[]'::json
-        ) AS assessments
-    `;
+    const forms = await prisma.form.findMany({
+      where: {
+        formItems: {
+          some: {
+            questionId: params.questionId,
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
 
     return {
       responseInfo: {
         statusCode: 200,
       } as APIResponseInfo,
       data: {
-        numberOfAssessments: questionUses?.numberOfAssessments ?? 0,
-        numberOfForms: questionUses?.numberOfForms ?? 0,
-        forms: questionUses?.forms ?? [],
-        assessments: questionUses?.assessments ?? [],
+        forms,
       },
     };
   } catch (e) {
@@ -340,10 +289,7 @@ export const fetchQuestionUses = async (
         message: "Erro ao consultar usos da questão!",
       } as APIResponseInfo,
       data: {
-        numberOfAssessments: 0,
-        numberOfForms: 0,
         forms: [],
-        assessments: [],
       },
     };
   }

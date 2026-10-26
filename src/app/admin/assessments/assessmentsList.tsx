@@ -17,7 +17,7 @@ import {
   useUpdateAssessmentVisibility,
 } from "@/lib/serverFunctions/apiCalls/assessment";
 import { Capacitor } from "@capacitor/core";
-import { Chip, Divider } from "@mui/material";
+import { Chip, CircularProgress, Divider } from "@mui/material";
 import {
   IconAlertTriangle,
   IconCalendar,
@@ -43,11 +43,15 @@ const AssessmentsList = ({
   assessments,
   hasSQLiteAssessments,
   handleVisibilityChange,
+  isLoadingMore,
+  onNearScrollEnd,
   fetchAssessments,
 }: {
   assessments: AssessmentWithSyncStatus[];
   hasSQLiteAssessments: boolean;
   handleVisibilityChange: (id: number, isPublic: boolean) => void;
+  isLoadingMore: boolean;
+  onNearScrollEnd: () => void;
   fetchAssessments: () => void;
 }) => {
   const { isConnected, isConnectedRef } = useNetwork();
@@ -212,7 +216,7 @@ const AssessmentsList = ({
 
   return (
     <div className="flex h-full flex-col gap-1">
-      {assessments.length === 0 && (
+      {assessments.length === 0 && !isLoadingMore && (
         <div className="text-center text-xl font-semibold">
           Nenhuma avaliação corresponde aos filtros!
         </div>
@@ -232,6 +236,19 @@ const AssessmentsList = ({
       )}
       <Virtuoso
         data={assessments}
+        rangeChanged={({ endIndex }) => {
+          if (endIndex >= assessments.length - 10) {
+            onNearScrollEnd();
+          }
+        }}
+        components={{
+          Footer: () =>
+            isLoadingMore ?
+              <div className="flex justify-center py-2">
+                <CircularProgress size={28} />
+              </div>
+            : null,
+        }}
         style={{
           height: "100%",
           overflowX: "hidden",

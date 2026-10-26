@@ -1,50 +1,50 @@
 "use client";
 
 import CCircularProgress from "@/components/ui/CCircularProgress";
-import { useFetchModularTallyTemplateStructure } from "@/lib/serverFunctions/apiCalls/modularTally";
+import { useFetchTallyProtocolStructure } from "@/lib/serverFunctions/apiCalls/tally";
 import PermissionGuard from "@components/auth/permissionGuard";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
-import TallyTemplateClient from "./client";
+import TallyProtocolClient from "./client";
 
-const EditModularTallyTemplateProtectedContent = () => {
+const EditTallyProtocolProtectedContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const modularTallyTemplateId = Number(
-    searchParams.get("modularTallyTemplateId"),
+  const tallyProtocolId = Number(
+    searchParams.get("tallyProtocolId"),
   );
-  const [fetchModularTallyTemplateStructure, isLoading] =
-    useFetchModularTallyTemplateStructure();
+  const [fetchTallyProtocolStructure, isLoading] =
+    useFetchTallyProtocolStructure();
   const [response, setResponse] = useState<Awaited<
-    ReturnType<typeof fetchModularTallyTemplateStructure>
+    ReturnType<typeof fetchTallyProtocolStructure>
   >["data"] | null>(null);
 
   useEffect(() => {
-    if (!Number.isFinite(modularTallyTemplateId)) {
+    if (!Number.isFinite(tallyProtocolId)) {
       router.replace("/error");
       return;
     }
 
-    const loadModularTallyTemplate = async () => {
-      const result = await fetchModularTallyTemplateStructure({
-        params: { modularTallyTemplateId },
+    const loadTallyProtocol = async () => {
+      const result = await fetchTallyProtocolStructure({
+        params: { tallyProtocolId },
       });
-      if (!result.data?.modularTallyTemplate) {
+      if (!result.data?.tallyProtocol) {
         router.replace("/error");
         return;
       }
       setResponse(result.data);
     };
 
-    void loadModularTallyTemplate();
+    void loadTallyProtocol();
   }, [
-    fetchModularTallyTemplateStructure,
-    modularTallyTemplateId,
+    fetchTallyProtocolStructure,
+    tallyProtocolId,
     router,
   ]);
 
-  if (isLoading || !response?.modularTallyTemplate) {
+  if (isLoading || !response?.tallyProtocol) {
     return (
       <div className="flex h-full items-center justify-center">
         <CCircularProgress size={128} />
@@ -54,12 +54,12 @@ const EditModularTallyTemplateProtectedContent = () => {
 
   return (
     <PermissionGuard redirect requiresAnyRoleGroups={["TALLY"]}>
-      <TallyTemplateClient modularTallyTemplate={response.modularTallyTemplate} />
+      <TallyProtocolClient tallyProtocol={response.tallyProtocol} />
     </PermissionGuard>
   );
 };
 
-const EditModularTallyTemplatePage = () => {
+const EditTallyProtocolPage = () => {
   return (
     <Suspense
       fallback={
@@ -68,9 +68,9 @@ const EditModularTallyTemplatePage = () => {
         </div>
       }
     >
-      <EditModularTallyTemplateProtectedContent />
+      <EditTallyProtocolProtectedContent />
     </Suspense>
   );
 };
 
-export default EditModularTallyTemplatePage;
+export default EditTallyProtocolPage;

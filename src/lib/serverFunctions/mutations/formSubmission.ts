@@ -69,26 +69,35 @@ const toOptionResponseValue = (
 export type getFormSubmissionUpdateTransactionsParams = {
   formSubmissionId: number;
   formSubmission: FormSubmissionData;
+  tx?: Prisma.TransactionClient;
 };
 
 /**
  * Creates the response persistence operations for a form submission.
  * The caller is responsible for executing the returned operations in its own
  * transaction, together with any other domain-specific operations.
+ *
+ * Omit `tx` when the returned operations will be passed directly to a batch
+ * `prisma.$transaction([...])`. When calling this helper from inside an
+ * interactive `prisma.$transaction(async (tx) => ...)`, pass that `tx` so all
+ * reads and returned operations use the same connection and participate in
+ * the same rollback.
  */
 export const getFormSubmissionUpdateTransactions = async ({
   formSubmissionId,
   formSubmission: { responses, geometries },
+  tx,
 }: getFormSubmissionUpdateTransactionsParams): Promise<
   Prisma.PrismaPromise<number>[]
 > => {
+  const database = tx ?? prisma;
   const userId = (await getSessionUser())?.id;
 
   if (!userId) {
     throw new Error("Usuário não autenticado");
   }
 
-  const storedFormSubmission = await prisma.formSubmission.findUnique({
+  const storedFormSubmission = await database.formSubmission.findUnique({
     where: { id: formSubmissionId },
     select: { formId: true },
   });
@@ -105,7 +114,7 @@ export const getFormSubmissionUpdateTransactions = async ({
       ...geometries.map((geometry) => geometry.questionId),
     ]),
   ];
-  const questions = await prisma.question.findMany({
+  const questions = await database.question.findMany({
     where: {
       id: {
         in: requestedQuestionIds,
@@ -142,7 +151,10 @@ export const getFormSubmissionUpdateTransactions = async ({
         throw new Error("Resposta não enviada para uma ou mais questões!");
       }
       const response = responses[question.id];
-      if (question.questionType === QuestionTypes.WRITTEN) {
+      if (
+        question.questionType === QuestionTypes.WRITTEN ||
+        question.questionType === QuestionTypes.COUNTER
+      ) {
         if (Array.isArray(response)) {
           throw new Error("Resposta em array enviada para questão escrita!");
         }
@@ -153,7 +165,19 @@ export const getFormSubmissionUpdateTransactions = async ({
           throw new Error("Resposta em booleana enviada para questão escrita!");
         }
 
-        let writtenResponse = response;
+        let writtenResponse =
+          question.questionType === QuestionTypes.COUNTER && response === null ?
+            0
+          : response;
+
+        if (
+          question.questionType === QuestionTypes.COUNTER &&
+          (typeof writtenResponse !== "number" ||
+            !Number.isInteger(writtenResponse) ||
+            writtenResponse < 0)
+        ) {
+          throw new Error("Resposta inválida enviada para questão contador!");
+        }
 
         //Date validation
         if (question.characterType === QuestionResponseCharacterTypes.DATE) {
@@ -232,7 +256,7 @@ export const getFormSubmissionUpdateTransactions = async ({
       ON CONFLICT ("form_submission_id", "question_id")
       DO UPDATE SET "response" = EXCLUDED."response", "user_id" = EXCLUDED."user_id", "updated_at" = EXCLUDED."updated_at"`;
 
-    transactions.push(prisma.$executeRaw(writtenResponsesQuery));
+    transactions.push(database.$executeRaw(writtenResponsesQuery));
   }
 
   const booleanResponsesSQLValues = booleanResponses.map(
@@ -245,10 +269,10 @@ export const getFormSubmissionUpdateTransactions = async ({
       VALUES ${Prisma.join(booleanResponsesSQLValues, `,`)}
       ON CONFLICT ("form_submission_id", "question_id")
       DO UPDATE SET "response" = EXCLUDED."response", "user_id" = EXCLUDED."user_id", "updated_at" = EXCLUDED."updated_at"`;
-    transactions.push(prisma.$executeRaw(booleanResponsesQuery));
+    transactions.push(database.$executeRaw(booleanResponsesQuery));
   }
 
-  const existingOptions = await prisma.responseOption.findMany({
+  const existingOptions = await database.responseOption.findMany({
     where: { formSubmissionId },
     orderBy: [{ createdAt: "asc" }, { id: "asc" }],
   });
@@ -304,7 +328,7 @@ export const getFormSubmissionUpdateTransactions = async ({
       WHERE id IN (${Prisma.join(responseOptionIds)});
     `;
 
-    transactions.push(prisma.$executeRaw(responseOptionUpdate));
+    transactions.push(database.$executeRaw(responseOptionUpdate));
   }
 
   //For each question, in case more options were sent than the current number of reponseOption, an INSERT will be made
@@ -330,7 +354,7 @@ export const getFormSubmissionUpdateTransactions = async ({
   if (insertValues.length > 0) {
     const responseOptionInsert = Prisma.sql`INSERT INTO "response_option" ("user_id", "form_submission_id", "question_id", "option_id", "override_value", "updated_at")
       VALUES ${Prisma.join(insertValues, ",")}`;
-    transactions.push(prisma.$executeRaw(responseOptionInsert));
+    transactions.push(database.$executeRaw(responseOptionInsert));
   }
 
   const responseGeometryValues = geometries.map((responseGeometry) => {
@@ -354,7 +378,7 @@ export const getFormSubmissionUpdateTransactions = async ({
         updated_at = EXCLUDED.updated_at
     `;
 
-    transactions.push(prisma.$executeRaw(responseGeometryQuery));
+    transactions.push(database.$executeRaw(responseGeometryQuery));
   }
 
   return transactions;

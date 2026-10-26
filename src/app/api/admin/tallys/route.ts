@@ -1,5 +1,7 @@
-import { fetchTallysParamsSchema } from "@/lib/serverFunctions/queries/tally";
-import { fetchTallys } from "@/lib/serverFunctions/queries/tally";
+import {
+  fetchTallys,
+  fetchTallysParamsSchema,
+} from "@/lib/serverFunctions/queries/tally";
 import { parseQueryParams } from "@/lib/utils/apiCall";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { NextRequest } from "next/server";
@@ -7,22 +9,28 @@ import superjson from "superjson";
 
 export async function GET(request: NextRequest) {
   try {
-    try {
-      await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
-    } catch (e) {
-      return new Response("Unauthorized", { status: 401 });
-    }
-    const searchParams = request.nextUrl.searchParams;
-    const params = parseQueryParams(fetchTallysParamsSchema, searchParams);
-    const tallys = await fetchTallys({ params });
-    return new Response(superjson.stringify(tallys), {
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
+  } catch {
+    return new Response("Sem permissão para consultar contagens!", {
+      status: 401,
+    });
+  }
+
+  try {
+    const params = parseQueryParams(
+      fetchTallysParamsSchema,
+      request.nextUrl.searchParams,
+    );
+    const response = await fetchTallys({ params });
+
+    return new Response(superjson.stringify(response), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
         "Cache-Control": "private, max-age=5",
       },
     });
-  } catch (error) {
-    return new Response("Error fetching assessments", { status: 500 });
+  } catch {
+    return new Response("Erro ao consultar contagens!", { status: 500 });
   }
 }

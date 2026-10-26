@@ -237,7 +237,10 @@ const getAdminSQLiteFormSubmissionData = async ({
     const optionResponses =
       responseOptionsByQuestionId.get(question.questionId) ?? [];
 
-    if (question.questionType === QuestionTypes.WRITTEN) {
+    if (
+      question.questionType === QuestionTypes.WRITTEN ||
+      question.questionType === QuestionTypes.COUNTER
+    ) {
       if (
         question.characterType === QuestionResponseCharacterTypes.NUMBER ||
         question.characterType === QuestionResponseCharacterTypes.PERCENTAGE ||
@@ -396,7 +399,10 @@ const getAdminSQLiteFormSubmissionUpdateOperations = async ({
     .forEach((question) => {
       const response = responses[question.id];
 
-      if (question.questionType === QuestionTypes.WRITTEN) {
+      if (
+        question.questionType === QuestionTypes.WRITTEN ||
+        question.questionType === QuestionTypes.COUNTER
+      ) {
         if (Array.isArray(response)) {
           throw new Error("Resposta em array enviada para questão escrita!");
         }
@@ -407,7 +413,18 @@ const getAdminSQLiteFormSubmissionUpdateOperations = async ({
           throw new Error("Resposta em booleana enviada para questão escrita!");
         }
 
-        let writtenResponse = response;
+        let writtenResponse =
+          question.questionType === QuestionTypes.COUNTER && response === null ?
+            0
+          : response;
+        if (
+          question.questionType === QuestionTypes.COUNTER &&
+          (typeof writtenResponse !== "number" ||
+            !Number.isInteger(writtenResponse) ||
+            writtenResponse < 0)
+        ) {
+          throw new Error("Resposta inválida enviada para questão contador!");
+        }
         if (question.characterType === QuestionResponseCharacterTypes.DATE) {
           writtenResponse =
             (

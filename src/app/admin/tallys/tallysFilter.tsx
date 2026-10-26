@@ -1,59 +1,78 @@
-import { TallysFilterType } from "@/app/admin/tallys/tallysClient";
+import type { TallysFilterType } from "@/app/admin/tallys/tallysClient";
 import LocationSelector from "@/components/locationSelector/locationSelector";
+import CAutocomplete from "@/components/ui/cAutoComplete";
+import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
-import type { FetchTallyUsersResponse } from "@/lib/serverFunctions/queries/tally";
-import CAutocomplete from "@components/ui/cAutoComplete";
-import CDateTimePicker from "@components/ui/cDateTimePicker";
+import type {
+  FetchTallyProtocolsResponse,
+  FetchTallyUsersResponse,
+} from "@/lib/serverFunctions/queries/tally";
 import { Divider } from "@mui/material";
+import { IconExternalLink } from "@tabler/icons-react";
+import { useRouter } from "next-nprogress-bar";
+import { useState } from "react";
 
 const statusOptions = [
-  {
-    id: FINALIZATION_STATUS.ALL,
-    label: "Todos",
-  },
-  {
-    id: FINALIZATION_STATUS.NOT_FINALIZED,
-    label: "Em progresso",
-  },
-  {
-    id: FINALIZATION_STATUS.FINALIZED,
-    label: "Finalizado",
-  },
+  { id: FINALIZATION_STATUS.ALL, label: "Todos" },
+  { id: FINALIZATION_STATUS.NOT_FINALIZED, label: "Em progresso" },
+  { id: FINALIZATION_STATUS.FINALIZED, label: "Finalizado" },
 ];
 
-const UserSelector = ({
-  users,
+const TallyProtocolSelector = ({
+  tallyProtocols,
+  isLoading,
   handleFilterChange,
 }: {
-  users: FetchTallyUsersResponse["users"];
+  tallyProtocols: FetchTallyProtocolsResponse["tallyProtocols"];
+  isLoading?: boolean;
   handleFilterChange: (params: {
     type: TallysFilterType;
     newValue: string | number | Date | null;
   }) => void;
 }) => {
+  const router = useRouter();
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
   return (
     <CAutocomplete
-      label="Responsavel"
-      options={users}
+      label="Protocolo"
+      className="w-full"
+      options={tallyProtocols}
+      loading={isLoading}
       isOptionEqualToValue={(option, value) => option.id === value.id}
-      getOptionLabel={(i) => i.username}
-      onChange={(_, a) =>
-        handleFilterChange({ type: "USER_ID", newValue: a?.id ?? null })
+      getOptionLabel={(template) => template.name}
+      onChange={(_, template) =>
+        handleFilterChange({
+          type: "TALLY_PROTOCOL_ID",
+          newValue: template?.id ?? null,
+        })
       }
+      suffixButtonChildren={<IconExternalLink />}
+      suffixButtonLoading={isRedirecting}
+      onSuffixButtonClick={() => {
+        setIsRedirecting(true);
+        router.push("/admin/protocols?type=tally");
+      }}
     />
   );
 };
 
 const TallysFilter = ({
+  tallyProtocols,
   users,
+  isLoading,
   selectedLocationId,
   defaultLocationId,
+  disableDebounce = false,
   onNoCitiesFound,
   handleFilterChange,
 }: {
+  tallyProtocols: FetchTallyProtocolsResponse["tallyProtocols"];
   users: FetchTallyUsersResponse["users"];
+  isLoading?: boolean;
   selectedLocationId: number | undefined;
   defaultLocationId: number | undefined;
+  disableDebounce?: boolean;
   onNoCitiesFound?: () => void;
   handleFilterChange: (params: {
     type: TallysFilterType;
@@ -67,58 +86,77 @@ const TallysFilter = ({
         defaultLocationId={defaultLocationId}
         selectedLocationId={selectedLocationId}
         onNoCitiesFound={onNoCitiesFound}
-        onSelectedLocationChange={(v) => {
-          handleFilterChange({ type: "LOCATION_ID", newValue: v?.id ?? null });
-        }}
-        onSelectedCityChange={(v) => {
-          handleFilterChange({ type: "CITY_ID", newValue: v?.id ?? null });
-        }}
-        onSelectedBroadUnitChange={(v) => {
+        onSelectedLocationChange={(location) =>
+          handleFilterChange({
+            type: "LOCATION_ID",
+            newValue: location?.id ?? null,
+          })
+        }
+        onSelectedCityChange={(city) =>
+          handleFilterChange({ type: "CITY_ID", newValue: city?.id ?? null })
+        }
+        onSelectedBroadUnitChange={(unit) =>
           handleFilterChange({
             type: "BROAD_UNIT_ID",
-            newValue: v?.broadUnitId ?? null,
-          });
-        }}
-        onSelectedIntermediateUnitChange={(v) => {
+            newValue: unit?.broadUnitId ?? null,
+          })
+        }
+        onSelectedIntermediateUnitChange={(unit) =>
           handleFilterChange({
             type: "INTERMEDIATE_UNIT_ID",
-            newValue: v?.intermediateUnitId ?? null,
-          });
-        }}
-        onSelectedNarrowUnitChange={(v) => {
+            newValue: unit?.intermediateUnitId ?? null,
+          })
+        }
+        onSelectedNarrowUnitChange={(unit) =>
           handleFilterChange({
             type: "NARROW_UNIT_ID",
-            newValue: v?.narrowUnitId ?? null,
-          });
-        }}
+            newValue: unit?.narrowUnitId ?? null,
+          })
+        }
+      />
+      <Divider />
+      <h4>Protocolo</h4>
+      <TallyProtocolSelector
+        tallyProtocols={tallyProtocols}
+        isLoading={isLoading}
+        handleFilterChange={handleFilterChange}
       />
       <Divider />
       <h4>Data inicial</h4>
       <CDateTimePicker
         label="Início - Data inicial"
-        debounce={600}
+        debounce={disableDebounce ? undefined : 600}
         clearable
-        onAccept={(e) => {
+        onAccept={(date) =>
           handleFilterChange({
             type: "START_DATE",
-            newValue: e?.toDate() ?? null,
-          });
-        }}
+            newValue: date?.toDate() ?? null,
+          })
+        }
       />
       <CDateTimePicker
         label="Início - Data final"
-        debounce={600}
+        debounce={disableDebounce ? undefined : 600}
         clearable
-        onAccept={(e) => {
+        onAccept={(date) =>
           handleFilterChange({
             type: "END_DATE",
-            newValue: e?.toDate() ?? null,
-          });
-        }}
+            newValue: date?.toDate() ?? null,
+          })
+        }
       />
       <Divider />
       <h4>Responsável</h4>
-      <UserSelector users={users} handleFilterChange={handleFilterChange} />
+      <CAutocomplete
+        label="Responsável"
+        options={users}
+        loading={isLoading}
+        isOptionEqualToValue={(option, value) => option.id === value.id}
+        getOptionLabel={(user) => user.username}
+        onChange={(_, user) =>
+          handleFilterChange({ type: "USER_ID", newValue: user?.id ?? null })
+        }
+      />
       <Divider />
       <h4>Status</h4>
       <CAutocomplete
@@ -127,9 +165,12 @@ const TallysFilter = ({
         disableClearable
         defaultValue={statusOptions[0]}
         isOptionEqualToValue={(option, value) => option.id === value.id}
-        getOptionLabel={(i) => i.label}
-        onChange={(_, a) =>
-          handleFilterChange({ type: "FINALIZATION_STATUS", newValue: a.id })
+        getOptionLabel={(status) => status.label}
+        onChange={(_, status) =>
+          handleFilterChange({
+            type: "FINALIZATION_STATUS",
+            newValue: status.id,
+          })
         }
       />
     </div>

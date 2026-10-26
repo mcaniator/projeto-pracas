@@ -4,37 +4,97 @@ import {
   APIRequestParams,
   APIResponseInfo,
 } from "@/lib/types/backendCalls/APIResponse";
+import { booleanFromString } from "@/lib/zodValidators";
 import { prisma } from "@lib/prisma";
-import { finalizedTallyArraySchema, ongoingTallySchema } from "@zodValidators";
 import { z } from "zod";
+
+import { getFormSubmissionData } from "./formSubmission";
+
+export const fetchTallyProtocolsParamsSchema = z.object({
+  finalizedOnly: booleanFromString.nullish(),
+  includeArchived: booleanFromString.nullish(),
+});
+
+export type FetchTallyProtocolsParams = z.infer<
+  typeof fetchTallyProtocolsParamsSchema
+>;
+
+export type FetchTallyProtocolsResponse = Awaited<
+  ReturnType<typeof fetchTallyProtocols>
+>["data"];
+
+export const fetchTallyProtocols = async (
+  request: APIRequestParams<FetchTallyProtocolsParams>,
+) => {
+  const params = request.params!;
+
+  try {
+    const tallyProtocols = await prisma.tallyProtocol.findMany({
+      where: {
+        ...(params.finalizedOnly && { finalized: true }),
+        ...(!params.includeArchived && { archived: false }),
+      },
+      select: {
+        id: true,
+        name: true,
+        finalized: true,
+        archived: true,
+        updatedAt: true,
+        _count: { select: { tally: true } },
+      },
+      orderBy: [{ archived: "asc" }, { updatedAt: "desc" }],
+    });
+
+    return {
+      responseInfo: { statusCode: 200 } as APIResponseInfo,
+      data: { tallyProtocols },
+    };
+  } catch {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar protocolos de contagem!",
+      } as APIResponseInfo,
+      data: { tallyProtocols: [] },
+    };
+  }
+};
 
 export const fetchTallysParamsSchema = z.object({
   startDate: z.coerce.date().optional(),
   endDate: z.coerce.date().optional(),
   userId: z.string().optional(),
   locationId: z.coerce.number().optional(),
+  tallyProtocolId: z.coerce.number().optional(),
   narrowUnitId: z.coerce.number().optional(),
   intermediateUnitId: z.coerce.number().optional(),
   broadUnitId: z.coerce.number().optional(),
   cityId: z.coerce.number().optional(),
   finalizationStatus: z.coerce.number().optional(),
+  page: z.coerce.number().int().positive(),
+  itemsPerPage: z.coerce.number().int().positive().max(100),
 });
 
-export type FetchTallysParams = z.infer<typeof fetchTallysParamsSchema>;
+export type FetchTallysParams = z.infer<
+  typeof fetchTallysParamsSchema
+>;
 
 export type FetchTallysResponse = NonNullable<
   Awaited<ReturnType<typeof fetchTallys>>["data"]
 >;
+
 export const fetchTallys = async (
   request: APIRequestParams<FetchTallysParams>,
 ) => {
   const params = request.params!;
-  let isFinalizedFilter = undefined;
+  let isFinalizedFilter: boolean | undefined;
+
   if (params.finalizationStatus === FINALIZATION_STATUS.FINALIZED) {
     isFinalizedFilter = true;
   } else if (params.finalizationStatus === FINALIZATION_STATUS.NOT_FINALIZED) {
     isFinalizedFilter = false;
   }
+
   try {
     const tallys = await prisma.tally.findMany({
       where: {
@@ -44,6 +104,7 @@ export const fetchTallys = async (
         },
         isFinalized: isFinalizedFilter,
         userId: params.userId,
+        tallyProtocolId: params.tallyProtocolId,
         location: {
           id: params.locationId,
           cityId: params.cityId,
@@ -52,9 +113,9 @@ export const fetchTallys = async (
           broadAdministrativeUnitId: params.broadUnitId,
         },
       },
-      orderBy: {
-        startDate: "desc",
-      },
+      orderBy: [{ startDate: "desc" }, { id: "desc" }],
+      skip: (params.page - 1) * params.itemsPerPage,
+      take: params.itemsPerPage + 1,
       select: {
         id: true,
         startDate: true,
@@ -62,270 +123,319 @@ export const fetchTallys = async (
         isFinalized: true,
         user: {
           select: {
-            username: true,
             id: true,
+            username: true,
           },
         },
         location: {
           select: {
-            name: true,
             id: true,
+            name: true,
+          },
+        },
+        tallyProtocol: {
+          select: {
+            id: true,
+            name: true,
           },
         },
       },
     });
+    const hasMore = tallys.length > params.itemsPerPage;
+    const slicedTallys = tallys.slice(0, params.itemsPerPage);
+
     return {
       responseInfo: { statusCode: 200 } as APIResponseInfo,
-      data: {
-        tallys,
-      },
+      data: { tallys: slicedTallys, hasMore },
     };
-  } catch (error) {
+  } catch {
     return {
       responseInfo: {
         statusCode: 500,
         message: "Erro ao consultar contagens!",
       } as APIResponseInfo,
-      data: {
-        tallys: [],
-      },
-    };
-  }
-};
-
-export type FetchRecentlyCompletedTallyResponse = NonNullable<
-  Awaited<ReturnType<typeof fetchRecentlyCompletedTallys>>["data"]
->;
-const fetchRecentlyCompletedTallys = async () => {
-  try {
-    const tallys = await prisma.tally.findMany({
-      where: {
-        NOT: {
-          isFinalized: false,
-        },
-      },
-      orderBy: {
-        startDate: "desc",
-      },
-      select: {
-        id: true,
-        startDate: true,
-        endDate: true,
-        isFinalized: true,
-        location: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        user: {
-          select: {
-            username: true,
-          },
-        },
-      },
-    });
-    return {
-      responseInfo: {
-        statusCode: 200,
-      } as APIResponseInfo,
-      data: {
-        tallys,
-      },
-    };
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 500,
-        message: "Erro ao consultar contagens!",
-      } as APIResponseInfo,
-      data: {
-        tallys: [],
-      },
-    };
-  }
-};
-
-export const fetchOngoingTallyParamsSchema = z.object({
-  tallyId: z.coerce.number(),
-});
-
-export type FetchOngoingTallyParams = z.infer<
-  typeof fetchOngoingTallyParamsSchema
->;
-
-export type FetchOngoingTallyResponse = NonNullable<
-  Awaited<ReturnType<typeof fetchOngoingTallyById>>
->["data"];
-
-const fetchOngoingTallyById = async (
-  request: APIRequestParams<FetchOngoingTallyParams>,
-) => {
-  const { tallyId } = request.params!;
-  try {
-    const tally = await prisma.tally.findUnique({
-      where: {
-        id: tallyId,
-      },
-      select: {
-        tallyPerson: true,
-        location: {
-          select: {
-            name: true,
-          },
-        },
-        startDate: true,
-        endDate: true,
-        updatedAt: true,
-        isFinalized: true,
-        user: {
-          select: {
-            id: true,
-            username: true,
-          },
-        },
-        animalsAmount: true,
-        temperature: true,
-        weatherCondition: true,
-        groups: true,
-        commercialActivities: true,
-      },
-    });
-    const parsedTally = ongoingTallySchema.safeParse(tally);
-    if (!parsedTally.success) {
-      return {
-        responseInfo: { statusCode: 400 } as APIResponseInfo,
-        data: { tally: null },
-      };
-    }
-    return {
-      responseInfo: { statusCode: 200 } as APIResponseInfo,
-      data: { tally: parsedTally.data },
-    };
-  } catch (error) {
-    return {
-      responseInfo: { statusCode: 500 } as APIResponseInfo,
-      data: { tally: null },
+      data: { tallys: [], hasMore: false },
     };
   }
 };
 
 export type FetchTallyUsersResponse = NonNullable<
-  Awaited<ReturnType<typeof fetchTallyUsers>>
->["data"];
+  Awaited<ReturnType<typeof fetchTallyUsers>>["data"]
+>;
 
-export const fetchTallyUsers = async (
-  _request: APIRequest,
-) => {
+export const fetchTallyUsers = async (_request: APIRequest) => {
   try {
     const users = await prisma.user.findMany({
       where: { tally: { some: {} } },
       select: { id: true, username: true },
     });
+
     return {
-      responseInfo: {
-        statusCode: 200,
-      } as APIResponseInfo,
-      data: {
-        users,
-      },
+      responseInfo: { statusCode: 200 } as APIResponseInfo,
+      data: { users },
     };
-  } catch (error) {
+  } catch {
     return {
       responseInfo: {
         statusCode: 500,
-        message: "Erro ao consultar avaliadores!",
+        message: "Erro ao consultar responsáveis!",
       } as APIResponseInfo,
-      data: {
-        users: [],
-      },
+      data: { users: [] },
     };
   }
 };
 
-export const fetchFinalizedTallysDataVisualizationParamsSchema = z.object({
-  tallyIds: z
-    .string()
-    .or(z.array(z.coerce.number()))
-    .transform((value) =>
-      Array.isArray(value) ? value : (
-        value.split(",").map((id) => z.coerce.number().parse(id))
-      ),
-    ),
+export const fetchTallyProtocolStructureParamsSchema = z.object({
+  tallyProtocolId: z.coerce.number().int().positive(),
 });
 
-export type FetchFinalizedTallysDataVisualizationParams = z.infer<
-  typeof fetchFinalizedTallysDataVisualizationParamsSchema
+export type FetchTallyProtocolStructureParams = z.infer<
+  typeof fetchTallyProtocolStructureParamsSchema
 >;
 
-export type FetchFinalizedTallysDataVisualizationResponse = NonNullable<
-  Awaited<ReturnType<typeof fetchFinalizedTallysToDataVisualization>>
->["data"];
+export type FetchTallyProtocolStructureResponse = NonNullable<
+  Awaited<ReturnType<typeof fetchTallyProtocolStructure>>["data"]
+>;
 
-const fetchFinalizedTallysToDataVisualization = async (
-  request: APIRequestParams<FetchFinalizedTallysDataVisualizationParams>,
-) => {
-  const tallysIds = request.params!.tallyIds;
-  try {
-    const tallys = await prisma.tally.findMany({
-      where: {
-        id: {
-          in: tallysIds,
+export type GetTallyProtocolStructureParams = {
+  tallyProtocolId: number;
+};
+
+export const getTallyProtocolStructure = async ({
+  tallyProtocolId,
+}: GetTallyProtocolStructureParams) => {
+  const tallyProtocol = await prisma.tallyProtocol.findUnique({
+    where: { id: tallyProtocolId },
+    select: {
+      id: true,
+      name: true,
+      archived: true,
+      finalized: true,
+      form: {
+        select: {
+          id: true,
+          name: true,
         },
       },
-      include: {
+      tallyProtocolGroups: {
+        select: {
+          id: true,
+          position: true,
+          displayMode: true,
+          personCharacteristicGroup: {
+            select: {
+              id: true,
+              title: true,
+              isTagGroup: true,
+            },
+          },
+          characteristics: {
+            select: {
+              id: true,
+              position: true,
+              personCharacteristic: {
+                select: {
+                  id: true,
+                  name: true,
+                  iconKey: true,
+                  color: true,
+                },
+              },
+            },
+            orderBy: { position: "asc" },
+          },
+        },
+        orderBy: { position: "asc" },
+      },
+    },
+  });
+
+  if (!tallyProtocol) {
+    throw new Error("Protocolo de contagem não encontrado");
+  }
+
+  return tallyProtocol;
+};
+
+export type GetTallyProtocolStructureResult = Awaited<
+  ReturnType<typeof getTallyProtocolStructure>
+>;
+
+export const fetchTallyProtocolStructure = async (
+  request: APIRequestParams<FetchTallyProtocolStructureParams>,
+) => {
+  const params = request.params!;
+
+  try {
+    const tallyProtocol = await getTallyProtocolStructure({
+      tallyProtocolId: params.tallyProtocolId,
+    });
+
+    return {
+      responseInfo: { statusCode: 200 } as APIResponseInfo,
+      data: { tallyProtocol },
+    };
+  } catch {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar protocolo de contagem!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+};
+
+export type GetTallySubmissionDataParams = {
+  tallyId: number;
+};
+
+export const getTallySubmissionData = async ({
+  tallyId,
+}: GetTallySubmissionDataParams) => {
+  const tally = await prisma.tally.findUnique({
+    where: { id: tallyId },
+    select: {
+      tallyProtocolId: true,
+      formSubmissionId: true,
+    },
+  });
+
+  if (!tally) {
+    throw new Error("Contagem não encontrada");
+  }
+
+  const [tallyProtocolStructure, personObservations, formSubmission] =
+    await Promise.all([
+      getTallyProtocolStructure({
+        tallyProtocolId: tally.tallyProtocolId,
+      }),
+      prisma.personObservation.findMany({
+        where: { tallyId },
+        orderBy: { id: "asc" },
+        select: {
+          id: true,
+          quantity: true,
+          characteristics: {
+            orderBy: { personCharacteristicId: "asc" },
+            select: { personCharacteristicId: true },
+          },
+        },
+      }),
+      tally.formSubmissionId ?
+        getFormSubmissionData({
+          formSubmissionId: tally.formSubmissionId,
+          includeCalculations: true,
+        })
+      : Promise.resolve(null),
+    ]);
+
+  return {
+    formSubmission,
+    tallyProtocolStructure,
+    personObservations,
+  };
+};
+
+export type GetTallySubmissionDataResult = Awaited<
+  ReturnType<typeof getTallySubmissionData>
+>;
+
+export const fetchTallyDetailsParamsSchema = z.object({
+  tallyId: z.coerce.number().int().positive(),
+});
+
+export type FetchTallyDetailsParams = z.infer<
+  typeof fetchTallyDetailsParamsSchema
+>;
+
+export type FetchTallyDetailsResponse = NonNullable<
+  Awaited<ReturnType<typeof fetchTallyDetails>>["data"]
+>;
+
+export type TallyLocationPolygon = {
+  st_asgeojson: string | null;
+};
+
+export const fetchTallyDetails = async (
+  request: APIRequestParams<FetchTallyDetailsParams>,
+) => {
+  const params = request.params!;
+
+  try {
+    const tally = await prisma.tally.findUnique({
+      where: { id: params.tallyId },
+      select: {
+        id: true,
+        startDate: true,
+        endDate: true,
+        isFinalized: true,
+        updatedAt: true,
         user: {
           select: {
+            id: true,
             username: true,
           },
         },
         location: {
           select: {
+            id: true,
             name: true,
-            usableArea: true,
           },
         },
       },
     });
-    const locationName = tallys[0]?.location.name ?? "ERRO";
-    const usableArea = tallys[0]?.location.usableArea ?? null;
-    const parsedTallys = finalizedTallyArraySchema.safeParse(tallys);
-    if (!parsedTallys.success) {
+
+    if (!tally) {
       return {
         responseInfo: {
-          statusCode: 400,
-          message: "Erro ao consultar contagens!",
+          statusCode: 404,
+          message: "Contagem não encontrada!",
         } as APIResponseInfo,
-        data: { tallys: null, locationName: null, usableArea: null },
+        data: null,
       };
     }
-    const filteredParsedTallys = parsedTallys.data.filter((tally) => {
-      if (tally.isFinalized) return true;
-    });
-    filteredParsedTallys.sort(
-      (a, b) => b.startDate.getTime() - a.startDate.getTime(),
-    );
+
+    const [tallySubmission, locationPolygon] = await Promise.all([
+      getTallySubmissionData({
+        tallyId: tally.id,
+      }),
+      prisma.$queryRaw<Array<TallyLocationPolygon>>`
+        SELECT
+          CASE
+            WHEN ST_IsEmpty(l.polygon) THEN NULL
+            ELSE ST_AsGeoJSON(l.polygon)::text
+          END AS st_asgeojson
+        FROM location l
+        WHERE l.id = ${tally.location.id}
+      `,
+    ]);
+
     return {
       responseInfo: { statusCode: 200 } as APIResponseInfo,
       data: {
-        tallys: filteredParsedTallys,
-        locationName,
-        usableArea,
+        tallyDetails: {
+          id: tally.id,
+          startDate: tally.startDate,
+          endDate: tally.endDate,
+          isFinalized: tally.isFinalized,
+          updatedAt: tally.updatedAt,
+          user: tally.user,
+          location: {
+            ...tally.location,
+            st_asgeojson: locationPolygon[0]?.st_asgeojson ?? null,
+          },
+          tallySubmission,
+        },
       },
     };
-  } catch (error) {
+  } catch {
     return {
       responseInfo: {
         statusCode: 500,
-        message: "Erro ao consultar contagens!",
+        message: "Erro ao buscar contagem!",
       } as APIResponseInfo,
-      data: { tallys: null, locationName: null, usableArea: null },
+      data: null,
     };
   }
-};
-
-export {
-  fetchRecentlyCompletedTallys,
-  fetchOngoingTallyById,
-  fetchFinalizedTallysToDataVisualization,
 };

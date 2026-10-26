@@ -1,19 +1,16 @@
 import { SelectedLocationObj } from "@/app/admin/export/client";
 import { useUserContext } from "@/components/context/UserContext";
 import CCheckbox from "@/components/ui/cCheckbox";
-import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import CDialog from "@/components/ui/dialog/cDialog";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
 import { useFetchAssessments } from "@/lib/serverFunctions/apiCalls/assessment";
-import { useFetchTallys } from "@/lib/serverFunctions/apiCalls/tally";
 import { FetchAssessmentsResponse } from "@/lib/serverFunctions/queries/assessment";
-import { FetchTallysResponse } from "@/lib/serverFunctions/queries/tally";
-import { Chip, Divider, LinearProgress } from "@mui/material";
+import { Chip, CircularProgress } from "@mui/material";
 import { IconCheck, IconClipboard, IconUser } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Virtuoso } from "react-virtuoso";
 
-type ListType = "ASSESSMENT" | "TALLY";
+const ASSESSMENTS_PER_PAGE = 100;
 
 const LocationParamsDialog = ({
   open,
@@ -27,62 +24,111 @@ const LocationParamsDialog = ({
   handleSelectedLocationObjChange: (locationObj: SelectedLocationObj) => void;
 }) => {
   const userContext = useUserContext();
-  const [fetchAssessments, loadingAssessments] = useFetchAssessments({
-    callbacks: {
-      onSuccess: (response) => {
-        setAssessments(response.data?.assessments ?? []);
-      },
-    },
+  const canAccessAssessments = userContext.checkIfLoggedInUserHasAccess({
+    requiredAnyRoleGroups: ["ASSESSMENT"],
   });
-  const [fetchTallys, loadingTallys] = useFetchTallys({
-    callbacks: {
-      onSuccess: (response) => {
-        setTallys(response.data?.tallys ?? []);
-      },
-    },
-  });
+  const [fetchAssessments] = useFetchAssessments();
   const [localLocation, setLocalLocation] =
     useState<SelectedLocationObj | null>(location); // We first save the params here. Only after user confirms it is save in the main component.
-  const [tallys, setTallys] = useState<FetchTallysResponse["tallys"]>();
   const [assessments, setAssessments] =
     useState<FetchAssessmentsResponse["assessments"]>();
-  const [listType, setListType] = useState<ListType>("ASSESSMENT");
+  const [loadingAssessments, setLoadingAssessments] = useState(false);
+  const nextAssessmentPageRef = useRef(1);
+  const hasMoreAssessmentsRef = useRef(false);
+  const loadingAssessmentsRef = useRef(false);
+  const lastAssessmentQueryVersionRef = useRef(0);
+
+  const fetchAssessmentPage = useCallback(
+    async (page: number) => {
+      if (!location) {
+        return;
+      }
+
+      const append = page > 1;
+      if (!append) {
+        lastAssessmentQueryVersionRef.current++;
+      }
+      const queryVersion = lastAssessmentQueryVersionRef.current;
+
+      if (append && loadingAssessmentsRef.current) {
+        return;
+      }
+
+      loadingAssessmentsRef.current = true;
+      setLoadingAssessments(true);
+      if (!append) {
+        nextAssessmentPageRef.current = 1;
+        hasMoreAssessmentsRef.current = false;
+      }
+
+      try {
+        const response = await fetchAssessments({
+          params: {
+            locationId: location.id,
+            page,
+            itemsPerPage: ASSESSMENTS_PER_PAGE,
+          },
+        });
+        const data = response.data;
+        if (!data || queryVersion !== lastAssessmentQueryVersionRef.current) {
+          return;
+        }
+
+        setAssessments((currentAssessments) => {
+          if (!append) {
+            return data.assessments;
+          }
+
+          const currentAssessmentIds = new Set(
+            currentAssessments?.map((assessment) => assessment.id),
+          );
+          return [
+            ...(currentAssessments ?? []),
+            ...data.assessments.filter(
+              (assessment) => !currentAssessmentIds.has(assessment.id),
+            ),
+          ];
+        });
+        hasMoreAssessmentsRef.current = data.hasMore;
+        nextAssessmentPageRef.current = page + 1;
+      } finally {
+        if (queryVersion === lastAssessmentQueryVersionRef.current) {
+          loadingAssessmentsRef.current = false;
+          setLoadingAssessments(false);
+        }
+      }
+    },
+    [fetchAssessments, location],
+  );
+
+  const loadMoreAssessments = useCallback(() => {
+    if (!hasMoreAssessmentsRef.current || loadingAssessmentsRef.current) {
+      return;
+    }
+
+    void fetchAssessmentPage(nextAssessmentPageRef.current);
+  }, [fetchAssessmentPage]);
+
   useEffect(() => {
     if (!open || !location) return;
-    if (
-      userContext.checkIfLoggedInUserHasAccess({
-        requiredAnyRoleGroups: ["ASSESSMENT"],
-      })
-    ) {
-      void fetchAssessments({ params: { locationId: location.id } });
-    }
-    if (
-      userContext.checkIfLoggedInUserHasAccess({
-        requiredAnyRoleGroups: ["TALLY"],
-      })
-    ) {
-      void fetchTallys({ params: { locationId: location.id } });
+
+    if (canAccessAssessments) {
+      void fetchAssessmentPage(1);
     }
 
     setLocalLocation(location);
-  }, [location, open]);
 
-  const listTypeOptions = [
-    {
-      value: "ASSESSMENT",
-      label: "Avaliações",
-      show: userContext.checkIfLoggedInUserHasAccess({
-        requiredAnyRoleGroups: ["ASSESSMENT"],
-      }),
-    },
-    {
-      value: "TALLY",
-      label: "Contagens",
-      show: userContext.checkIfLoggedInUserHasAccess({
-        requiredAnyRoleGroups: ["TALLY"],
-      }),
-    },
-  ] as { value: ListType; label: string; show: boolean }[];
+    return () => {
+      lastAssessmentQueryVersionRef.current++;
+      loadingAssessmentsRef.current = false;
+      setLoadingAssessments(false);
+    };
+  }, [
+    canAccessAssessments,
+    fetchAssessmentPage,
+    location,
+    open,
+  ]);
 
   if (!location || !localLocation) return null;
   return (
@@ -99,81 +145,26 @@ const LocationParamsDialog = ({
       fullScreen
     >
       <div className="flex h-full w-full flex-col gap-1 overflow-auto">
-        <CToggleButtonGroup
-          value={listType}
-          getLabel={(o) => o.label}
-          getValue={(o) => o.value}
-          options={listTypeOptions.filter((o) => o.show)}
-          onChange={(_, v) => setListType(v.value)}
-        />
-        {(loadingAssessments || loadingTallys) && (
-          <div className="flex w-full flex-col justify-center text-lg">
-            <LinearProgress />
-            Carregando dados...
-          </div>
-        )}
-        <Divider />
-        {listType === "TALLY" && (
-          <>
-            {tallys?.length === 0 && (
-              <div className="text-center text-xl font-semibold">
-                Nenhuma contagem nesta praça!
-              </div>
-            )}
-            <Virtuoso
-              data={tallys}
-              style={{ height: "100%", width: "100%" }}
-              itemContent={(_, t) => (
-                <div className="pb-4">
-                  <div
-                    key={t.id}
-                    className="flex flex-row items-center bg-gray-200 p-2 px-2 shadow-xl"
-                  >
-                    <CCheckbox
-                      checked={localLocation.tallysIds.includes(t.id)}
-                      onChange={(e) => {
-                        setLocalLocation((prev) => {
-                          if (!prev) return null;
-                          return {
-                            ...prev,
-                            tallysIds:
-                              e.target.checked ?
-                                [...prev.tallysIds, t.id]
-                              : prev.tallysIds.filter((id) => id !== t.id),
-                          };
-                        });
-                      }}
-                    />
-                    <div className="flex w-full flex-row items-center justify-between">
-                      <div className="flex flex-col">
-                        <span>{`${dateTimeFormatter.format(t.startDate)} - ${t.endDate ? dateTimeFormatter.format(t.endDate) : "Sem data final!"}`}</span>
-                        <Chip
-                          sx={{ mt: 0.5, width: "fit-content" }}
-                          size="small"
-                          color={t.isFinalized ? "secondary" : "error"}
-                          label={t.isFinalized ? "Finalizado" : "Em progresso"}
-                        />
-                      </div>
-                      <span className="flex">
-                        <IconUser />
-                        {t.user.username}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            />
-          </>
-        )}
-        {listType === "ASSESSMENT" && (
-          <>
-            {assessments?.length === 0 && (
+            {assessments?.length === 0 && !loadingAssessments && (
               <div className="text-center text-xl font-semibold">
                 Nenhuma avaliação nesta praça!
               </div>
             )}
             <Virtuoso
               data={assessments}
+              rangeChanged={({ endIndex }) => {
+                if (endIndex >= (assessments?.length ?? 0) - 10) {
+                  loadMoreAssessments();
+                }
+              }}
+              components={{
+                Footer: () =>
+                  loadingAssessments ?
+                    <div className="flex justify-center py-2">
+                      <CircularProgress size={28} />
+                    </div>
+                  : null,
+              }}
               style={{ height: "100%", width: "100%" }}
               itemContent={(_, a) => (
                 <div className="pb-4">
@@ -223,8 +214,6 @@ const LocationParamsDialog = ({
                 </div>
               )}
             />
-          </>
-        )}
       </div>
     </CDialog>
   );
