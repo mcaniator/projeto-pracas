@@ -259,6 +259,7 @@ const AssessmentsClient = () => {
       const append = page > 1;
       if (!append) {
         lastQueryVersionRef.current++;
+        setAssessments([]);
       }
       const queryVersion = lastQueryVersionRef.current;
 

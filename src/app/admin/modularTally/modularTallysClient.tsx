@@ -234,6 +234,7 @@ const ModularTallysClient = () => {
       const append = page > 1;
       if (!append) {
         lastQueryVersionRef.current++;
+        setModularTallys([]);
       }
       const queryVersion = lastQueryVersionRef.current;
 
