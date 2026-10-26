@@ -28,7 +28,6 @@ const ExportHome = () => {
   ) => {
     const newSelectedLocation: SelectedLocationObj = {
       ...locationObj,
-      tallysIds: [],
       assessmentsIds: [],
     };
 

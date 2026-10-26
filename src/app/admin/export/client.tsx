@@ -9,7 +9,6 @@ import { ExportHome } from "./exportHome";
 export type SelectedLocationObj =
   FetchLocationsResponse["locations"][number] & {
     assessmentsIds: number[];
-    tallysIds: number[];
   };
 
 const ExportClientPage = () => {

@@ -1,19 +1,15 @@
 import { SelectedLocationObj } from "@/app/admin/export/client";
 import { useUserContext } from "@/components/context/UserContext";
 import CCheckbox from "@/components/ui/cCheckbox";
-import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import CDialog from "@/components/ui/dialog/cDialog";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
 import { useFetchAssessments } from "@/lib/serverFunctions/apiCalls/assessment";
-import { useFetchTallys } from "@/lib/serverFunctions/apiCalls/tally";
 import { FetchAssessmentsResponse } from "@/lib/serverFunctions/queries/assessment";
-import { FetchTallysResponse } from "@/lib/serverFunctions/queries/tally";
-import { Chip, CircularProgress, Divider, LinearProgress } from "@mui/material";
+import { Chip, CircularProgress } from "@mui/material";
 import { IconCheck, IconClipboard, IconUser } from "@tabler/icons-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Virtuoso } from "react-virtuoso";
 
-type ListType = "ASSESSMENT" | "TALLY";
 const ASSESSMENTS_PER_PAGE = 100;
 
 const LocationParamsDialog = ({
@@ -31,24 +27,12 @@ const LocationParamsDialog = ({
   const canAccessAssessments = userContext.checkIfLoggedInUserHasAccess({
     requiredAnyRoleGroups: ["ASSESSMENT"],
   });
-  const canAccessTallys = userContext.checkIfLoggedInUserHasAccess({
-    requiredAnyRoleGroups: ["TALLY"],
-  });
   const [fetchAssessments] = useFetchAssessments();
-  const [fetchTallys, loadingTallys] = useFetchTallys({
-    callbacks: {
-      onSuccess: (response) => {
-        setTallys(response.data?.tallys ?? []);
-      },
-    },
-  });
   const [localLocation, setLocalLocation] =
     useState<SelectedLocationObj | null>(location); // We first save the params here. Only after user confirms it is save in the main component.
-  const [tallys, setTallys] = useState<FetchTallysResponse["tallys"]>();
   const [assessments, setAssessments] =
     useState<FetchAssessmentsResponse["assessments"]>();
   const [loadingAssessments, setLoadingAssessments] = useState(false);
-  const [listType, setListType] = useState<ListType>("ASSESSMENT");
   const nextAssessmentPageRef = useRef(1);
   const hasMoreAssessmentsRef = useRef(false);
   const loadingAssessmentsRef = useRef(false);
@@ -131,9 +115,6 @@ const LocationParamsDialog = ({
     if (canAccessAssessments) {
       void fetchAssessmentPage(1);
     }
-    if (canAccessTallys) {
-      void fetchTallys({ params: { locationId: location.id } });
-    }
 
     setLocalLocation(location);
 
@@ -144,25 +125,10 @@ const LocationParamsDialog = ({
     };
   }, [
     canAccessAssessments,
-    canAccessTallys,
     fetchAssessmentPage,
-    fetchTallys,
     location,
     open,
   ]);
-
-  const listTypeOptions = [
-    {
-      value: "ASSESSMENT",
-      label: "Avaliações",
-      show: canAccessAssessments,
-    },
-    {
-      value: "TALLY",
-      label: "Contagens",
-      show: canAccessTallys,
-    },
-  ] as { value: ListType; label: string; show: boolean }[];
 
   if (!location || !localLocation) return null;
   return (
@@ -179,74 +145,6 @@ const LocationParamsDialog = ({
       fullScreen
     >
       <div className="flex h-full w-full flex-col gap-1 overflow-auto">
-        <CToggleButtonGroup
-          value={listType}
-          getLabel={(o) => o.label}
-          getValue={(o) => o.value}
-          options={listTypeOptions.filter((o) => o.show)}
-          onChange={(_, v) => setListType(v.value)}
-        />
-        {loadingTallys && (
-          <div className="flex w-full flex-col justify-center text-lg">
-            <LinearProgress />
-            Carregando dados...
-          </div>
-        )}
-        <Divider />
-        {listType === "TALLY" && (
-          <>
-            {tallys?.length === 0 && (
-              <div className="text-center text-xl font-semibold">
-                Nenhuma contagem nesta praça!
-              </div>
-            )}
-            <Virtuoso
-              data={tallys}
-              style={{ height: "100%", width: "100%" }}
-              itemContent={(_, t) => (
-                <div className="pb-4">
-                  <div
-                    key={t.id}
-                    className="flex flex-row items-center bg-gray-200 p-2 px-2 shadow-xl"
-                  >
-                    <CCheckbox
-                      checked={localLocation.tallysIds.includes(t.id)}
-                      onChange={(e) => {
-                        setLocalLocation((prev) => {
-                          if (!prev) return null;
-                          return {
-                            ...prev,
-                            tallysIds:
-                              e.target.checked ?
-                                [...prev.tallysIds, t.id]
-                              : prev.tallysIds.filter((id) => id !== t.id),
-                          };
-                        });
-                      }}
-                    />
-                    <div className="flex w-full flex-row items-center justify-between">
-                      <div className="flex flex-col">
-                        <span>{`${dateTimeFormatter.format(t.startDate)} - ${t.endDate ? dateTimeFormatter.format(t.endDate) : "Sem data final!"}`}</span>
-                        <Chip
-                          sx={{ mt: 0.5, width: "fit-content" }}
-                          size="small"
-                          color={t.isFinalized ? "secondary" : "error"}
-                          label={t.isFinalized ? "Finalizado" : "Em progresso"}
-                        />
-                      </div>
-                      <span className="flex">
-                        <IconUser />
-                        {t.user.username}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            />
-          </>
-        )}
-        {listType === "ASSESSMENT" && (
-          <>
             {assessments?.length === 0 && !loadingAssessments && (
               <div className="text-center text-xl font-semibold">
                 Nenhuma avaliação nesta praça!
@@ -316,8 +214,6 @@ const LocationParamsDialog = ({
                 </div>
               )}
             />
-          </>
-        )}
       </div>
     </CDialog>
   );

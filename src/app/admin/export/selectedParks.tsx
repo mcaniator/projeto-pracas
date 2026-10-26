@@ -9,8 +9,6 @@ import { downloadCSVFileFromText } from "@/lib/downloadFile";
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import {
   useExportAssessments,
-  useExportDailyTallys,
-  useExportIndividualTallysToCSV,
   useExportRegistrationData,
 } from "@/lib/serverFunctions/apiCalls/export";
 import PermissionGuard from "@components/auth/permissionGuard";
@@ -53,13 +51,9 @@ const SelectedParks = ({
   const [loadingExport, setLoadingExport] = useState({
     registrationsData: false,
     evaluations: false,
-    tallys: false,
-    dailyTallys: false,
   });
   const [exportRegistrationData] = useExportRegistrationData();
   const [exportAssessments] = useExportAssessments();
-  const [exportDailyTallys] = useExportDailyTallys();
-  const [exportIndividualTallysToCSV] = useExportIndividualTallysToCSV();
 
   const handleRegistrationDataExport = async () => {
     setLoadingExport((prev) => ({ ...prev, registrationsData: true }));
@@ -144,132 +138,6 @@ const SelectedParks = ({
     enqueueSnackbar(<>Avaliações exportadas!</>, { variant: "success" });
     setLoadingExport((prev) => ({ ...prev, evaluations: false }));
   };
-  const handleTallysExport = async () => {
-    const locationsToExportTallys = selectedLocationsObjs.filter(
-      (location) => location.tallysIds.length > 0,
-    );
-    const tallysIds: number[] = [];
-    locationsToExportTallys.forEach((location) =>
-      tallysIds.push(...location.tallysIds),
-    );
-    if (!tallysIds || tallysIds.length === 0) return;
-    setLoadingExport((prev) => ({ ...prev, dailyTallys: true }));
-    const result = await exportDailyTallys({
-      data: {
-        locationIds: locationsToExportTallys.map((location) => location.id),
-        tallysIds,
-      },
-    });
-    const response = result.data ?? {
-      CSVstringWeekdays: [],
-      CSVstringWeekendDays: [],
-    };
-    if (result.responseInfo.statusCode === 401) {
-      enqueueSnackbar(<>Sem permissão para exportar avaliações!</>, {
-        variant: "error",
-      });
-      setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
-      return;
-    } else if (result.responseInfo.statusCode === 500) {
-      enqueueSnackbar(<>Erro exportar avaliações!</>, { variant: "error" });
-      setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
-      return;
-    }
-    const csvObj = {
-      CSVstringWeekdays: response.CSVstringWeekdays,
-      CSVstringWeekendDays: response.CSVstringWeekendDays,
-    };
-    if (csvObj?.CSVstringWeekdays) {
-      for (let i = 0; i < csvObj?.CSVstringWeekdays.length; i++) {
-        const csvString = csvObj.CSVstringWeekdays[i];
-        if (csvString) {
-          try {
-            await downloadCSVFileFromText({
-              filename: `Contagem-Semana-Dia${i + 1}.csv`,
-              content: csvString,
-            });
-          } catch (e) {
-            enqueueSnackbar(
-              <>Não foi possível salvar o arquivo no dispositivo!</>,
-              { variant: "error" },
-            );
-            setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
-            return;
-          }
-        }
-      }
-    }
-    if (csvObj.CSVstringWeekendDays) {
-      for (let i = 0; i < csvObj?.CSVstringWeekendDays.length; i++) {
-        const csvString = csvObj.CSVstringWeekendDays[i];
-        if (csvString) {
-          try {
-            await downloadCSVFileFromText({
-              filename: `Contagem-FimSemana-Dia${i + 1}.csv`,
-              content: csvString,
-            });
-          } catch (e) {
-            enqueueSnackbar(
-              <>Não foi possível salvar o arquivo no dispositivo!</>,
-              { variant: "error" },
-            );
-            setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
-            return;
-          }
-        }
-      }
-    }
-    enqueueSnackbar(<>Contagens exportadas!</>, { variant: "success" });
-    setLoadingExport((prev) => ({ ...prev, dailyTallys: false }));
-  };
-
-  const handleIndividualTallysToExport = async () => {
-    const locationsToExportTallys = selectedLocationsObjs.filter(
-      (location) => location.tallysIds.length > 0,
-    );
-    const tallysIds: number[] = [];
-    locationsToExportTallys.forEach((location) =>
-      tallysIds.push(...location.tallysIds),
-    );
-    if (!tallysIds || tallysIds.length === 0) return;
-    setLoadingExport((prev) => ({ ...prev, tallys: true }));
-    const result = await exportIndividualTallysToCSV({
-      data: { tallysIds },
-    });
-    const response = result.data ?? { CSVstring: null };
-    if (result.responseInfo.statusCode === 401) {
-      enqueueSnackbar(<>Sem permissão para exportar avaliações!</>, {
-        variant: "error",
-      });
-      setLoadingExport((prev) => ({ ...prev, tallys: false }));
-      return;
-    } else if (result.responseInfo.statusCode === 500) {
-      enqueueSnackbar(<>Erro exportar avaliações!</>, { variant: "error" });
-      setLoadingExport((prev) => ({ ...prev, tallys: false }));
-      return;
-    }
-
-    const csvString = response.CSVstring;
-    if (csvString) {
-      try {
-        await downloadCSVFileFromText({
-          filename: "Contagens individuais.csv",
-          content: csvString,
-        });
-      } catch (e) {
-        enqueueSnackbar(
-          <>Não foi possível salvar o arquivo no dispositivo!</>,
-          { variant: "error" },
-        );
-        setLoadingExport((prev) => ({ ...prev, tallys: false }));
-        return;
-      }
-    }
-
-    enqueueSnackbar(<>Contagens exportadas!</>, { variant: "success" });
-    setLoadingExport((prev) => ({ ...prev, tallys: false }));
-  };
-
   const innerComponent = (
     <div className="flex h-full flex-col gap-2">
       <Virtuoso
@@ -303,9 +171,6 @@ const SelectedParks = ({
                     <span>{`Avaliações selecionadas: ${l.assessmentsIds.length}/${l.assessmentCount}`}</span>
                   </div>
                   <Divider />
-                  <div className="flex items-center">
-                    <span>{`Contagens Selecionadas: ${l.tallysIds.length}/${l.tallyCount}`}</span>
-                  </div>
                 </div>
                 <div className="flex flex-col gap-1">
                   <CButton
@@ -350,32 +215,6 @@ const SelectedParks = ({
             }}
           >
             {"Exportar avaliações físicas"}
-          </CButton>
-        </PermissionGuard>
-        <PermissionGuard requiresAnyRoleGroups={["TALLY"]}>
-          <CButton
-            sx={{ width: "100%" }}
-            loading={loadingExport.tallys}
-            onClick={() => {
-              handleIndividualTallysToExport().catch(() => ({
-                statusCode: 1,
-              }));
-            }}
-          >
-            {"Exportar contagens individuais"}
-          </CButton>
-        </PermissionGuard>
-        <PermissionGuard requiresAnyRoleGroups={["TALLY"]}>
-          <CButton
-            sx={{ width: "100%" }}
-            loading={loadingExport.dailyTallys}
-            onClick={() => {
-              handleTallysExport().catch(() => ({
-                statusCode: 1,
-              }));
-            }}
-          >
-            {"Exportar contagens por dia"}
           </CButton>
         </PermissionGuard>
       </div>

@@ -33,7 +33,7 @@ export type LocationForMap = {
   cityName: string;
   state: BrazilianStates;
   assessmentCount: number;
-  tallyCount: number;
+  modularTallyCount: number;
   categoryName: string | null;
   typeName: string | null;
   st_asgeojson: string | null;
