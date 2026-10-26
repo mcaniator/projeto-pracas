@@ -70,12 +70,6 @@ const Sidebar = () => {
       show: checkIfRolesArrayContainsAny(user.roles, { roleGroups: ["TALLY"] }),
     },
     {
-      icon: <GrGroup size={34} />,
-      name: "Contagens (Legado)",
-      path: "/admin/tallys",
-      show: checkIfRolesArrayContainsAny(user.roles, { roleGroups: ["TALLY"] }),
-    },
-    {
       icon: <IconClipboard size={34} />,
       name: "Protocolos",
       path: "/admin/protocols",

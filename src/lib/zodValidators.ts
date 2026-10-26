@@ -1,11 +1,9 @@
-import { Activity, AgeGroup, Gender } from "@enums/personCharacteristics";
 import {
   FormUse,
   OptionTypes,
   QuestionGeometryTypes,
   QuestionResponseCharacterTypes,
   QuestionTypes,
-  WeatherConditions,
 } from "@prisma/client";
 import { ZodType, z } from "zod";
 
@@ -377,128 +375,6 @@ export type {
 //  Campos das Avaliações Não Relacionadas à Avaliação Física
 //  ------------------------------------------------------------------------------------------------------------
 
-const personSchema = z.object({
-  ageGroup: z.nativeEnum(AgeGroup),
-  gender: z.nativeEnum(Gender),
-  activity: z.nativeEnum(Activity),
-  isTraversing: z.boolean(),
-  isPersonWithImpairment: z.boolean(),
-  isInApparentIllicitActivity: z.boolean(),
-  isPersonWithoutHousing: z.boolean(),
-});
-
-const tallyPersonSchema = z.object({
-  person: personSchema,
-  quantity: z.coerce.number().int().finite().nonnegative(),
-});
-
-const tallyPersonArraySchema = z.array(tallyPersonSchema);
-
-const commercialActivitySchema = z.record(
-  z.coerce.number().finite().nonnegative(),
-);
-
-const ongoingTallySchema = z.object({
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date().nullable(),
-  updatedAt: z.coerce.date(),
-  isFinalized: z.coerce.boolean(),
-  animalsAmount: z.coerce.number().int().finite().nonnegative().nullable(),
-  temperature: z.coerce.number().finite().nullable(),
-  weatherCondition: z.nativeEnum(WeatherConditions).nullable(),
-  groups: z.coerce.number().int().finite().nonnegative().nullable(),
-  user: z.object({
-    username: z.coerce.string().nullable(),
-    id: z.string(),
-  }),
-  location: z.object({
-    name: z.coerce.string(),
-  }),
-  tallyPerson: tallyPersonArraySchema.nullable(),
-  commercialActivities: commercialActivitySchema.nullable(),
-});
-
-const tallySchema = z.object({
-  id: z.coerce.number().int().nonnegative().finite(),
-  locationId: z.coerce.number().int().nonnegative().finite(),
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date().nullable(),
-  isFinalized: z.coerce.boolean(),
-  animalsAmount: z.coerce.number().int().finite().nonnegative().nullable(),
-  temperature: z.coerce.number().finite().nullable(),
-  weatherCondition: z.nativeEnum(WeatherConditions).nullable(),
-  groups: z.coerce.number().int().finite().nonnegative().nullable(),
-  user: z.object({
-    username: z.coerce.string().nullable(),
-  }),
-  location: z.object({
-    name: z.coerce.string(),
-  }),
-  tallyPerson: tallyPersonArraySchema.nullable(),
-  commercialActivities: commercialActivitySchema.nullable(),
-});
-
-const finalizedTallySchema = tallySchema.omit({ location: true });
-
-const finalizedTallyArraySchema = z.array(finalizedTallySchema);
-
-const tallyArraySchema = z.array(tallySchema);
-
-const locationExportDailyTallysSchema = z.object({
-  id: z.coerce.number().int(),
-  name: z.coerce.string(),
-  createdAt: z.coerce.date(),
-  tally: tallyArraySchema,
-});
-
-const tallysExportIndividualTallysSchema = z.array(
-  z.object({
-    id: z.coerce.number().int().nonnegative().finite(),
-    locationId: z.coerce.number().int().nonnegative().finite(),
-    startDate: z.coerce.date(),
-    endDate: z.coerce.date().nullable(),
-    isFinalized: z.coerce.boolean(),
-    animalsAmount: z.coerce.number().int().finite().nonnegative().nullable(),
-    temperature: z.coerce.number().finite().nullable(),
-    weatherCondition: z.nativeEnum(WeatherConditions).nullable(),
-    groups: z.coerce.number().int().finite().nonnegative().nullable(),
-    user: z.object({
-      username: z.coerce.string().nullable(),
-      id: z.string().optional(),
-    }),
-    location: z.object({
-      name: z.coerce.string(),
-    }),
-    tallyPerson: tallyPersonArraySchema.nullable(),
-    commercialActivities: commercialActivitySchema.nullable(),
-  }),
-);
-
-const locationArrayExportDailyTallysSchema = z.array(
-  locationExportDailyTallysSchema,
-);
-
-const tallyImportDateSchema = z
-  .string()
-  .datetime()
-  .transform((date) => new Date(date));
-
-const tallyImportDataSchema = z.object({
-  weatherStats: z.object({
-    temperature: z.number().finite().nullable(),
-    weather: z.nativeEnum(WeatherConditions),
-  }),
-  tallyMap: z.record(z.number().int().finite().nonnegative()),
-  commercialActivities: commercialActivitySchema,
-  complementaryData: z.object({
-    animalsAmount: z.number().int().finite().nonnegative(),
-    groupsAmount: z.number().int().finite().nonnegative(),
-  }),
-  startDate: tallyImportDateSchema,
-  endDate: tallyImportDateSchema.nullable(),
-  isFinalized: z.boolean().optional(),
-});
-
 const serializedAssessmentResponseSchema = z.union([
   z.string(),
   z.number().finite(),
@@ -544,34 +420,9 @@ const assessmentImportDataSchema = z.object({
   driveFolderUrl: z.string().nullable(),
 });
 
-type Tally = z.infer<typeof tallySchema>;
-type personType = z.infer<typeof personSchema>;
-type TallyPerson = z.infer<typeof tallyPersonSchema>;
-type OngoingTally = z.infer<typeof ongoingTallySchema>;
-type CommercialActivity = z.infer<typeof commercialActivitySchema>;
-type FinalizedTally = z.infer<typeof finalizedTallySchema>;
 
 export {
-  personSchema,
-  tallySchema,
-  tallyArraySchema,
   questionsOnFormsSchema,
-  tallyPersonSchema,
-  tallyPersonArraySchema,
-  ongoingTallySchema,
-  commercialActivitySchema,
-  locationArrayExportDailyTallysSchema,
-  tallysExportIndividualTallysSchema,
-  finalizedTallyArraySchema,
-  tallyImportDataSchema,
   assessmentImportDataSchema,
-};
-export type {
-  personType,
-  Tally,
-  TallyPerson,
-  OngoingTally,
-  CommercialActivity,
-  FinalizedTally,
 };
 // #endregion
