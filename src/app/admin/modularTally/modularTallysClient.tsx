@@ -4,9 +4,9 @@ import {
   fetchModularTallyDraft,
   fetchModularTallyDraftIds,
 } from "@/app/admin/modularTally/details/modularTallyDraft";
-import ModularTallyCreationDialog from "@/app/admin/tallys/modularTallyCreation/modularTallyCreationDialog";
-import ModularTallysFilterSidebar from "@/app/admin/tallys/modularTallysFilterSidebar";
-import ModularTallysList from "@/app/admin/tallys/modularTallysList";
+import ModularTallyCreationDialog from "@/app/admin/modularTally/modularTallyCreation/modularTallyCreationDialog";
+import ModularTallysFilterSidebar from "@/app/admin/modularTally/modularTallysFilterSidebar";
+import ModularTallysList from "@/app/admin/modularTally/modularTallysList";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CButton from "@/components/ui/cButton";
 import CSkeletonGroup from "@/components/ui/cSkeletonGroup";

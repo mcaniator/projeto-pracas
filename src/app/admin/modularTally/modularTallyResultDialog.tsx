@@ -1,6 +1,6 @@
 "use client";
 
-import type { ModularTallyWithSyncStatus } from "@/app/admin/tallys/modularTallysClient";
+import type { ModularTallyWithSyncStatus } from "@/app/admin/modularTally/modularTallysClient";
 import CLinearProgress from "@/components/ui/CLinearProgress";
 import CDialog from "@/components/ui/dialog/cDialog";
 import ModularTallyViewer from "@/components/ui/tallyPersonsStatitics/modularTallyViewer";

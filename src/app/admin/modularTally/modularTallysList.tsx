@@ -1,6 +1,6 @@
 "use client";
 
-import ModularTallyResultDialog from "@/app/admin/tallys/modularTallyResultDialog";
+import ModularTallyResultDialog from "@/app/admin/modularTally/modularTallyResultDialog";
 import CButton from "@/components/ui/cButton";
 import CIconChip from "@/components/ui/cIconChip";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";

@@ -1,4 +1,4 @@
-import ModularTallyTemplatesDataGrid from "@/app/admin/tallys/modularTallyCreation/modularTallyTemplatesDataGrid";
+import ModularTallyTemplatesDataGrid from "@/app/admin/modularTally/modularTallyCreation/modularTallyTemplatesDataGrid";
 import LocationSelector from "@/components/locationSelector/locationSelector";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CDialog from "@/components/ui/dialog/cDialog";

@@ -1,5 +1,5 @@
-import type { ModularTallysFilterType } from "@/app/admin/tallys/modularTallysClient";
-import ModularTallysFilter from "@/app/admin/tallys/modularTallysFilter";
+import type { ModularTallysFilterType } from "@/app/admin/modularTally/modularTallysClient";
+import ModularTallysFilter from "@/app/admin/modularTally/modularTallysFilter";
 import CDialog from "@/components/ui/dialog/cDialog";
 import type { FetchModularTallyUsersResponse } from "@/lib/serverFunctions/queries/modularTally";
 import type { FetchModularTallyTemplatesResponse } from "@/lib/serverFunctions/queries/modularTally";
