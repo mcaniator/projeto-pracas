@@ -22,9 +22,9 @@ type ProtocolType = "FORMS" | "TALLYS" | "BEHAVIORAL_MAPS" | "LOCATION";
 
 const protocolTypeOptions: { id: ProtocolType; label: string }[] = [
   { id: "FORMS", label: "Avaliações" },
+  { id: "LOCATION", label: "Cadastro de Praças" },
   { id: "TALLYS", label: "Contagens" },
   { id: "BEHAVIORAL_MAPS", label: "Mapas comportamentais" },
-  { id: "LOCATION", label: "Cadastro de Praças" }
 ];
 
 const protocolTypeByQueryParam = {
@@ -104,18 +104,6 @@ const ProtocolsClient = () => {
           />
         </div>
       )}
-      {visitedProtocolTypes.has("TALLYS") && (
-        <div className={protocolType === "TALLYS" ? undefined : "hidden"}>
-          <TallyProtocols />
-        </div>
-      )}
-      {visitedProtocolTypes.has("BEHAVIORAL_MAPS") && (
-        <div
-          className={protocolType === "BEHAVIORAL_MAPS" ? undefined : "hidden"}
-        >
-          <BehavioralMapProtocols />
-        </div>
-      )}
       {visitedProtocolTypes.has("LOCATION") && (
         <div
           className={
@@ -127,6 +115,18 @@ const ProtocolsClient = () => {
             title="Cadastro de Praças"
             formEditorRoute="/admin/protocols/locationForms/edit"
           />
+        </div>
+      )}
+      {visitedProtocolTypes.has("TALLYS") && (
+        <div className={protocolType === "TALLYS" ? undefined : "hidden"}>
+          <TallyProtocols />
+        </div>
+      )}
+      {visitedProtocolTypes.has("BEHAVIORAL_MAPS") && (
+        <div
+          className={protocolType === "BEHAVIORAL_MAPS" ? undefined : "hidden"}
+        >
+          <BehavioralMapProtocols />
         </div>
       )}
     </div>

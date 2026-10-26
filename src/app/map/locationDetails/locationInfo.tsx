@@ -111,23 +111,19 @@ const LocationInfo = ({
           )}
         </>
       )}
-      <Divider />
-      <h4 className="font-semibold">Formulário de cadastro</h4>
+
       {fetchLocationFormSubmissionLoading && (
         <CLinearProgress label="Carregando formulário..." />
       )}
       {locationFormSubmission && (
-        <FormSubmissionViewer
-          formSubmission={locationFormSubmission}
-          locationPolygonGeoJson={location.st_asgeojson}
-        />
-      )}
-      {!fetchLocationFormSubmissionLoading &&
-        !locationFormSubmission &&
-        !location.formSubmissionId && (
-          <span className="text-sm text-gray-600">
-            Nenhum formulário de cadastro preenchido.
-          </span>
+        <>
+          <Divider />
+          <h4 className="font-semibold">Formulário de cadastro</h4>
+          <FormSubmissionViewer
+            formSubmission={locationFormSubmission}
+            locationPolygonGeoJson={location.st_asgeojson}
+          />
+        </>
       )}
       <Divider />
       <h4 className="font-semibold">Situação cadastral</h4>
@@ -138,12 +134,13 @@ const LocationInfo = ({
         disabled
       />
       <Divider />
-      <h4 className="font-semibold">Formulário de avaliação</h4>
+
       {fetchLatestAssessmentDetailsLoading && (
         <CLinearProgress label="Carregando mais informações..." />
       )}
       {latestAssessment && (
         <>
+          <h4 className="font-semibold">Formulário de avaliação</h4>
           <FormSubmissionViewer
             formSubmission={{
               formStructure: latestAssessment.formSubmission.formStructure,
