@@ -196,6 +196,7 @@ const AssessmentsExportDialog = ({
         selectedLocationId={locationId}
         defaultLocationId={undefined}
         clearableStateAndCitySelection
+        disableDebounce
         onSelectedStateChange={setState}
         handleFilterChange={handleFilterChange}
       />

@@ -63,6 +63,7 @@ const ModularTallysFilter = ({
   isLoading,
   selectedLocationId,
   defaultLocationId,
+  disableDebounce = false,
   onNoCitiesFound,
   handleFilterChange,
 }: {
@@ -71,6 +72,7 @@ const ModularTallysFilter = ({
   isLoading?: boolean;
   selectedLocationId: number | undefined;
   defaultLocationId: number | undefined;
+  disableDebounce?: boolean;
   onNoCitiesFound?: () => void;
   handleFilterChange: (params: {
     type: ModularTallysFilterType;
@@ -123,7 +125,7 @@ const ModularTallysFilter = ({
       <h4>Data inicial</h4>
       <CDateTimePicker
         label="Início - Data inicial"
-        debounce={600}
+        debounce={disableDebounce ? undefined : 600}
         clearable
         onAccept={(date) =>
           handleFilterChange({
@@ -134,7 +136,7 @@ const ModularTallysFilter = ({
       />
       <CDateTimePicker
         label="Início - Data final"
-        debounce={600}
+        debounce={disableDebounce ? undefined : 600}
         clearable
         onAccept={(date) =>
           handleFilterChange({

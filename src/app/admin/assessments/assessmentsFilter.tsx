@@ -3,10 +3,10 @@ import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
 import type { FetchAssessmentUsersResponse } from "@/lib/serverFunctions/queries/assessment";
 import type { FetchFormsResponse } from "@/lib/serverFunctions/queries/form";
 import { Divider } from "@mui/material";
+import type { BrazilianStates } from "@prisma/client";
 import { IconExternalLink } from "@tabler/icons-react";
 import { useRouter } from "next-nprogress-bar";
 import { useState } from "react";
-import type { BrazilianStates } from "@prisma/client";
 
 import CAutocomplete from "../../../components/ui/cAutoComplete";
 import CDateTimePicker from "../../../components/ui/cDateTimePicker";
@@ -97,6 +97,7 @@ const AssessmentsFilter = ({
   defaultLocationId,
   onNoCitiesFound,
   clearableStateAndCitySelection,
+  disableDebounce = false,
   onSelectedStateChange,
   handleFilterChange,
 }: {
@@ -107,6 +108,7 @@ const AssessmentsFilter = ({
   defaultLocationId: number | undefined;
   onNoCitiesFound?: () => void;
   clearableStateAndCitySelection?: boolean;
+  disableDebounce?: boolean;
   onSelectedStateChange?: (state: BrazilianStates | null) => void;
   handleFilterChange: (params: {
     type: AssessmentsFilterType;
@@ -158,7 +160,7 @@ const AssessmentsFilter = ({
       <h4>Data inicial</h4>
       <CDateTimePicker
         label="Início - Data inicial"
-        debounce={600}
+        debounce={disableDebounce ? undefined : 600}
         clearable
         onAccept={(e) => {
           handleFilterChange({
@@ -169,7 +171,7 @@ const AssessmentsFilter = ({
       />
       <CDateTimePicker
         label="Início - Data final"
-        debounce={600}
+        debounce={disableDebounce ? undefined : 600}
         clearable
         onAccept={(e) => {
           handleFilterChange({
