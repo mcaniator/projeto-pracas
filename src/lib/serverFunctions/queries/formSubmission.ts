@@ -46,28 +46,17 @@ export type GetFormSubmissionDataParams = {
   publicQuestionsOnly?: boolean;
 };
 
-export const getFormSubmissionData = async ({
-  formSubmissionId,
-  includeCalculations,
-  publicQuestionsOnly = false,
-}: GetFormSubmissionDataParams) => {
-  const formSubmission = await prisma.formSubmission.findUnique({
-    where: { id: formSubmissionId },
-    select: { formId: true },
-  });
-
-  if (!formSubmission) {
-    throw new Error("Submissão de formulário não encontrada");
-  }
-
-  const { formId } = formSubmission;
-  const [formStructure, responses, responseOptions, rawGeometries] =
-    await Promise.all([
-      getFormStructure({
-        formId,
-        publicQuestionsOnly,
-        includeCalculations,
-      }),
+export const getFormSubmissionResponsesAndFilterEmptyCategoriesAndSubcategories =
+  async ({
+    categories,
+    formSubmissionId,
+    publicQuestionsOnly,
+  }: {
+    categories: CategoryItem[];
+    formSubmissionId: number;
+    publicQuestionsOnly: boolean;
+  }) => {
+    const [responses, responseOptions] = await Promise.all([
       prisma.response.findMany({
         where: {
           formSubmissionId,
@@ -88,109 +77,145 @@ export const getFormSubmissionData = async ({
           option: { select: { id: true } },
         },
       }),
-      getFormSubmissionResponseGeometries({
-        formSubmissionId,
-        publicQuestionsOnly,
-      }),
     ]);
 
-  const responseByQuestionId = new Map(
-    responses.map((response) => [response.questionId, response.response]),
-  );
-  const responseOptionsByQuestionId = responseOptions.reduce<
-    Map<number, typeof responseOptions>
-  >((result, responseOption) => {
-    const questionResponses = result.get(responseOption.questionId) ?? [];
-    questionResponses.push(responseOption);
-    result.set(responseOption.questionId, questionResponses);
-    return result;
-  }, new Map());
-  const responsesFormValues: SerializedFormValues = {};
+    const responseByQuestionId = new Map(
+      responses.map((response) => [response.questionId, response.response]),
+    );
+    const responseOptionsByQuestionId = responseOptions.reduce<
+      Map<number, typeof responseOptions>
+    >((result, responseOption) => {
+      const questionResponses = result.get(responseOption.questionId) ?? [];
+      questionResponses.push(responseOption);
+      result.set(responseOption.questionId, questionResponses);
+      return result;
+    }, new Map());
+    const responsesFormValues: SerializedFormValues = {};
 
-  const toQuestionItem = (
-    question: QuestionItem,
-  ): FormSubmissionQuestionItem => {
-    const response = responseByQuestionId.get(question.questionId);
-    const optionResponses =
-      responseOptionsByQuestionId.get(question.questionId) ?? [];
+    const toQuestionItem = (
+      question: QuestionItem,
+    ): FormSubmissionQuestionItem => {
+      const response = responseByQuestionId.get(question.questionId);
+      const optionResponses =
+        responseOptionsByQuestionId.get(question.questionId) ?? [];
 
-    if (question.questionType === "WRITTEN") {
-      if (
-        question.characterType === "NUMBER" ||
-        question.characterType === "PERCENTAGE" ||
-        question.characterType === "SCALE"
-      ) {
+      if (question.questionType === "WRITTEN") {
+        if (
+          question.characterType === "NUMBER" ||
+          question.characterType === "PERCENTAGE" ||
+          question.characterType === "SCALE"
+        ) {
+          responsesFormValues[question.questionId] =
+            response ? Number(response) : null;
+        } else {
+          responsesFormValues[question.questionId] = response ?? null;
+        }
+      } else if (question.questionType === "COUNTER") {
         responsesFormValues[question.questionId] =
-          response ? Number(response) : null;
-      } else {
-        responsesFormValues[question.questionId] = response ?? null;
-      }
-    } else if (question.questionType === "OPTIONS") {
-      if (question.optionType === "RADIO") {
-        const optionResponse = optionResponses[0];
-        responsesFormValues[question.questionId] =
-          optionResponse?.option?.id ?
-            {
-              value: optionResponse.option.id,
+          response ? Number(response) : 0;
+      } else if (question.questionType === "OPTIONS") {
+        if (question.optionType === "RADIO") {
+          const optionResponse = optionResponses[0];
+          responsesFormValues[question.questionId] =
+            optionResponse?.option?.id ?
+              {
+                value: optionResponse.option.id,
+                override: optionResponse.overrideValue,
+              }
+            : null;
+        } else if (question.optionType === "CHECKBOX") {
+          responsesFormValues[question.questionId] = optionResponses.map(
+            (optionResponse) => ({
+              value: optionResponse.option!.id,
               override: optionResponse.overrideValue,
-            }
-          : null;
-      } else if (question.optionType === "CHECKBOX") {
-        responsesFormValues[question.questionId] = optionResponses.map(
-          (optionResponse) => ({
-            value: optionResponse.option!.id,
-            override: optionResponse.overrideValue,
-          }),
-        );
+            }),
+          );
+        }
+      } else if (question.questionType === "BOOLEAN") {
+        responsesFormValues[question.questionId] =
+          response === BooleanResponseValue.TRUE;
       }
-    } else if (question.questionType === "BOOLEAN") {
-      responsesFormValues[question.questionId] =
-        response === BooleanResponseValue.TRUE;
-    }
 
-    return {
-      ...question,
-      id: question.questionId,
-      options: question.options?.map((option) => ({
-        id: option.id,
-        text: option.text,
-        isOverridable: option.isOverridable ?? false,
-      })),
+      return {
+        ...question,
+        id: question.questionId,
+        options: question.options?.map((option) => ({
+          id: option.id,
+          text: option.text,
+          isOverridable: option.isOverridable ?? false,
+        })),
+      };
     };
+
+    const filteredCategories = categories
+      .map(
+        (category): FormSubmissionCategoryItem => ({
+          ...category,
+          id: category.categoryId,
+          categoryChildren: category.categoryChildren.reduce<
+            FormSubmissionCategoryItem["categoryChildren"]
+          >((children, child) => {
+            if (FormItemUtils.isSubcategoryType(child)) {
+              const questions = child.questions.map(toQuestionItem);
+              if (questions.length > 0) {
+                children.push({
+                  ...child,
+                  id: child.subcategoryId,
+                  questions,
+                });
+              }
+              return children;
+            }
+
+            children.push(toQuestionItem(child));
+            return children;
+          }, []),
+        }),
+      )
+      .filter((category) => category.categoryChildren.length > 0);
+
+    return { filteredCategories, responsesFormValues };
   };
 
-  const categories = formStructure.categories
-    .map(
-      (category): FormSubmissionCategoryItem => ({
-        ...category,
-        id: category.categoryId,
-        categoryChildren: category.categoryChildren.reduce<
-          FormSubmissionCategoryItem["categoryChildren"]
-        >((children, child) => {
-          if (FormItemUtils.isSubcategoryType(child)) {
-            const questions = child.questions.map(toQuestionItem);
-            if (questions.length > 0) {
-              children.push({
-                ...child,
-                id: child.subcategoryId,
-                questions,
-              });
-            }
-            return children;
-          }
+export const getFormSubmissionData = async ({
+  formSubmissionId,
+  includeCalculations,
+  publicQuestionsOnly = false,
+}: GetFormSubmissionDataParams) => {
+  const formSubmission = await prisma.formSubmission.findUnique({
+    where: { id: formSubmissionId },
+    select: { formId: true },
+  });
 
-          children.push(toQuestionItem(child));
-          return children;
-        }, []),
-      }),
-    )
-    .filter((category) => category.categoryChildren.length > 0);
+  if (!formSubmission) {
+    throw new Error("Submissão de formulário não encontrada");
+  }
+
+  const { formId } = formSubmission;
+  const [formStructure, rawGeometries] = await Promise.all([
+    getFormStructure({
+      formId,
+      publicQuestionsOnly,
+      includeCalculations,
+    }),
+    getFormSubmissionResponseGeometries({
+      formSubmissionId,
+      publicQuestionsOnly,
+    }),
+  ]);
+
+  const { filteredCategories, responsesFormValues } =
+    await getFormSubmissionResponsesAndFilterEmptyCategoriesAndSubcategories({
+      categories: formStructure.categories,
+      formSubmissionId,
+      publicQuestionsOnly,
+    });
 
   return {
     formStructure: {
       formId: formStructure.formId,
       formName: formStructure.formName,
-      categories,
+      categories: filteredCategories,
       ...(includeCalculations ?
         { calculations: formStructure.calculations ?? [] }
       : {}),

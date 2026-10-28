@@ -51,6 +51,7 @@ function CCheckboxGroup<T, V extends string | number | boolean = string>({
       };
 
   const handleClear = () => {
+    if (readOnly) return;
     setLocalValue([]);
     onChange?.([]);
   };
@@ -85,7 +86,7 @@ function CCheckboxGroup<T, V extends string | number | boolean = string>({
         >
           {label}
           {clearable && localValue.length > 0 && (
-            <IconButton onClick={handleClear} size="small">
+            <IconButton disabled={readOnly} onClick={handleClear} size="small">
               <IconX />
             </IconButton>
           )}
@@ -115,6 +116,7 @@ function CCheckboxGroup<T, V extends string | number | boolean = string>({
                   name={name}
                   value={optionValue}
                   checked={localValue.includes(optionValue)}
+                  disabled={readOnly}
                   onChange={() => handleToggle(optionValue)}
                 />
               }
@@ -123,7 +125,11 @@ function CCheckboxGroup<T, V extends string | number | boolean = string>({
           );
         })}
         {!label && clearable && localValue.length > 0 && (
-          <IconButton sx={{ width: "fit-content" }} onClick={handleClear}>
+          <IconButton
+            disabled={readOnly}
+            sx={{ width: "fit-content" }}
+            onClick={handleClear}
+          >
             <IconX />
           </IconButton>
         )}

@@ -242,7 +242,7 @@ const useFetchResource = (
 
   ```tsx
   onSave={() => {
-    void saveTallyTemplate();
+    void saveTallyProtocol();
   }}
   ```
 
@@ -285,6 +285,22 @@ const useFetchResource = (
   reagir ao resultado: `onSuccess` e `onError` cobrem qualquer origem;
   `onServerSuccess` e `onServerError` cobrem o servidor; `onOfflineSuccess` e
   `onOfflineError` cobrem o fallback offline.
+- Ao configurar um hook de API, passar `callbacks` na raiz da configuração do
+  hook, e não dentro de `params`. `params` é usado na chamada da função de
+  request para os query params do endpoint. Exemplo:
+
+  ```ts
+  const [fetchResource] = useFetchResource({
+    callbacks: {
+      onSuccess: (response) => {
+        // tratar resposta
+      },
+    },
+  });
+
+  void fetchResource({ params: { resourceId: 123 } });
+  ```
+
 - Como boa prática, priorizar os callbacks de `useFetchAPI`, como `onSuccess` e
   `onError`, para tratar o resultado da chamada. Usar `await` diretamente na
   função de request quando o fluxo realmente depender do retorno imediato ou
@@ -299,4 +315,4 @@ const useFetchResource = (
 ### Regras condicionais
 
 - Antes de criar ou alterar o front-end de um editor de templates de contagem,
-  ler integralmente `.agents/tally-template-editor.md`.
+  ler integralmente `.agents/tally-protocol-editor.md`.

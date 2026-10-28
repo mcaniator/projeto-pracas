@@ -405,7 +405,7 @@ const LocationSelector = ({
 
                 <Divider />
                 <div className="flex items-center">
-                  <span>{`Avaliações: ${l.assessmentCount},  Contagens: ${l.tallyCount}`}</span>
+                  <span>{`Avaliações: ${l.assessmentCount}`}</span>
                 </div>
                 <Divider />
                 <CButton square onClick={() => onSelecion(l)} className="w-fit">

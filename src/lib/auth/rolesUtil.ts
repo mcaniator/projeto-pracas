@@ -5,8 +5,8 @@ export type AssessmentRole =
   | "ASSESSMENT_EDITOR"
   | "ASSESSMENT_MANAGER";
 export type ParkRole = "PARK_VIEWER" | "PARK_MANAGER";
-export type ProtocolRole = "PROTOCOL_VIEWER" | "PROTOCOL_MANAGER";
 export type TallyRole = "TALLY_VIEWER" | "TALLY_EDITOR" | "TALLY_MANAGER";
+export type ProtocolRole = "PROTOCOL_VIEWER" | "PROTOCOL_MANAGER";
 export type UserRole = "USER_VIEWER" | "USER_MANAGER";
 
 export type RoleGroup = "ASSESSMENT" | "PARK" | "PROTOCOL" | "TALLY" | "USER";

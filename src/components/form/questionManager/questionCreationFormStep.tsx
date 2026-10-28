@@ -275,6 +275,7 @@ const QuestionCreationFormStep = ({
             { value: "WRITTEN", label: "Escrito" },
             { value: "OPTIONS", label: "Seleção" },
             { value: "BOOLEAN", label: "Verdadeiro ou falso" },
+            { value: "COUNTER", label: "Contador" },
           ]}
           value={type}
           onChange={(val) => {
@@ -284,7 +285,9 @@ const QuestionCreationFormStep = ({
             onTypeChange(val);
             if (val === "BOOLEAN") {
               onCharacterTypeChange("BOOLEAN");
-            } else if (characterType === "BOOLEAN") {
+            } else if (val === "COUNTER") {
+              onCharacterTypeChange("NUMBER");
+            } else if (characterType === "BOOLEAN" || type === "COUNTER") {
               onCharacterTypeChange(null);
             }
             onSelectionTypeChange(null);
@@ -297,7 +300,7 @@ const QuestionCreationFormStep = ({
           getOptionLabel={(i) => i.label}
         />
 
-        {type.length > 0 && type !== "BOOLEAN" && (
+        {type.length > 0 && type !== "BOOLEAN" && type !== "COUNTER" && (
           <CRadioGroup
             label="Tipo de valor"
             name="characterType"
@@ -330,6 +333,10 @@ const QuestionCreationFormStep = ({
 
         {type === "BOOLEAN" && (
           <input type="hidden" name="characterType" value="BOOLEAN" />
+        )}
+
+        {type === "COUNTER" && (
+          <input type="hidden" name="characterType" value="NUMBER" />
         )}
 
         {characterType === "SCALE" && (
@@ -711,6 +718,7 @@ const QuestionCreationFormStep = ({
 
         {(type === "WRITTEN" ||
           type === "BOOLEAN" ||
+          type === "COUNTER" ||
           (questionTemplate && questionTemplate.length > 0)) &&
           characterType &&
           characterType.length > 0 &&

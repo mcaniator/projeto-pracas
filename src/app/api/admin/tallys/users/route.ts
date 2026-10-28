@@ -4,19 +4,21 @@ import superjson from "superjson";
 
 export async function GET() {
   try {
-    try {
-      await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
-    } catch (e) {
-      return new Response("Unauthorized", { status: 401 });
-    }
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
+  } catch {
+    return new Response("Sem permissão para consultar responsáveis!", {
+      status: 401,
+    });
+  }
 
-    const data = await fetchTallyUsers({});
+  try {
+    const response = await fetchTallyUsers({});
 
-    return new Response(superjson.stringify(data), {
+    return new Response(superjson.stringify(response), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-  } catch (e) {
-    return new Response("Error fetching users", { status: 500 });
+  } catch {
+    return new Response("Erro ao consultar responsáveis!", { status: 500 });
   }
 }

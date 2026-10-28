@@ -9,10 +9,12 @@ import { useState } from "react";
 type CPersonCharacteristicLegendProps = {
   title: string;
   characteristics: {
-    id: string;
-    name: string;
-    iconKey: string | null;
-    color: string;
+    id: string | number;
+    personCharacteristic: {
+      name: string;
+      iconKey: string | null;
+      color: string;
+    };
   }[];
   sx?: IconButtonOwnProps["sx"];
 };
@@ -46,9 +48,13 @@ const CPersonCharacteristicLegend = ({
               key={characteristic.id}
               className="flex items-center gap-2 rounded border border-gray-300 p-2"
             >
-              <CColorViewer color={characteristic.color} />
-              <CDynamicIcon iconKey={characteristic.iconKey} />
-              <span>{characteristic.name}</span>
+              <CColorViewer
+                color={characteristic.personCharacteristic.color}
+              />
+              <CDynamicIcon
+                iconKey={characteristic.personCharacteristic.iconKey}
+              />
+              <span>{characteristic.personCharacteristic.name}</span>
             </div>
           ))}
         </div>

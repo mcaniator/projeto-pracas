@@ -441,6 +441,8 @@ const QuestionCreation = ({
         (step === 1 &&
           (hasAssociatedGeometry === null ||
             selectedIconKey === null ||
+            characterType === null ||
+            type === null ||
             (characterType === "SCALE" &&
               (minValue === null || maxValue === null)))) ||
         (step === 2 && !pendingFormData)
@@ -499,7 +501,7 @@ const QuestionCreation = ({
             maxValue={maxValue}
             scaleOptionMode={scaleOptionMode}
             scaleStep={scaleStep}
-            isQuestionUsed={!!questionUses && questionUses?.numberOfForms > 0}
+            isQuestionUsed={!!questionUses && questionUses.forms.length > 0}
             onTitleChange={setTitle}
             onNotesChange={setNotes}
             onQuestionTemplateChange={handleQuestionTemplate}

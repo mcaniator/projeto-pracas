@@ -2,6 +2,7 @@ import type { FormSubmissionQuestionItem } from "@/lib/serverFunctions/queries/f
 import type { ResponseQuestionValue } from "@/lib/types/formSubmission/responseFormTypes";
 
 import BooleanResponseQuestionField from "./booleanResponseQuestionField";
+import CounterResponseQuestionField from "./counterResponseQuestionField";
 import OptionsResponseQuestionField from "./optionsResponseQuestionField";
 import WrittenResponseQuestionField from "./writtenResponseQuestionField";
 
@@ -41,6 +42,17 @@ const ResponseQuestionFieldRenderer = ({
   if (question.questionType === "BOOLEAN") {
     return (
       <BooleanResponseQuestionField
+        value={value}
+        readOnly={readOnly}
+        onChange={onChange}
+      />
+    );
+  }
+
+  if (question.questionType === "COUNTER") {
+    return (
+      <CounterResponseQuestionField
+        question={question}
         value={value}
         readOnly={readOnly}
         onChange={onChange}

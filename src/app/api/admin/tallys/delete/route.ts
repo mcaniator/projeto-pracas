@@ -1,24 +1,28 @@
 import {
-  _deleteTally,
+  deleteTally,
   deleteTallyDataSchema,
-} from "@/lib/serverFunctions/mutations/tallyUtil";
+} from "@/lib/serverFunctions/mutations/tally";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import superjson from "superjson";
 
 export async function POST(request: Request) {
   try {
-    try {
-      await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
-    } catch (e) {
-      return new Response("Unauthorized", { status: 401 });
-    }
+    await checkIfLoggedInUserHasAnyPermission({ roleGroups: ["TALLY"] });
+  } catch {
+    return new Response("Sem permissão para excluir contagens!", {
+      status: 401,
+    });
+  }
+
+  try {
     const data = deleteTallyDataSchema.parse(await request.json());
-    const result = await _deleteTally({ data });
-    return new Response(superjson.stringify(result), {
+    const response = await deleteTally({ data });
+
+    return new Response(superjson.stringify(response), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-  } catch (e) {
-    return new Response("Internal Server Error", { status: 500 });
+  } catch {
+    return new Response("Erro ao excluir contagem!", { status: 500 });
   }
 }

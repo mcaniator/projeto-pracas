@@ -61,7 +61,6 @@ export const publicFetchLocations = async (
     latest_assessment.id AS "latestAssessmentId"
   FROM location l
   LEFT JOIN assessment a ON a.location_id = l.id
-  LEFT JOIN tally t      ON t.location_id = l.id
   LEFT JOIN narrow_administrative_unit nau ON nau.id = l.narrow_administrative_unit_id
   LEFT JOIN intermediate_administrative_unit iau ON iau.id = l.intermediate_administrative_unit_id
   LEFT JOIN broad_administrative_unit bau ON bau.id = l.broad_administrative_unit_id

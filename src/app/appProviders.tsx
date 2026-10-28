@@ -5,6 +5,7 @@ import { GeolocationProvider } from "@/components/context/geolocationContext";
 import { LoadingOverlayProvider } from "@/components/context/loadingContext";
 import { NetworkProvider } from "@/components/context/networkContext";
 import MuiThemeProvider from "@/components/theme/MuiThemeProvider";
+import NodeSnackbar from "@/components/ui/snackbar/nodeSnackbar";
 import { IconButton } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -20,6 +21,7 @@ const AppProviders = ({ children }: { children: ReactNode }) => {
       <MuiThemeProvider>
         <SnackbarProvider
           anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          Components={{ node: NodeSnackbar }}
           dense
           preventDuplicate
           action={(snackbarId) => (

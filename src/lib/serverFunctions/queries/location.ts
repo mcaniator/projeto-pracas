@@ -63,10 +63,10 @@ export const fetchLocations = async (
     END AS st_asgeojson,
     latest_assessment.id AS "latestAssessmentId",
     COUNT(DISTINCT a.id) AS "assessmentCount",
-    COUNT(DISTINCT t.id) AS "tallyCount"
+    COUNT(DISTINCT mt.id) AS "tallyCount"
   FROM location l
   LEFT JOIN assessment a ON a.location_id = l.id
-  LEFT JOIN tally t      ON t.location_id = l.id
+  LEFT JOIN tally mt ON mt.location_id = l.id
   LEFT JOIN narrow_administrative_unit nau ON nau.id = l.narrow_administrative_unit_id
   LEFT JOIN intermediate_administrative_unit iau ON iau.id = l.intermediate_administrative_unit_id
   LEFT JOIN broad_administrative_unit bau ON bau.id = l.broad_administrative_unit_id

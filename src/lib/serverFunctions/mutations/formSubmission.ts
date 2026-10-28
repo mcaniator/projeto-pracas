@@ -76,6 +76,12 @@ export type getFormSubmissionUpdateTransactionsParams = {
  * Creates the response persistence operations for a form submission.
  * The caller is responsible for executing the returned operations in its own
  * transaction, together with any other domain-specific operations.
+ *
+ * Omit `tx` when the returned operations will be passed directly to a batch
+ * `prisma.$transaction([...])`. When calling this helper from inside an
+ * interactive `prisma.$transaction(async (tx) => ...)`, pass that `tx` so all
+ * reads and returned operations use the same connection and participate in
+ * the same rollback.
  */
 export const getFormSubmissionUpdateTransactions = async ({
   formSubmissionId,
@@ -144,7 +150,10 @@ export const getFormSubmissionUpdateTransactions = async ({
         throw new Error("Resposta não enviada para uma ou mais questões!");
       }
       const response = responses[question.id];
-      if (question.questionType === QuestionTypes.WRITTEN) {
+      if (
+        question.questionType === QuestionTypes.WRITTEN ||
+        question.questionType === QuestionTypes.COUNTER
+      ) {
         if (Array.isArray(response)) {
           throw new Error("Resposta em array enviada para questão escrita!");
         }
@@ -155,7 +164,19 @@ export const getFormSubmissionUpdateTransactions = async ({
           throw new Error("Resposta em booleana enviada para questão escrita!");
         }
 
-        let writtenResponse = response;
+        let writtenResponse =
+          question.questionType === QuestionTypes.COUNTER && response === null ?
+            0
+          : response;
+
+        if (
+          question.questionType === QuestionTypes.COUNTER &&
+          (typeof writtenResponse !== "number" ||
+            !Number.isInteger(writtenResponse) ||
+            writtenResponse < 0)
+        ) {
+          throw new Error("Resposta inválida enviada para questão contador!");
+        }
 
         //Date validation
         if (question.characterType === QuestionResponseCharacterTypes.DATE) {

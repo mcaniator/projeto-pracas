@@ -1,7 +1,6 @@
 import { useDeleteQuestion } from "@/lib/serverFunctions/apiCalls/question";
 import CDialog from "@components/ui/dialog/cDialog";
-import { useLoadingOverlay } from "@context/loadingContext";
-import { FormEventHandler, useEffect, useState } from "react";
+import { FormEventHandler, useState } from "react";
 
 //TODO: Use type from server
 type ConflictForm = {
@@ -23,8 +22,7 @@ const QuestionDeletionDialog = ({
 }) => {
   const [showConflictInfo, setShowConflictInfo] = useState(false);
   const [conflictForms, setConflictForms] = useState<ConflictForm[]>([]);
-  const { setLoadingOverlay } = useLoadingOverlay();
-  const [deleteQuestion, isPending] = useDeleteQuestion({
+  const [deleteQuestion] = useDeleteQuestion({
     callbacks: {
       onSuccess() {
         handleClose();
@@ -45,16 +43,13 @@ const QuestionDeletionDialog = ({
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
-    void deleteQuestion({ data: new FormData(event.currentTarget) });
+    void deleteQuestion({
+      data: new FormData(event.currentTarget),
+      projectOptions: {
+        loadingMessage: "Excluindo questão...",
+      },
+    });
   };
-
-  useEffect(() => {
-    if (isPending) {
-      setLoadingOverlay({ show: true, message: "Excluindo questão..." });
-    } else {
-      setLoadingOverlay({ show: false });
-    }
-  }, [isPending, setLoadingOverlay]);
 
   if (!questionId && !questionName) {
     return null;

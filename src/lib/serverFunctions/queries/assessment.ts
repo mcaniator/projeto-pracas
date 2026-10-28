@@ -15,64 +15,6 @@ export type {
   FormSubmissionSubcategoryItem as AssessmentSubcategoryItem,
 } from "./formSubmission";
 
-export type GetRecentlyCompletedAssessmentsResponse = NonNullable<
-  Awaited<ReturnType<typeof getRecentlyCompletedAssessments>>["data"]
->;
-const getRecentlyCompletedAssessments = async () => {
-  try {
-    const assessments = await prisma.assessment.findMany({
-      where: {
-        isFinalized: true,
-      },
-      orderBy: {
-        endDate: "desc",
-      },
-      select: {
-        id: true,
-        endDate: true,
-        isFinalized: true,
-        startDate: true,
-        location: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        form: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        user: {
-          select: {
-            username: true,
-          },
-        },
-      },
-      take: 10,
-    });
-    return {
-      responseInfo: {
-        statusCode: 200,
-      } as APIResponseInfo,
-      data: {
-        assessments,
-      },
-    };
-  } catch (e) {
-    return {
-      responseInfo: {
-        statusCode: 500,
-        message: "Erro ao consultar avaliações!",
-      } as APIResponseInfo,
-      data: {
-        assessments: [],
-      },
-    };
-  }
-};
-
 export type FetchAssessmentUsersResponse = NonNullable<
   Awaited<ReturnType<typeof fetchAssessmentUsers>>
 >["data"];
@@ -236,6 +178,8 @@ export const fetchAssessmentsParamsSchema = z.object({
   broadUnitId: z.coerce.number().optional(),
   cityId: z.coerce.number().optional(),
   finalizationStatus: z.coerce.number().optional(),
+  page: z.coerce.number().int().positive(),
+  itemsPerPage: z.coerce.number().int().positive().max(100),
 });
 
 export type FetchAssessmentsParams = z.infer<
@@ -276,9 +220,9 @@ const fetchAssessments = async (
           broadAdministrativeUnitId: params.broadUnitId,
         },
       },
-      orderBy: {
-        startDate: "desc",
-      },
+      orderBy: [{ startDate: "desc" }, { id: "desc" }],
+      skip: (params.page - 1) * params.itemsPerPage,
+      take: params.itemsPerPage + 1,
       select: {
         id: true,
         startDate: true,
@@ -302,10 +246,13 @@ const fetchAssessments = async (
         },
       },
     });
+    const hasMore = assessments.length > params.itemsPerPage;
+    const slicedAssessments = assessments.slice(0, params.itemsPerPage);
     return {
       responseInfo: { statusCode: 200 } as APIResponseInfo,
       data: {
-        assessments,
+        assessments: slicedAssessments,
+        hasMore,
       },
     };
   } catch (e) {
@@ -316,6 +263,7 @@ const fetchAssessments = async (
       } as APIResponseInfo,
       data: {
         assessments: [],
+        hasMore: false,
       },
     };
   }
@@ -373,7 +321,6 @@ export const fetchPublicAssessments = async (
 };
 
 export {
-  getRecentlyCompletedAssessments,
   fetchAssessmentDetails,
   fetchAssessments,
   getPublicAssessmentDetails,

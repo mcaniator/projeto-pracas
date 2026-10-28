@@ -712,7 +712,20 @@ const fetchAdminSQLiteHasAssessments = async (_request: APIRequest) => {
 const fetchAdminSQLiteAssessments = async (
   request: APIRequestParams<FetchAssessmentsParams>,
 ): Promise<APIResponse<FetchAssessmentsResponse>> => {
-  const params = request.params ?? {};
+  const params = request.params;
+  if (!params) {
+    return {
+      responseInfo: {
+        statusCode: 400,
+        message: "Parâmetros inválidos para consultar avaliações!",
+      } as APIResponseInfo,
+      data: {
+        assessments: [],
+        hasMore: false,
+      },
+    };
+  }
+
   try {
     const where: string[] = ["1 = 1"];
     const values: (number | string)[] = [];
@@ -761,6 +774,11 @@ const fetchAdminSQLiteAssessments = async (
       values.push(params.broadUnitId);
     }
 
+    values.push(
+      params.itemsPerPage + 1,
+      (params.page - 1) * params.itemsPerPage,
+    );
+
     const assessmentValues = await adminSQLiteDb.query({
       statement: `
         SELECT
@@ -777,7 +795,8 @@ const fetchAdminSQLiteAssessments = async (
         INNER JOIN form f ON f.id = a.form_id
         INNER JOIN location l ON l.id = a.location_id
         WHERE ${where.join(" AND ")}
-        ORDER BY a.start_date DESC
+        ORDER BY a.start_date DESC, a.id DESC
+        LIMIT ? OFFSET ?
       `,
       values,
     });
@@ -799,13 +818,16 @@ const fetchAdminSQLiteAssessments = async (
           name: assessment.locationName,
         },
       }));
+    const hasMore = assessments.length > params.itemsPerPage;
+    const slicedAssessments = assessments.slice(0, params.itemsPerPage);
 
     return {
       responseInfo: {
         statusCode: 200,
       } as APIResponseInfo,
       data: {
-        assessments,
+        assessments: slicedAssessments,
+        hasMore,
       },
     };
   } catch (e) {
@@ -816,6 +838,7 @@ const fetchAdminSQLiteAssessments = async (
       } as APIResponseInfo,
       data: {
         assessments: [],
+        hasMore: false,
       },
     };
   }
