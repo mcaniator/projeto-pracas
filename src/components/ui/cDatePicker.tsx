@@ -56,7 +56,7 @@ const CDatePicker = React.forwardRef<HTMLInputElement, CDatePickerProps>(
 
     const handleBlur = useCallback(() => {
       if (!dayjs(value).isValid()) {
-        onChange?.(null, { validationError: null });
+        onChange?.(null, { validationError: null, source: "field" });
       }
     }, [value, onChange]);
 

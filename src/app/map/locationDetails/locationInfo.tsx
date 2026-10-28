@@ -4,8 +4,12 @@ import CIconChip from "@/components/ui/cIconChip";
 import FormSubmissionViewer from "@/components/ui/formSubmissionViewer/formSubmissionViewer";
 import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
 import { usePublicFetchPublicAssessmentDetails } from "@/lib/serverFunctions/apiCalls/public/assessment";
+import { usePublicFetchLocationFormSubmission } from "@/lib/serverFunctions/apiCalls/public/location";
 import { PublicFetchPublicAssessmentDetailsResponse } from "@/lib/serverFunctions/queries/public/assessment";
-import { PublicFetchLocationsResponse } from "@/lib/serverFunctions/queries/public/location";
+import {
+  PublicFetchLocationFormSubmissionResponse,
+  PublicFetchLocationsResponse,
+} from "@/lib/serverFunctions/queries/public/location";
 import { Divider } from "@mui/material";
 import {
   IconCircleDashedLetterC,
@@ -32,6 +36,30 @@ const LocationInfo = ({
         },
       },
     });
+
+  const [locationFormSubmission, setLocationFormSubmission] =
+    useState<PublicFetchLocationFormSubmissionResponse | null>(null);
+
+  const [fetchLocationFormSubmission, fetchLocationFormSubmissionLoading] =
+    usePublicFetchLocationFormSubmission({
+      callbacks: {
+        onSuccess: (response) => {
+          setLocationFormSubmission(response.data ?? null);
+        },
+      },
+    });
+
+  useEffect(() => {
+    setLocationFormSubmission(null);
+
+    if (location.formSubmissionId) {
+      void fetchLocationFormSubmission({
+        params: {
+          formSubmissionId: location.formSubmissionId,
+        },
+      });
+    }
+  }, [location, fetchLocationFormSubmission]);
 
   useEffect(() => {
     setLatestAssessment(undefined);
@@ -84,45 +112,35 @@ const LocationInfo = ({
         </>
       )}
 
-      {(location.usableArea || location.legalArea || location.incline) && (
-        <>
-          <Divider />
-          <h4 className="font-semibold">Características Físicas</h4>
-          {location.legalArea && (
-            <span>{`Área oficial (prefeitura): ${location.legalArea} m²`}</span>
-          )}
-          {location.usableArea && (
-            <span>{`Área útil: ${location.usableArea} m²`}</span>
-          )}
-          {location.incline && (
-            <span>{`Inclinação: ${location.incline} %`}</span>
-          )}
-        </>
+      {fetchLocationFormSubmissionLoading && (
+        <CLinearProgress label="Carregando formulário..." />
       )}
-
-      {(location.creationYear ||
-        location.lastMaintenanceYear ||
-        location.legislation) && (
+      {locationFormSubmission && (
         <>
           <Divider />
-          <h4 className="font-semibold">Histórico</h4>
-          {location.creationYear && (
-            <span>{`Ano de criação: ${location.creationYear}`}</span>
-          )}
-          {location.lastMaintenanceYear && (
-            <span>{`Última manutenção: ${location.lastMaintenanceYear}`}</span>
-          )}
-          {location.legislation && (
-            <span>{`Legislação: ${location.legislation}`}</span>
-          )}
+          <h4 className="font-semibold">Formulário de cadastro</h4>
+          <FormSubmissionViewer
+            formSubmission={locationFormSubmission}
+            locationPolygonGeoJson={location.st_asgeojson}
+          />
         </>
       )}
       <Divider />
+      <h4 className="font-semibold">Situação cadastral</h4>
+      <CCheckbox checked={location.isPark} label="É praça" disabled />
+      <CCheckbox
+        checked={location.inactiveNotFound}
+        label="Inativo ou não encontrado"
+        disabled
+      />
+      <Divider />
+
       {fetchLatestAssessmentDetailsLoading && (
         <CLinearProgress label="Carregando mais informações..." />
       )}
       {latestAssessment && (
         <>
+          <h4 className="font-semibold">Última avaliação</h4>
           <FormSubmissionViewer
             formSubmission={{
               formStructure: latestAssessment.formSubmission.formStructure,
@@ -133,21 +151,6 @@ const LocationInfo = ({
             locationPolygonGeoJson={latestAssessment.location.st_asgeojson}
           />
           <Divider />
-        </>
-      )}
-      <h4 className="font-semibold">Situação cadastral</h4>
-      <CCheckbox checked={location.isPark} label="É praça" disabled />
-      <CCheckbox
-        checked={location.inactiveNotFound}
-        label="Inativo ou não encontrado"
-        disabled
-      />
-
-      {location.notes && (
-        <>
-          <Divider />
-          <h4 className="font-semibold">Observações gerais</h4>
-          <div className="whitespace-pre-wrap">{location.notes}</div>
         </>
       )}
     </div>

@@ -18,10 +18,11 @@ import { IconClipboard } from "@tabler/icons-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-type ProtocolType = "FORMS" | "TALLYS" | "BEHAVIORAL_MAPS";
+type ProtocolType = "FORMS" | "TALLYS" | "BEHAVIORAL_MAPS" | "LOCATION";
 
 const protocolTypeOptions: { id: ProtocolType; label: string }[] = [
   { id: "FORMS", label: "Avaliações" },
+  { id: "LOCATION", label: "Cadastro de Praças" },
   { id: "TALLYS", label: "Contagens" },
   { id: "BEHAVIORAL_MAPS", label: "Mapas comportamentais" },
 ];
@@ -30,12 +31,14 @@ const protocolTypeByQueryParam = {
   form: "FORMS",
   tally: "TALLYS",
   behavioralMap: "BEHAVIORAL_MAPS",
+  location: "LOCATION"
 } as const satisfies Record<string, ProtocolType>;
 
 const queryParamByProtocolType: Record<ProtocolType, string> = {
   FORMS: "form",
   TALLYS: "tally",
   BEHAVIORAL_MAPS: "behavioralMap",
+  LOCATION: "location"
 };
 
 const ProtocolsClient = () => {
@@ -113,6 +116,19 @@ const ProtocolsClient = () => {
             formUse="ASSESSMENT"
             title="Avaliações"
             formEditorRoute="/admin/protocols/forms/edit"
+          />
+        </div>
+      )}
+      {visitedProtocolTypes.has("LOCATION") && (
+        <div
+          className={
+            protocolType === "LOCATION" ? "flex min-h-0 flex-1 flex-col" : "hidden"
+          }
+        >
+          <FormManager
+            formUse="LOCATION"
+            title="Cadastro de Praças"
+            formEditorRoute="/admin/protocols/locationForms/edit"
           />
         </div>
       )}

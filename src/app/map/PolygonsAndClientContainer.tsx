@@ -196,7 +196,7 @@ const PolygonsAndClientContainer = () => {
           cityId: selectedCity?.id,
         },
         requestOptions: {
-          cache: invalidateCache ? "reload" : "default",
+          cache: invalidateCache ? "reload" : "no-store",
         },
       });
     },

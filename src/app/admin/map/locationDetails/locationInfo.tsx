@@ -6,10 +6,12 @@ import CSwitch from "@/components/ui/cSwtich";
 import CDialog from "@/components/ui/dialog/cDialog";
 import FormSubmissionViewer from "@/components/ui/formSubmissionViewer/formSubmissionViewer";
 import CLocationAdministrativeUnits from "@/components/ui/location/cLocationAdministrativeUnits";
-import { useFetchPublicAssessmentDetails } from "@/lib/serverFunctions/apiCalls/assessment";
-import { useUpdateLocationVisibility } from "@/lib/serverFunctions/apiCalls/location";
-import { FetchAssessmentDetailsResponse } from "@/lib/serverFunctions/queries/assessment";
+import {
+  useFetchLocationFormSubmission,
+  useUpdateLocationVisibility,
+} from "@/lib/serverFunctions/apiCalls/location";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
+import { FetchLocationFormSubmissionResponse } from "@/lib/serverFunctions/queries/location";
 import { Divider } from "@mui/material";
 import {
   IconCheck,
@@ -33,16 +35,14 @@ const LocationInfo = ({
   const [pendingVisibility, setPendingVisibility] = useState<boolean | null>(
     null,
   );
-  const [latestAssessment, setLatestAssessment] =
-    useState<FetchAssessmentDetailsResponse["assessmentDetails"]>();
+  const [locationFormSubmission, setLocationFormSubmission] =
+    useState<FetchLocationFormSubmissionResponse | null>(null);
 
-  const [fetchLatestAssessmentDetails, fetchLatestAssessmentDetailsLoading] =
-    useFetchPublicAssessmentDetails({
-      params: {
-        callbacks: {
-          onSuccess: (response) => {
-            setLatestAssessment(response.data?.assessmentDetails);
-          },
+  const [fetchLocationFormSubmission, fetchLocationFormSubmissionLoading] =
+    useFetchLocationFormSubmission({
+      callbacks: {
+        onSuccess: (response) => {
+          setLocationFormSubmission(response.data ?? null);
         },
       },
     });
@@ -68,17 +68,15 @@ const LocationInfo = ({
   useEffect(() => {
     setPendingVisibility(null);
     setOpenVisibilityDialog(false);
-    setLatestAssessment(undefined);
-    if (location.latestAssessmentId) {
-      void fetchLatestAssessmentDetails({
+    setLocationFormSubmission(null);
+    if (location.formSubmissionId) {
+      void fetchLocationFormSubmission({
         params: {
-          assessmentId: location.latestAssessmentId,
+          formSubmissionId: location.formSubmissionId,
         },
       });
-    } else {
-      setLatestAssessment(undefined);
     }
-  }, [location, fetchLatestAssessmentDetails]);
+  }, [location, fetchLocationFormSubmission]);
 
   return (
     <div className="flex flex-col gap-1 pr-2">
@@ -136,39 +134,23 @@ const LocationInfo = ({
         {location.categoryName ?? "(Não preenchido)"}
       </span>
       <Divider />
-      <h4 className="font-semibold">Características Físicas</h4>
-      <span>{`Área oficial (prefeitura): ${location.legalArea ? location.legalArea + " m²" : "(Não preenchido)"}`}</span>
-
-      <span>{`Área útil: ${location.usableArea ? location.usableArea + " m²" : "(Não preenchido)"}`}</span>
-
-      <span>{`Inclinação: ${location.incline ? location.incline + " %" : "(Não preenchido)"}`}</span>
-      <Divider />
-      <h4 className="font-semibold">Histórico</h4>
-      <span>{`Ano de criação: ${location.creationYear ?? "(Não preenchido)"}`}</span>
-      <span>{`Última manutenção: ${location.lastMaintenanceYear ?? "(Não preenchido)"}`}</span>
-      <span>{`Legislação: ${location.legislation ?? "(Não preenchido)"}`}</span>
-      <Divider />
-      {fetchLatestAssessmentDetailsLoading && (
-        <CLinearProgress label="Carregando mais informações..." />
+      <h4 className="font-semibold">Formulário de cadastro</h4>
+      {fetchLocationFormSubmissionLoading && (
+        <CLinearProgress label="Carregando formulário..." />
       )}
-      {latestAssessment && (
-        <>
-          <FormSubmissionViewer
-            formSubmission={{
-              formStructure: latestAssessment.formSubmission.formStructure,
-              responsesFormValues:
-                latestAssessment.formSubmission.responsesFormValues,
-              geometries: latestAssessment.formSubmission.geometries,
-            }}
-            locationPolygonGeoJson={latestAssessment.location.st_asgeojson}
-          />
-          <Divider />
-        </>
+      {locationFormSubmission && (
+        <FormSubmissionViewer
+          formSubmission={locationFormSubmission}
+          locationPolygonGeoJson={location.st_asgeojson}
+        />
       )}
-      <h4 className="font-semibold">Observações gerais</h4>
-      <div className="whitespace-pre-wrap">
-        {location.notes ?? "(Não preenchido)"}
-      </div>
+      {!fetchLocationFormSubmissionLoading &&
+        !locationFormSubmission &&
+        !location.formSubmissionId && (
+          <span className="text-sm text-gray-600">
+            Nenhum formulário de cadastro preenchido.
+          </span>
+        )}
       <CDialog
         open={openVisibilityDialog}
         onClose={() => {

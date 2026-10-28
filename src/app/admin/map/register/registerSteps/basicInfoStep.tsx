@@ -73,7 +73,6 @@ const BasicInfoStep = ({
   // #endregion
   return (
     <div className="flex flex-col gap-1">
-      <Divider />
       <h3>Nome</h3>
       <CTextField
         value={parkData.name}

@@ -87,6 +87,7 @@ export const fetchForms = async (
             assessment: params.formUse === FormUse.ASSESSMENT,
             tallyProtocols:
               params.formUse === FormUse.TALLY_AND_BEHAVIORAL_MAP,
+            formSubmissions: true,
           },
         },
       },
@@ -102,9 +103,10 @@ export const fetchForms = async (
     const forms = databaseForms.map(({ _count, ...form }) => ({
       ...form,
       usageCount:
-        params.formUse === FormUse.ASSESSMENT ?
-          (_count.assessment ?? 0)
-        : (_count.tallyProtocols ?? 0),
+        params.formUse === FormUse.ASSESSMENT ? (_count.assessment ?? 0)
+        : params.formUse === FormUse.TALLY_AND_BEHAVIORAL_MAP ?
+          (_count.tallyProtocols ?? 0)
+        : (_count.tallyProtocols ?? 0)
     }));
 
     return {

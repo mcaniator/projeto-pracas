@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        "Cache-Control": "private, max-age=3600",
+        "Cache-Control": "no-store",
       },
     });
   } catch (error) {

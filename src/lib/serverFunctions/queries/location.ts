@@ -1,3 +1,4 @@
+import { getFormSubmissionData } from "@/lib/serverFunctions/queries/formSubmission";
 import { buildImageUrl } from "@/lib/utils/image";
 import { LocationForMap } from "@customTypes/location/location";
 import { prisma } from "@lib/prisma";
@@ -34,15 +35,10 @@ export const fetchLocations = async (
     l.popular_name AS "popularName",
     l.first_street AS "firstStreet",
     l.second_street AS "secondStreet",
-    l.third_street AS "thirdStreet",
-    l.fourth_street AS "fourthStreet",
-    l.notes as "notes",
-    l.creation_year as "creationYear",
-    l.last_maintenance_year as "lastMaintenanceYear",
-    l.legislation as "legislation",
-    l.usable_area as "usableArea",
-    l.legal_area as "legalArea",
-    l.incline as "incline",
+    l.third_street as "thirdStreet",
+    l.fourth_street as "fourthStreet",
+    l.form_submission_id as "formSubmissionId",
+    fs.form_id as "formId",
     l.is_park as "isPark",
     l.inactive_not_found as "inactiveNotFound",
     l.narrow_administrative_unit_id as "narrowAdministrativeUnitId",
@@ -77,6 +73,7 @@ export const fetchLocations = async (
   LEFT JOIN location_category lc ON lc.id = l.category_id
   LEFT JOIN location_type lt ON lt.id = l.type_id
   LEFT JOIN image i ON i.image_id = l.main_image_id
+  LEFT JOIN form_submission fs ON fs.id = l.form_submission_id
   LEFT JOIN city c ON c.id = l.city_id
   LEFT JOIN (
     SELECT DISTINCT ON (a2.location_id)
@@ -92,7 +89,7 @@ export const fetchLocations = async (
   ${params.locationId != null ? Prisma.sql`AND l.id = ${params.locationId}` : Prisma.empty}
   ${params.cityId != null ? Prisma.sql`AND l.city_id = ${params.cityId}` : Prisma.empty}
   GROUP BY 
-    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36
+    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
 `;
     const formatedLocations = locations.map((location) => ({
       ...location,
@@ -118,6 +115,47 @@ export const fetchLocations = async (
     };
   }
 };
+
+export const fetchLocationFormSubmissionParamsSchema = z.object({
+  formSubmissionId: z.coerce.number().int().positive(),
+});
+
+export type FetchLocationFormSubmissionParams = z.infer<
+  typeof fetchLocationFormSubmissionParamsSchema
+>;
+
+export const fetchLocationFormSubmission = async (
+  request: APIRequestParams<FetchLocationFormSubmissionParams>,
+) => {
+  const params = request.params!;
+
+  try {
+    const formSubmission = await getFormSubmissionData({
+      formSubmissionId: params.formSubmissionId,
+      includeCalculations: true,
+      publicQuestionsOnly: false,
+    });
+
+    return {
+      responseInfo: {
+        statusCode: 200,
+      } as APIResponseInfo,
+      data: formSubmission,
+    };
+  } catch (e) {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar preenchimento do formulário da praça!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+};
+
+export type FetchLocationFormSubmissionResponse = NonNullable<
+  Awaited<ReturnType<typeof fetchLocationFormSubmission>>["data"]
+>;
 
 export const fetchLocationsAssociatedWithAdministrativeUnit = async (
   administrativeUnitId: number,

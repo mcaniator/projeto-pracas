@@ -5,6 +5,7 @@ import { PublicLocationForMap } from "@/lib/types/location/location";
 import { buildImageUrl } from "@/lib/utils/image";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
+import { getFormSubmissionData } from "../formSubmission";
 
 export const publicFetchLocationsParamsSchema = z.object({
   cityId: z.coerce.number().nullish(),
@@ -32,21 +33,15 @@ export const publicFetchLocations = async (
     l.category_id  AS "categoryId",
     l.popular_name AS "popularName",
     l.first_street AS "firstStreet",
-    l.second_street AS "secondStreet",
-    l.third_street AS "thirdStreet",
-    l.fourth_street AS "fourthStreet",
-    l.notes as "notes",
-    l.creation_year as "creationYear",
-    l.last_maintenance_year as "lastMaintenanceYear",
-    l.legislation as "legislation",
-    l.usable_area as "usableArea",
-    l.legal_area as "legalArea",
-    l.incline as "incline",
+    l.second_street as "secondStreet",
+    l.third_street as "thirdStreet",
+    l.fourth_street as "fourthStreet",
     l.is_park as "isPark",
     l.inactive_not_found as "inactiveNotFound",
     l.narrow_administrative_unit_id as "narrowAdministrativeUnitId",
     l.intermediate_administrative_unit_id as "intermediateAdministrativeUnitId",
     l.broad_administrative_unit_id as "broadAdministrativeUnitId",
+    l.form_submission_id as "formSubmissionId",
     nau.name AS "narrowAdministrativeUnitName",
     iau.name AS "intermediateAdministrativeUnitName",
     bau.name AS "broadAdministrativeUnitName",
@@ -111,3 +106,46 @@ export const publicFetchLocations = async (
     };
   }
 };
+
+export const publicFetchLocationFormSubmissionParamsSchema = z.object({
+  formSubmissionId: z.coerce.number().int().positive(),
+});
+
+export type PublicFetchLocationFormSubmissionParams = z.infer<
+  typeof publicFetchLocationFormSubmissionParamsSchema
+>;
+
+export const publicFetchLocationFormSubmission = async (
+  request: APIRequestParams<PublicFetchLocationFormSubmissionParams>,
+) => {
+  const params = request.params!;
+
+  try {
+    const formSubmission = await getFormSubmissionData({
+      formSubmissionId: params.formSubmissionId,
+      includeCalculations: true,
+      publicQuestionsOnly: true,
+    });
+
+    return {
+      responseInfo: {
+        statusCode: 200,
+      } as APIResponseInfo,
+      data: formSubmission,
+    };
+  } catch {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao consultar preenchimento do formulário da praça!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+};
+
+export type PublicFetchLocationFormSubmissionResponse = NonNullable<
+  Awaited<
+    ReturnType<typeof publicFetchLocationFormSubmission>
+  >["data"]
+>;
