@@ -22,6 +22,7 @@ type FormSubmissionViewerProps = {
   formSubmission: FormSubmissionViewerData;
   filterNonPublicQuestions?: boolean;
   locationPolygonGeoJson?: string | null;
+  usedInSidebar?: boolean;
 };
 
 const filterPublicCategories = (
@@ -51,6 +52,7 @@ const filterPublicCategories = (
 const FormSubmissionViewer = ({
   formSubmission,
   filterNonPublicQuestions = false,
+  usedInSidebar = false,
   locationPolygonGeoJson = null,
 }: FormSubmissionViewerProps) => {
   const categories =
@@ -65,6 +67,7 @@ const FormSubmissionViewer = ({
           key={category.categoryId}
           formSubmission={formSubmission}
           category={category}
+          usedInSidebar={usedInSidebar}
           locationPolygonGeoJson={locationPolygonGeoJson}
         />
       ))}
@@ -156,10 +159,12 @@ const Subcategory = ({
 const Category = ({
   formSubmission,
   category,
+  usedInSidebar,
   locationPolygonGeoJson,
 }: {
   formSubmission: FormSubmissionViewerData;
   category: FormSubmissionCategoryItem;
+  usedInSidebar?: boolean;
   locationPolygonGeoJson: string | null;
 }) => {
   const contentBlocks = category.categoryChildren.reduce<
@@ -189,13 +194,13 @@ const Category = ({
   return (
     <section className="flex flex-col gap-2">
       <div className="flex items-center gap-1.5">
-        <h4 className="text-sm font-semibold uppercase text-gray-700">
+        <h4 className={`${!usedInSidebar ? "text-sm uppercase text-gray-700" : ""} font-semibold`}>
           {category.name}
         </h4>
         <CDialogTrigger
           title="Legenda"
           triggerProps={{ square: true, variant: "outlined" }}
-          triggerchildren={<IconInfoCircle size={18} />}
+          triggerchildren={<IconInfoCircle size={16} />}
         >
           {categoryIcons.map((question) => (
             <div key={question.questionId} className="my-1 flex items-center">

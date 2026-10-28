@@ -118,10 +118,10 @@ const LocationInfo = ({
       {locationFormSubmission && (
         <>
           <Divider />
-          <h4 className="font-semibold">Formulário de cadastro</h4>
           <FormSubmissionViewer
             formSubmission={locationFormSubmission}
             locationPolygonGeoJson={location.st_asgeojson}
+            usedInSidebar={true}
           />
         </>
       )}
@@ -140,7 +140,7 @@ const LocationInfo = ({
       )}
       {latestAssessment && (
         <>
-          <h4 className="font-semibold">Última avaliação</h4>
+          {/* <h4 className="font-semibold">Última avaliação</h4> */}
           <FormSubmissionViewer
             formSubmission={{
               formStructure: latestAssessment.formSubmission.formStructure,
@@ -149,6 +149,7 @@ const LocationInfo = ({
               geometries: latestAssessment.formSubmission.geometries,
             }}
             locationPolygonGeoJson={latestAssessment.location.st_asgeojson}
+            usedInSidebar={true}
           />
           <Divider />
         </>

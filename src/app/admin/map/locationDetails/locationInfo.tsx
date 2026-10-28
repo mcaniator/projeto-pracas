@@ -134,7 +134,6 @@ const LocationInfo = ({
         {location.categoryName ?? "(Não preenchido)"}
       </span>
       <Divider />
-      <h4 className="font-semibold">Formulário de cadastro</h4>
       {fetchLocationFormSubmissionLoading && (
         <CLinearProgress label="Carregando formulário..." />
       )}
@@ -142,6 +141,7 @@ const LocationInfo = ({
         <FormSubmissionViewer
           formSubmission={locationFormSubmission}
           locationPolygonGeoJson={location.st_asgeojson}
+          usedInSidebar={true}
         />
       )}
       {!fetchLocationFormSubmissionLoading &&
