@@ -549,7 +549,6 @@ const LocationRegisterDialog = ({
           <FormManager
             formUse="LOCATION"
             title="Formulário (opcional)"
-            formEditorRoute="/admin/protocols/locationForms/edit"
             value={parkData.formId}
             onValueChange={(form) => {
               setParkData((previous) => ({

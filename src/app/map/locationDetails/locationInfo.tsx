@@ -140,7 +140,7 @@ const LocationInfo = ({
       )}
       {latestAssessment && (
         <>
-          <h4 className="font-semibold">Formulário de avaliação</h4>
+          <h4 className="font-semibold">Última avaliação</h4>
           <FormSubmissionViewer
             formSubmission={{
               formStructure: latestAssessment.formSubmission.formStructure,
