@@ -20,7 +20,7 @@ import type {
   FetchTallyUsersResponse,
   FetchTallysResponse,
 } from "@/lib/serverFunctions/queries/tally";
-import { IconFilter, IconPlus } from "@tabler/icons-react";
+import { IconFilter, IconPlus, IconTableExport } from "@tabler/icons-react";
 import { useSearchParams } from "next/navigation";
 import {
   Suspense,
@@ -31,6 +31,7 @@ import {
   useState,
 } from "react";
 import { GrGroup } from "react-icons/gr";
+import TallysExportDialog from "./tallyExportDialog";
 
 const TALLYS_PER_PAGE = 100;
 
@@ -73,6 +74,8 @@ const TallysClient = () => {
   >([]);
   const [openCreationDialog, setOpenCreationDialog] = useState(false);
   const [openFiltersDialog, setOpenFiltersDialog] = useState(false);
+  const [openTallyExportDialog, setOpenTallyExportDialog] =
+    useState(false);
   const [locationId, setLocationId] = useState<number>();
   const [tallyProtocolId, setTallyProtocolId] =
     useState<number>();
@@ -424,7 +427,7 @@ const TallysClient = () => {
         titleIcon={<GrGroup size={28} />}
         title="Contagens"
         append={
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             {isMobileView && (
               <CButton
                 square
@@ -435,6 +438,13 @@ const TallysClient = () => {
                 <IconFilter />
               </CButton>
             )}
+            <CButton
+              square={isMobileView}
+              onClick={() => setOpenTallyExportDialog(true)}
+            >
+              <IconTableExport />
+              {isMobileView ? "" : "Exportar"}
+            </CButton>
             <CButton
               square={isMobileView}
               onClick={() => setOpenCreationDialog(true)}
@@ -477,6 +487,13 @@ const TallysClient = () => {
       <TallyCreationDialog
         open={openCreationDialog}
         onClose={() => setOpenCreationDialog(false)}
+      />
+      <TallysExportDialog 
+        open={openTallyExportDialog}
+        onClose={() => setOpenTallyExportDialog(false)}
+        tallyProtocols={tallyProtocols}
+        users={users}
+        isLoading={isLoadingUsers || isLoadingTemplates}
       />
     </div>
   );
