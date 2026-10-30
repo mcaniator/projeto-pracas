@@ -42,18 +42,27 @@ type TallyProtocolGroupForExport = {
   }[];
 };
 
+type TallyExportColumn =
+  | { type: "combination"; ids: number[]; names: string[] }
+  | {
+      type: "total";
+      ids: number[];
+      label: string;
+      mainCharacteristicId: number;
+    };
+
 export const fetchTallysExport = async (
   request: APIRequestParams<FetchTallysExportParams>,
 ) => {
   const params = request.params!;
   const metaCategories = [
     {
-      name: "Identificação da praça",
+      name: "IDENTIFICAÇÃO DA PRAÇA",
       startColumn: 1,
       endColumn: 9,
     },
     {
-      name: "Identificação da levantamento",
+      name: "IDENTIFICAÇÃO DO LEVANTAMENTO",
       startColumn: 10,
       endColumn: 14,
     },
@@ -107,17 +116,127 @@ export const fetchTallysExport = async (
     const groupsWithCharacteristics = tallyProtocolGroups.filter(
       (group) => group.characteristics.length > 0,
     );
-    const characteristicCombinations = groupsWithCharacteristics.reduce(
-      (combinations, group) =>
-        combinations.flatMap((combination) =>
-          group.characteristics.map(({ personCharacteristic }) => ({
-            ids: [...combination.ids, personCharacteristic.id],
-            names: [...combination.names, personCharacteristic.name],
-          })),
-        ),
-      [{ ids: [], names: [] }] as { ids: number[]; names: string[] }[],
+    const sexGroup = groupsWithCharacteristics.find((group) => {
+      const characteristicNames = group.characteristics.map(
+        ({ personCharacteristic }) =>
+          personCharacteristic.name.trim().toLowerCase(),
+      );
+      return (
+        characteristicNames.includes("homem") &&
+        characteristicNames.includes("mulher")
+      );
+    });
+    const secondaryGroups = groupsWithCharacteristics.filter(
+      (group) => group !== sexGroup,
     );
-    const characteristicCount = characteristicCombinations.length;
+    const exportColumns: TallyExportColumn[] = [];
+
+    if (!sexGroup) {
+      const combinations = groupsWithCharacteristics.reduce(
+        (currentCombinations, group) =>
+          currentCombinations.flatMap((combination) =>
+            group.characteristics.map(
+              ({ personCharacteristic: characteristic }) => ({
+                ids: [...combination.ids, characteristic.id],
+                names: [...combination.names, characteristic.name],
+              }),
+            ),
+          ),
+        [{ ids: [], names: [] }] as { ids: number[]; names: string[] }[],
+      );
+
+      combinations.forEach((combination) => {
+        exportColumns.push({
+          type: "combination",
+          ids: combination.ids,
+          names: combination.names,
+        });
+      });
+    }
+
+    sexGroup?.characteristics.forEach(({ personCharacteristic }) => {
+      const mainName = personCharacteristic.name.trim().toLowerCase();
+      if (mainName !== "homem" && mainName !== "mulher") return;
+
+      const combinations = secondaryGroups.reduce(
+        (currentCombinations, group) =>
+          currentCombinations.flatMap((combination) =>
+            group.characteristics.map(
+              ({ personCharacteristic: secondary }) => ({
+                ids: [...combination.ids, secondary.id],
+                names: [...combination.names, secondary.name],
+              }),
+            ),
+          ),
+        [{ ids: [], names: [] }] as { ids: number[]; names: string[] }[],
+      );
+
+      const primarySecondaryGroup = secondaryGroups[0];
+      const remainingSecondaryGroups = secondaryGroups.slice(1);
+
+      primarySecondaryGroup?.characteristics.forEach(
+        ({ personCharacteristic: primary }) => {
+          combinations
+            .filter((combination) => combination.ids.includes(primary.id))
+            .forEach((combination) => {
+              exportColumns.push({
+                type: "combination",
+                ids: [personCharacteristic.id, ...combination.ids],
+                names: combination.names,
+              });
+            });
+
+          exportColumns.push({
+            type: "total",
+            ids: [personCharacteristic.id, primary.id],
+            label: `TOTAL ${primary.name}`,
+            mainCharacteristicId: personCharacteristic.id,
+          });
+        },
+      );
+
+      remainingSecondaryGroups.forEach((group) => {
+        group.characteristics.forEach(({ personCharacteristic: secondary }) => {
+          combinations
+            .filter((combination) => combination.ids.includes(secondary.id))
+            .forEach((combination) => {
+              if (
+                exportColumns.some(
+                  (column) =>
+                    column.type === "combination" &&
+                    column.ids.length === combination.ids.length + 1 &&
+                    column.ids[0] === personCharacteristic.id &&
+                    column.ids
+                      .slice(1)
+                      .every((id) => combination.ids.includes(id)),
+                )
+              ) {
+                return;
+              }
+
+              exportColumns.push({
+                type: "combination",
+                ids: [personCharacteristic.id, ...combination.ids],
+                names: combination.names,
+              });
+            });
+          exportColumns.push({
+            type: "total",
+            ids: [personCharacteristic.id, secondary.id],
+            label: `TOTAL ${secondary.name}`,
+            mainCharacteristicId: personCharacteristic.id,
+          });
+        });
+      });
+      exportColumns.push({
+        type: "total",
+        ids: [personCharacteristic.id],
+        label: "TOTAL",
+        mainCharacteristicId: personCharacteristic.id,
+      });
+    });
+
+    const characteristicCount = exportColumns.length;
 
     if (characteristicCount > 0) {
       worksheet.mergeCells(
@@ -127,7 +246,7 @@ export const fetchTallysExport = async (
         metaQuestions.length + characteristicCount,
       );
       worksheet.getCell(1, metaQuestions.length + 1).value =
-        "Contagem de pessoas";
+        "CONTAGEM DE PESSOAS";
     }
 
     metaSubcategories.forEach(({ name, startColumn, endColumn }) => {
@@ -140,26 +259,75 @@ export const fetchTallysExport = async (
 
     if (characteristicCount > 0) {
       const firstCharacteristicColumn = metaQuestions.length + 1;
-      const lastCharacteristicColumn =
-        firstCharacteristicColumn + characteristicCount - 1;
-      worksheet.mergeCells(
-        2,
-        firstCharacteristicColumn,
-        2,
-        lastCharacteristicColumn,
-      );
-      worksheet.getCell(2, firstCharacteristicColumn).value =
-        groupsWithCharacteristics
-          .map((group) => group.personCharacteristicGroup.title)
-          .join(" + ");
+      if (!sexGroup) {
+        worksheet.mergeCells(
+          2,
+          firstCharacteristicColumn,
+          2,
+          firstCharacteristicColumn + characteristicCount - 1,
+        );
+        worksheet.getCell(2, firstCharacteristicColumn).value =
+          groupsWithCharacteristics
+            .map((group) => group.personCharacteristicGroup.title)
+            .join(" + ");
+        exportColumns.forEach((column, index) => {
+          worksheet.getCell(3, firstCharacteristicColumn + index).value =
+            column.type === "total" ? column.label : column.names.join(" + ");
+        });
+      } else {
+        let currentColumn = firstCharacteristicColumn;
+        sexGroup.characteristics.forEach(({ personCharacteristic }) => {
+          const mainName = personCharacteristic.name.trim().toLowerCase();
+          if (mainName !== "homem" && mainName !== "mulher") return;
 
-      characteristicCombinations.forEach((combination, index) => {
-        worksheet.getCell(3, firstCharacteristicColumn + index).value =
-          combination.names.join(" + ");
+          const blockColumns = exportColumns.filter(
+            (column) =>
+              (column.type === "combination" &&
+                column.ids[0] === personCharacteristic.id) ||
+              (column.type === "total" &&
+                column.mainCharacteristicId === personCharacteristic.id),
+          );
+          worksheet.mergeCells(
+            2,
+            currentColumn,
+            2,
+            currentColumn + blockColumns.length - 1,
+          );
+          worksheet.getCell(2, currentColumn).value = personCharacteristic.name;
+
+          blockColumns.forEach((column) => {
+            worksheet.getCell(3, currentColumn).value =
+              column.type === "total" ? column.label : column.names.join(" + ");
+            currentColumn += 1;
+          });
+        });
+      }
+    }
+
+    // Add right border to the last column of each category in the first three rows
+    const categoryBoundaryColumns = [
+      9,
+      14,
+      ...exportColumns.flatMap((column, index) =>
+        column.type === "total" ? [metaQuestions.length + index + 1] : [],
+      ),
+      ...(characteristicCount > 0 ?
+        [metaQuestions.length + characteristicCount]
+      : []),
+    ];
+    for (let rowNumber = 1; rowNumber <= 3; rowNumber += 1) {
+      categoryBoundaryColumns.forEach((column) => {
+        worksheet.getCell(rowNumber, column).border = {
+          ...worksheet.getCell(rowNumber, column).border,
+          right: {
+            style: "medium",
+            color: { argb: "000000" },
+          },
+        };
       });
     }
 
-    return characteristicCombinations;
+    return exportColumns;
   };
 
   try {
@@ -293,7 +461,7 @@ export const fetchTallysExport = async (
       { name, tallyProtocolGroups, tallys },
     ] of tallysByProtocolId) {
       const worksheet = workbook.addWorksheet(getWorksheetName(name));
-      const characteristicCombinations = addTallyMetadataHeader({
+      const exportColumns = addTallyMetadataHeader({
         worksheet,
         tallyProtocolGroups,
       });
@@ -322,11 +490,28 @@ export const fetchTallysExport = async (
           tally.startDate,
           tally.endDate,
           durationInMinutes,
-          ...characteristicCombinations.map(({ ids }) =>
-            tally.personObservations.reduce(
+          ...exportColumns.map((column) => {
+            if (column.type === "total") {
+              return tally.personObservations.reduce(
+                (total, observation) =>
+                  (
+                    column.ids.every((id) =>
+                      observation.characteristics.some(
+                        (characteristic) =>
+                          characteristic.personCharacteristicId === id,
+                      ),
+                    )
+                  ) ?
+                    total + observation.quantity
+                  : total,
+                0,
+              );
+            }
+
+            return tally.personObservations.reduce(
               (total, observation) =>
                 (
-                  ids.every((id) =>
+                  column.ids.every((id) =>
                     observation.characteristics.some(
                       (characteristic) =>
                         characteristic.personCharacteristicId === id,
@@ -336,8 +521,8 @@ export const fetchTallysExport = async (
                   total + observation.quantity
                 : total,
               0,
-            ),
-          ),
+            );
+          }),
         ]);
         tallyRow.getCell(12).numFmt = "dd/mm/yyyy hh:mm";
         tallyRow.getCell(13).numFmt = "dd/mm/yyyy hh:mm";
@@ -345,6 +530,35 @@ export const fetchTallysExport = async (
         tallyRow.alignment = { horizontal: "center" };
         tallyRow.getCell(1).alignment = { horizontal: "right" };
         tallyRow.getCell(2).alignment = { horizontal: "left" };
+
+        // Add right border to the last column of each category
+        [
+          9,
+          14,
+          ...exportColumns.flatMap((column, index) =>
+            column.type === "total" ? [metaQuestions.length + index + 1] : [],
+          ),
+        ].forEach((column) => {
+          tallyRow.getCell(column).border = {
+            ...tallyRow.getCell(column).border,
+            right: {
+              style: "medium",
+              color: { argb: "000000" },
+            },
+          };
+        });
+
+        if (exportColumns.length > 0) {
+          const lastCharacteristicColumn =
+            metaQuestions.length + exportColumns.length;
+          tallyRow.getCell(lastCharacteristicColumn).border = {
+            ...tallyRow.getCell(lastCharacteristicColumn).border,
+            right: {
+              style: "medium",
+              color: { argb: "000000" },
+            },
+          };
+        }
       }
 
       const lastRow = worksheet.lastRow?.number;
