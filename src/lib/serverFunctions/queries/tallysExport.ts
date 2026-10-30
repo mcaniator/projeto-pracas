@@ -12,11 +12,6 @@ import {
   autoWidthWorksheetColumns,
   getWorksheetName,
 } from "../../utils/exceljs";
-import { getFormStructure } from "./form";
-import {
-  insertFormHeaderInWorkSheet,
-  insertFormSubmissionDataInWorkSheet,
-} from "./formSubmissionExport";
 
 export const fetchTallysExportParamsSchema = z.object({
   startDate: z.coerce.date().optional(),
@@ -40,6 +35,13 @@ export type FetchTallysExportResponse = NonNullable<
   Awaited<ReturnType<typeof fetchTallysExport>>["data"]
 >;
 
+type TallyProtocolGroupForExport = {
+  personCharacteristicGroup: { title: string };
+  characteristics: {
+    personCharacteristic: { id: number; name: string };
+  }[];
+};
+
 export const fetchTallysExport = async (
   request: APIRequestParams<FetchTallysExportParams>,
 ) => {
@@ -48,19 +50,19 @@ export const fetchTallysExport = async (
     {
       name: "Identificação da praça",
       startColumn: 1,
-      endColumn: 15,
+      endColumn: 9,
     },
     {
-      name: "Identificação da contagem",
-      startColumn: 16,
-      endColumn: 20,
+      name: "Identificação da levantamento",
+      startColumn: 10,
+      endColumn: 14,
     },
   ];
   const metaSubcategories = [
     {
       name: "Endereço",
-      startColumn: 7,
-      endColumn: 15,
+      startColumn: 6,
+      endColumn: 9,
     },
   ];
   const metaQuestions = [
@@ -69,16 +71,10 @@ export const fetchTallysExport = async (
     "Nome popular",
     "Categoria",
     "Tipo",
-    "Observações",
     "Estado",
     "Cidade",
     "Rua 1",
-    "Rua 2",
-    "Rua 3",
-    "Rua 4",
     "Região administrativa ampla",
-    "Região administrativa intermediária",
-    "Região administrativa estreita",
     "Identificador da contagem",
     "Observador",
     "Data/hora inicial",
@@ -86,7 +82,13 @@ export const fetchTallysExport = async (
     "Duração (minutos)",
   ];
 
-  const addTallyMetadataHeader = (worksheet: ExcelJS.Worksheet) => {
+  const addTallyMetadataHeader = ({
+    worksheet,
+    tallyProtocolGroups,
+  }: {
+    worksheet: ExcelJS.Worksheet;
+    tallyProtocolGroups: TallyProtocolGroupForExport[];
+  }) => {
     worksheet.views = [
       {
         state: "frozen",
@@ -102,6 +104,32 @@ export const fetchTallysExport = async (
       cell.value = name;
     });
 
+    const groupsWithCharacteristics = tallyProtocolGroups.filter(
+      (group) => group.characteristics.length > 0,
+    );
+    const characteristicCombinations = groupsWithCharacteristics.reduce(
+      (combinations, group) =>
+        combinations.flatMap((combination) =>
+          group.characteristics.map(({ personCharacteristic }) => ({
+            ids: [...combination.ids, personCharacteristic.id],
+            names: [...combination.names, personCharacteristic.name],
+          })),
+        ),
+      [{ ids: [], names: [] }] as { ids: number[]; names: string[] }[],
+    );
+    const characteristicCount = characteristicCombinations.length;
+
+    if (characteristicCount > 0) {
+      worksheet.mergeCells(
+        1,
+        metaQuestions.length + 1,
+        1,
+        metaQuestions.length + characteristicCount,
+      );
+      worksheet.getCell(1, metaQuestions.length + 1).value =
+        "Contagem de pessoas";
+    }
+
     metaSubcategories.forEach(({ name, startColumn, endColumn }) => {
       worksheet.mergeCells(2, startColumn, 2, endColumn);
       const cell = worksheet.getCell(2, startColumn);
@@ -109,6 +137,29 @@ export const fetchTallysExport = async (
     });
 
     worksheet.addRow(metaQuestions);
+
+    if (characteristicCount > 0) {
+      const firstCharacteristicColumn = metaQuestions.length + 1;
+      const lastCharacteristicColumn =
+        firstCharacteristicColumn + characteristicCount - 1;
+      worksheet.mergeCells(
+        2,
+        firstCharacteristicColumn,
+        2,
+        lastCharacteristicColumn,
+      );
+      worksheet.getCell(2, firstCharacteristicColumn).value =
+        groupsWithCharacteristics
+          .map((group) => group.personCharacteristicGroup.title)
+          .join(" + ");
+
+      characteristicCombinations.forEach((combination, index) => {
+        worksheet.getCell(3, firstCharacteristicColumn + index).value =
+          combination.names.join(" + ");
+      });
+    }
+
+    return characteristicCombinations;
   };
 
   try {
@@ -155,8 +206,31 @@ export const fetchTallysExport = async (
         },
         tallyProtocol: {
           select: {
-            formId: true,
             name: true,
+            tallyProtocolGroups: {
+              orderBy: { position: "asc" },
+              select: {
+                personCharacteristicGroup: {
+                  select: { title: true },
+                },
+                characteristics: {
+                  orderBy: { position: "asc" },
+                  select: {
+                    personCharacteristic: {
+                      select: { id: true, name: true },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        personObservations: {
+          select: {
+            quantity: true,
+            characteristics: {
+              select: { personCharacteristicId: true },
+            },
           },
         },
         location: {
@@ -183,7 +257,7 @@ export const fetchTallysExport = async (
       number,
       {
         name: string;
-        formId: number | null;
+        tallyProtocolGroups: (typeof tallys)[number]["tallyProtocol"]["tallyProtocolGroups"];
         tallys: (typeof tallys)[number][];
       }
     >();
@@ -195,7 +269,7 @@ export const fetchTallysExport = async (
       } else {
         tallysByProtocolId.set(tally.tallyProtocolId, {
           name: tally.tallyProtocol.name,
-          formId: tally.tallyProtocol.formId,
+          tallyProtocolGroups: tally.tallyProtocol.tallyProtocolGroups,
           tallys: [tally],
         });
       }
@@ -214,22 +288,15 @@ export const fetchTallysExport = async (
     const workbook = new ExcelJS.Workbook();
     workbook.creator = "Projeto Praças";
 
-    for (const [, { name, formId, tallys }] of tallysByProtocolId) {
+    for (const [
+      ,
+      { name, tallyProtocolGroups, tallys },
+    ] of tallysByProtocolId) {
       const worksheet = workbook.addWorksheet(getWorksheetName(name));
-      addTallyMetadataHeader(worksheet);
-      const categories =
-        formId ?
-          (
-            await getFormStructure({
-              formId,
-              publicQuestionsOnly: false,
-              includeCalculations: false,
-            })
-          ).categories
-        : [];
-      if (categories.length > 0) {
-        insertFormHeaderInWorkSheet({ categories, workSheet: worksheet });
-      }
+      const characteristicCombinations = addTallyMetadataHeader({
+        worksheet,
+        tallyProtocolGroups,
+      });
 
       for (const tally of tallys) {
         const { location } = tally;
@@ -246,32 +313,34 @@ export const fetchTallysExport = async (
           location.popularName,
           location.category?.name,
           location.type?.name,
-          null,
           location.city.state,
           location.city.name,
           location.firstStreet,
-          location.secondStreet,
-          location.thirdStreet,
-          location.fourthStreet,
           location.broadAdministrativeUnit?.name,
-          location.intermediateAdministrativeUnit?.name,
-          location.narrowAdministrativeUnit?.name,
           tally.id,
           tally.user.username,
           tally.startDate,
           tally.endDate,
           durationInMinutes,
+          ...characteristicCombinations.map(({ ids }) =>
+            tally.personObservations.reduce(
+              (total, observation) =>
+                (
+                  ids.every((id) =>
+                    observation.characteristics.some(
+                      (characteristic) =>
+                        characteristic.personCharacteristicId === id,
+                    ),
+                  )
+                ) ?
+                  total + observation.quantity
+                : total,
+              0,
+            ),
+          ),
         ]);
-        tallyRow.getCell(18).numFmt = "dd/mm/yyyy hh:mm";
-        tallyRow.getCell(19).numFmt = "dd/mm/yyyy hh:mm";
-
-        if (tally.formSubmissionId && categories.length > 0) {
-          await insertFormSubmissionDataInWorkSheet({
-            formSubmissionId: tally.formSubmissionId,
-            categories,
-            workSheet: worksheet,
-          });
-        }
+        tallyRow.getCell(12).numFmt = "dd/mm/yyyy hh:mm";
+        tallyRow.getCell(13).numFmt = "dd/mm/yyyy hh:mm";
 
         tallyRow.alignment = { horizontal: "center" };
         tallyRow.getCell(1).alignment = { horizontal: "right" };
