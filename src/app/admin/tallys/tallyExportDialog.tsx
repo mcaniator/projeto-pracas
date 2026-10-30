@@ -2,13 +2,17 @@
 
 import CDialog from "@/components/ui/dialog/cDialog";
 import { downloadBlob } from "@/lib/downloadFile";
-import { useFetchAssessmentsExport } from "@/lib/serverFunctions/apiCalls/assessmentExport";
+import { useFetchTallysExport } from "@/lib/serverFunctions/apiCalls/tallysExport";
+import {
+  FetchTallyProtocolsResponse,
+  FetchTallyUsersResponse,
+} from "@/lib/serverFunctions/queries/tally";
 import { getStoredLocationSelection } from "@/lib/utils/localStorage";
 import { BrazilianStates } from "@prisma/client";
 import { useEffect, useMemo, useState } from "react";
-import { FetchTallyProtocolsResponse, FetchTallyUsersResponse } from "@/lib/serverFunctions/queries/tally";
-import TallysFilter from "./tallysFilter";
+
 import { TallysFilterType } from "./tallysClient";
+import TallysFilter from "./tallysFilter";
 
 export type TallysExportFilters = {
   locationId?: number;
@@ -52,7 +56,7 @@ const TallysExportDialog = ({
   const [state, setState] = useState<BrazilianStates | null>(
     () => getStoredLocationSelection()?.state ?? "MG",
   );
-  const [fetchAssessmentsExport, isExporting] = useFetchAssessmentsExport({
+  const [fetchTallysExport, isExporting] = useFetchTallysExport({
     callbacks: {
       onSuccess: ({ data, filename, mimeType }) => {
         if (!data || !filename || !mimeType) return;
@@ -172,12 +176,12 @@ const TallysExportDialog = ({
   };
 
   const handleExport = async () => {
-    await fetchAssessmentsExport({ params: filters });
+    await fetchTallysExport({ params: filters });
   };
 
   return (
     <CDialog
-      title="Exportar avaliações"
+      title="Exportar contagens"
       open={open}
       onClose={onClose}
       fullScreen
