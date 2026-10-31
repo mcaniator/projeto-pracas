@@ -61,7 +61,7 @@ export const publicFetchPublicAssessments = async (
 };
 
 export const publicFetchPublicAssessmentDetailsParamsSchema = z.object({
-  assessmentId: z.number().int().positive(),
+  assessmentId: z.coerce.number().int().positive(),
 });
 
 export type PublicFetchPublicAssessmentDetailsParams = z.infer<

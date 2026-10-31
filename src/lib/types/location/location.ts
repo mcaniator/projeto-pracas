@@ -7,12 +7,12 @@ export type LocationForMap = {
   secondStreet: string | null;
   thirdStreet: string | null;
   fourthStreet: string | null;
+  formSubmissionId: number | null;
+  formId: number | null;
   mainImage: string | null;
   popularName: string | null;
   typeId: number;
   categoryId: number;
-  notes: string | null;
-  incline: number | null;
   isPark: boolean;
   inactiveNotFound: boolean;
   narrowAdministrativeUnitName: string | null;
@@ -24,11 +24,6 @@ export type LocationForMap = {
   narrowAdministrativeUnitTitle: string | null;
   intermediateAdministrativeUnitTitle: string | null;
   broadAdministrativeUnitTitle: string | null;
-  creationYear: number | null;
-  lastMaintenanceYear: number | null;
-  legislation: string | null;
-  usableArea: number | null;
-  legalArea: number | null;
   cityId: number;
   cityName: string;
   state: BrazilianStates;
@@ -52,8 +47,6 @@ export type PublicLocationForMap = {
   popularName: string | null;
   typeId: number;
   categoryId: number;
-  notes: string | null;
-  incline: number | null;
   isPark: boolean;
   inactiveNotFound: boolean;
   narrowAdministrativeUnitName: string | null;
@@ -65,11 +58,6 @@ export type PublicLocationForMap = {
   narrowAdministrativeUnitTitle: string | null;
   intermediateAdministrativeUnitTitle: string | null;
   broadAdministrativeUnitTitle: string | null;
-  creationYear: number | null;
-  lastMaintenanceYear: number | null;
-  legislation: string | null;
-  usableArea: number | null;
-  legalArea: number | null;
   cityId: number;
   cityName: string;
   state: BrazilianStates;
@@ -77,4 +65,5 @@ export type PublicLocationForMap = {
   typeName: string | null;
   st_asgeojson: string | null;
   latestAssessmentId: number | null;
+  formSubmissionId: number | null;
 };

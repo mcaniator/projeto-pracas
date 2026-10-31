@@ -1,17 +1,26 @@
 "use client";
 
-import OptionalInfoStep from "@/app/admin/map/register/registerSteps/optionalnfoStep";
+import FormManager from "@/components/form/formManager/formManager";
+import { buildFormPreviewSubmission } from "@/components/form/formPreviewUtils";
+import ResponseFormV2 from "@/components/ui/responseForm/responseFormV2";
 import { useFetchCities } from "@/lib/serverFunctions/apiCalls/city";
+import { useFetchFormStructure } from "@/lib/serverFunctions/apiCalls/form";
 import {
   useCreateLocation,
+  useFetchLocationFormSubmission,
   useUpdateLocation,
 } from "@/lib/serverFunctions/apiCalls/location";
 import { useFetchLocationCategories } from "@/lib/serverFunctions/apiCalls/locationCategory";
 import { useFetchLocationTypes } from "@/lib/serverFunctions/apiCalls/locationType";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
+import type { GetFormSubmissionDataResult } from "@/lib/serverFunctions/queries/formSubmission";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
 import { FetchLocationCategoriesResponse } from "@/lib/serverFunctions/queries/locationCategory";
 import { FetchLocationTypesResponse } from "@/lib/serverFunctions/queries/locationType";
+import type {
+  ResponseFormGeometry,
+  SerializedFormValues,
+} from "@/lib/types/formSubmission/responseFormTypes";
 import { getImageFromUrl } from "@/lib/utils/image";
 import { LinearProgress, Step, StepLabel, Stepper } from "@mui/material";
 import {
@@ -23,6 +32,7 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useRef,
   useState,
 } from "react";
 
@@ -61,9 +71,10 @@ const defaultParkData: ParkRegisterData = {
   broadAdministrativeUnitId: null,
   mainImage: null,
   isPublic: false,
+  formId: null,
 };
 
-const steps = ["", "", ""];
+const steps = ["", "", "", ""];
 
 const LocationRegisterDialog = ({
   ref,
@@ -117,9 +128,46 @@ const LocationRegisterDialog = ({
     intermediate: [],
     broad: [],
   });
+  const [formSubmission, setFormSubmission] =
+    useState<GetFormSubmissionDataResult | null>(null);
+  const serializedFormValuesRef = useRef<SerializedFormValues>({});
+  const geometriesRef = useRef<ResponseFormGeometry[]>([]);
+
+  const [fetchFormStructure, isLoadingFormStructure] = useFetchFormStructure({
+    callbacks: {
+      onSuccess: (response) => {
+        const formStructure = response.data?.formStructure;
+        const previewSubmission =
+          formStructure ? buildFormPreviewSubmission({ formStructure }) : null;
+        setFormSubmission(previewSubmission);
+        serializedFormValuesRef.current =
+          previewSubmission?.responsesFormValues ?? {};
+        geometriesRef.current = previewSubmission?.geometries ?? [];
+      },
+      onError: () => {
+        setFormSubmission(null);
+      },
+    },
+  });
+  const [fetchLocationFormSubmission, isLoadingLocationFormSubmission] =
+    useFetchLocationFormSubmission({
+      callbacks: {
+        onSuccess: (response) => {
+          setFormSubmission(response.data ?? null);
+          serializedFormValuesRef.current =
+            response.data?.responsesFormValues ?? {};
+          geometriesRef.current = response.data?.geometries ?? [];
+        },
+        onError: () => {
+          setFormSubmission(null);
+        },
+      },
+    });
 
   const reset = () => {
     setHasEditedImage(false);
+    serializedFormValuesRef.current = {};
+    geometriesRef.current = [];
     if (!location) {
       setParkData(defaultParkData);
       setStep(1);
@@ -167,15 +215,8 @@ const LocationRegisterDialog = ({
           fourthStreet: location.fourthStreet,
           cityId: location.cityId,
           state: location.state,
-          notes: location.notes,
           isPark: location.isPark,
           inactiveNotFound: location.inactiveNotFound,
-          creationYear: location.creationYear,
-          lastMaintenanceYear: location.lastMaintenanceYear,
-          legislation: location.legislation,
-          usableArea: location.usableArea,
-          legalArea: location.legalArea,
-          incline: location.incline,
           categoryId: location.categoryId,
           typeId: location.typeId,
           narrowAdministrativeUnitId: location.narrowAdministrativeUnitId,
@@ -184,6 +225,7 @@ const LocationRegisterDialog = ({
           broadAdministrativeUnitId: location.broadAdministrativeUnitId,
           mainImage: null,
           isPublic: location.isPublic,
+          formId: location.formId,
         } as ParkRegisterData;
         if (location.mainImage) {
           try {
@@ -217,6 +259,64 @@ const LocationRegisterDialog = ({
   const [step, setStep] = useState(1);
   const [enableNextStep, setEnableNextStep] = useState(false);
 
+  useEffect(() => {
+    if (step === 3) {
+      setEnableNextStep(true);
+      return;
+    }
+
+    if (step === 4) {
+      const isLoadingForm =
+        isLoadingFormStructure || isLoadingLocationFormSubmission;
+      setEnableNextStep(
+        parkData.formId === null || (!isLoadingForm && formSubmission !== null),
+      );
+    }
+  }, [
+    formSubmission,
+    isLoadingFormStructure,
+    isLoadingLocationFormSubmission,
+    parkData.formId,
+    step,
+  ]);
+
+  useEffect(() => {
+    setFormSubmission(null);
+    serializedFormValuesRef.current = {};
+    geometriesRef.current = [];
+
+    if (step !== 4 || parkData.formId === null) {
+      return;
+    }
+
+    const formSubmissionId = location?.formSubmissionId;
+    const hasExistingFormSubmission =
+      formSubmissionId !== null &&
+      formSubmissionId !== undefined &&
+      location?.formId === parkData.formId;
+
+    if (hasExistingFormSubmission) {
+      void fetchLocationFormSubmission({
+        params: {
+          formSubmissionId,
+        },
+      });
+      return;
+    }
+
+    void fetchFormStructure({
+      params: {
+        formId: parkData.formId,
+      },
+    });
+  }, [
+    fetchFormStructure,
+    fetchLocationFormSubmission,
+    location,
+    parkData.formId,
+    step,
+  ]);
+
   const mutationCallbacks = {
     onSuccess() {
       reloadLocations();
@@ -246,13 +346,25 @@ const LocationRegisterDialog = ({
       }
     });
 
-    if (locationId) {
-      formData.append("locationId", locationId.toString());
+    const currentLocationId = locationId ?? parkData.locationId;
+    if (currentLocationId !== null) {
+      formData.append("locationId", currentLocationId.toString());
     }
 
     if (featuresGeoJson) {
       formData.append("featuresGeoJson", featuresGeoJson); // Inclui o GeoJSON no formulário
     }
+
+    if (parkData.formId !== null) {
+      formData.append("formId", parkData.formId.toString());
+    }
+    formData.append(
+      "formSubmission",
+      JSON.stringify({
+        responses: serializedFormValuesRef.current,
+        geometries: geometriesRef.current,
+      }),
+    );
 
     if (hasEditedImage) {
       formData.append("hasEditedImage", "true");
@@ -377,8 +489,8 @@ const LocationRegisterDialog = ({
       onCancel={goToPreviousStep}
       fullScreen
     >
-      <div className="flex flex-col gap-1">
-        <Stepper activeStep={step - 1}>
+      <div className="flex h-full min-h-0 flex-col gap-1">
+        <Stepper activeStep={step - 1} className="py-2">
           {steps.map((label, index) => (
             <Step key={index}>
               <StepLabel>{label}</StepLabel>
@@ -434,11 +546,47 @@ const LocationRegisterDialog = ({
           />
         )}
         {step === 3 && (
-          <OptionalInfoStep
-            parkData={parkData}
-            setEnableNextStep={setEnableNextStep}
-            setParkData={setParkData}
+          <FormManager
+            formUse="LOCATION"
+            title="Formulário (opcional)"
+            value={parkData.formId}
+            onValueChange={(form) => {
+              setParkData((previous) => ({
+                ...previous,
+                formId: form?.id ?? null,
+              }));
+            }}
           />
+        )}
+        {step === 4 && (
+          <div className="flex min-h-0 flex-1 flex-col">
+            {(isLoadingFormStructure || isLoadingLocationFormSubmission) && (
+              <LinearProgress />
+            )}
+            {!isLoadingFormStructure &&
+              !isLoadingLocationFormSubmission &&
+              parkData.formId === null && (
+                <p className="p-4 text-center">
+                  Nenhum formulário foi selecionado para essa praça.
+                </p>
+              )}
+            {!isLoadingFormStructure &&
+              !isLoadingLocationFormSubmission &&
+              parkData.formId !== null &&
+              formSubmission && (
+                <ResponseFormV2
+                  formSubmission={formSubmission}
+                  readOnly={false}
+                  locationPolygonGeoJson={featuresGeoJson || null}
+                  onValuesChange={({ serializedValues }) => {
+                    serializedFormValuesRef.current = serializedValues;
+                  }}
+                  onGeometriesChange={({ geometries }) => {
+                    geometriesRef.current = geometries;
+                  }}
+                />
+              )}
+          </div>
         )}
       </div>
     </CDialog>

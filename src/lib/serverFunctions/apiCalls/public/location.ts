@@ -1,4 +1,6 @@
 import type {
+  PublicFetchLocationFormSubmissionParams,
+  PublicFetchLocationFormSubmissionResponse,
   PublicFetchLocationsParams,
   PublicFetchLocationsResponse,
 } from "@/lib/serverFunctions/queries/public/location";
@@ -12,6 +14,21 @@ export const usePublicFetchLocations = (
 
   return useFetchAPI<PublicFetchLocationsResponse, PublicFetchLocationsParams>({
     url,
+    callbacks: params?.callbacks,
+    options: {
+      method: "GET",
+    },
+  });
+};
+
+export const usePublicFetchLocationFormSubmission = (
+  params?: UseFetchAPIParams<PublicFetchLocationFormSubmissionResponse>,
+) => {
+  return useFetchAPI<
+    PublicFetchLocationFormSubmissionResponse,
+    PublicFetchLocationFormSubmissionParams
+  >({
+    url: "/api/public/locations/formSubmission",
     callbacks: params?.callbacks,
     options: {
       method: "GET",

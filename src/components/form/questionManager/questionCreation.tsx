@@ -90,7 +90,9 @@ const QuestionCreation = ({
   const [minumumOptionsError, setMinimumOptionsError] = useState(false);
   const [questionTemplate, setQuestionTemplate] = useState<string | null>(null);
   const [selectedIconKey, setSelectedIconKey] = useState<string | null>(null);
-  const [isPublic, setIsPublic] = useState(formUse === "ASSESSMENT");
+  const [isPublic, setIsPublic] = useState(
+    formUse === "ASSESSMENT" || formUse === "LOCATION",
+  );
   const [allowResponseImages, setAllowResponseImages] =
     useState<boolean>(false);
   const [minValue, setMinValue] = useState<number | null>(null);

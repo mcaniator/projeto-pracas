@@ -155,7 +155,8 @@ const QuestionCreationFormStep = ({
   showError: (content: ReactNode) => void;
 }) => {
   const [datePickerValue, setDatePickerValue] = useState<Dayjs | null>(null);
-  const isAssessmentForm = formUse === "ASSESSMENT";
+  const enablePublicQuestionOption =
+    formUse === "ASSESSMENT" || formUse === "LOCATION";
 
   const handleOptionChange = (
     optionText: string,
@@ -242,7 +243,7 @@ const QuestionCreationFormStep = ({
           />
           <CSwitch
             checked={isPublic}
-            disabled={!isAssessmentForm}
+            disabled={!enablePublicQuestionOption}
             label="Respostas públicas"
             name="isPublic"
             id="isPublic"
@@ -252,7 +253,7 @@ const QuestionCreationFormStep = ({
           />
           <CIconChip
             icon={<IconHelp />}
-            tooltip={`${isAssessmentForm ? "" : "(Apenas para avaliações) "}Respostas dessa questão serão visíveis publicamente em avaliações também visíveis publicamente`}
+            tooltip={`Respostas dessa questão serão visíveis publicamente`}
           />
         </div>
 
@@ -266,6 +267,13 @@ const QuestionCreationFormStep = ({
             color="warning"
             label="Questão usada em formulários. Itens abaixo não podem ser modificados."
           />
+        )}
+        {isQuestionUsed && type && characterType && (
+          <>
+            {/* Disabled radio controls are omitted from FormData. */}
+            <input type="hidden" name="questionType" value={type} />
+            <input type="hidden" name="characterType" value={characterType} />
+          </>
         )}
         <CRadioGroup
           label="Tipo de questão"

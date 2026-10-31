@@ -8,6 +8,10 @@ import { booleanFromString, locationSchema } from "@/lib/zodValidators";
 import { Image } from "@prisma/client";
 import { addPolygon } from "@serverOnly/geometries";
 import { z } from "zod";
+import {
+  formSubmissionDataSchema,
+  getFormSubmissionUpdateTransactions,
+} from "./formSubmission";
 
 export const deleteLocationDataSchema = z.instanceof(FormData);
 export type DeleteLocationData = z.infer<typeof deleteLocationDataSchema>;
@@ -94,6 +98,11 @@ export type UpdateLocationData = z.infer<typeof updateLocationDataSchema>;
 const _updateLocation = async (request: APIRequestData<UpdateLocationData>) => {
   const formData = request.data!;
   try {
+    const formIdValue = formData.get("formId");
+    const formId =
+      formIdValue === null ? null : (
+        z.coerce.number().int().positive().parse(formIdValue)
+      );
     const locationData = locationSchema.parse({
       name: formData.get("name"),
       popularName: formData.get("popularName"),
@@ -102,13 +111,6 @@ const _updateLocation = async (request: APIRequestData<UpdateLocationData>) => {
       thirdStreet: formData.get("thirdStreet"),
       fourthStreet: formData.get("fourthStreet"),
       cityId: formData.get("cityId"),
-      notes: formData.get("notes"),
-      creationYear: formData.get("creationYear"),
-      lastMaintenanceYear: formData.get("lastMaintenanceYear"),
-      legislation: formData.get("legislation"),
-      legalArea: formData.get("legalArea"),
-      usableArea: formData.get("usableArea"),
-      incline: formData.get("incline"),
       isPark: formData.get("isPark"),
       inactiveNotFound: formData.get("inactiveNotFound"),
       categoryId: formData.get("categoryId"),
@@ -127,6 +129,11 @@ const _updateLocation = async (request: APIRequestData<UpdateLocationData>) => {
     const hasEditedImage = booleanFromString.parse(
       formData.get("hasEditedImage"),
     );
+    const formSubmissionValue = formData.get("formSubmission");
+    const formSubmission =
+      formSubmissionValue === null ? null : (
+        formSubmissionDataSchema.parse(JSON.parse(String(formSubmissionValue)))
+      );
     try {
       let image: Image | null = null;
       if (hasEditedImage) {
@@ -154,8 +161,22 @@ const _updateLocation = async (request: APIRequestData<UpdateLocationData>) => {
       await prisma.$transaction(async (prisma) => {
         const location = await prisma.location.update({
           data: {
-            ...locationData,
+            name: locationData.name,
+            popularName: locationData.popularName,
+            firstStreet: locationData.firstStreet,
+            secondStreet: locationData.secondStreet,
+            thirdStreet: locationData.thirdStreet,
+            fourthStreet: locationData.fourthStreet,
             cityId: locationData.cityId,
+            isPark: locationData.isPark,
+            inactiveNotFound: locationData.inactiveNotFound,
+            categoryId: locationData.categoryId,
+            typeId: locationData.typeId,
+            narrowAdministrativeUnitId: locationData.narrowAdministrativeUnitId,
+            intermediateAdministrativeUnitId:
+              locationData.intermediateAdministrativeUnitId,
+            broadAdministrativeUnitId: locationData.broadAdministrativeUnitId,
+            isPublic: locationData.isPublic,
             mainImageId: image?.imageId,
           },
           where: {
@@ -166,6 +187,38 @@ const _updateLocation = async (request: APIRequestData<UpdateLocationData>) => {
             name: true,
           },
         });
+        const locationWithFormSubmission = await prisma.location.update({
+          where: { id: location.id },
+          data:
+            formId === null ?
+              { formSubmission: { disconnect: true } }
+            : {
+                formSubmission: {
+                  upsert: {
+                    create: {
+                      form: { connect: { id: formId } },
+                    },
+                    update: {
+                      form: { connect: { id: formId } },
+                    },
+                  },
+                },
+              },
+          select: {
+            formSubmission: {
+              select: { id: true },
+            },
+          },
+        });
+        if (locationWithFormSubmission.formSubmission && formSubmission) {
+          const formSubmissionTransactions =
+            await getFormSubmissionUpdateTransactions({
+              formSubmissionId: locationWithFormSubmission.formSubmission.id,
+              formSubmission,
+              prismaClient: prisma,
+            });
+          await Promise.all(formSubmissionTransactions);
+        }
         const featuresGeoJson = z
           .string()
           .nullish()
@@ -209,6 +262,16 @@ export type CreateLocationData = z.infer<typeof createLocationDataSchema>;
 const _createLocation = async (request: APIRequestData<CreateLocationData>) => {
   const formData = request.data!;
   try {
+    const formIdValue = formData.get("formId");
+    const formId =
+      formIdValue === null ? null : (
+        z.coerce.number().int().positive().parse(formIdValue)
+      );
+    const formSubmissionValue = formData.get("formSubmission");
+    const formSubmission =
+      formSubmissionValue === null ? null : (
+        formSubmissionDataSchema.parse(JSON.parse(String(formSubmissionValue)))
+      );
     const locationData = locationSchema.parse({
       name: z.coerce
         .string()
@@ -222,13 +285,6 @@ const _createLocation = async (request: APIRequestData<CreateLocationData>) => {
       thirdStreet: formData.get("thirdStreet"),
       fourthStreet: formData.get("fourthStreet"),
       cityId: formData.get("cityId"),
-      notes: formData.get("notes"),
-      creationYear: formData.get("creationYear"),
-      lastMaintenanceYear: formData.get("lastMaintenanceYear"),
-      legislation: formData.get("legislation"),
-      legalArea: formData.get("legalArea"),
-      usableArea: formData.get("usableArea"),
-      incline: formData.get("incline"),
       isPark: formData.get("isPark"),
       inactiveNotFound: formData.get("inactiveNotFound"),
       categoryId: formData.get("categoryId"),
@@ -252,7 +308,22 @@ const _createLocation = async (request: APIRequestData<CreateLocationData>) => {
       await prisma.$transaction(async (prisma) => {
         const location = await prisma.location.create({
           data: {
-            ...locationData,
+            name: locationData.name,
+            popularName: locationData.popularName,
+            firstStreet: locationData.firstStreet,
+            secondStreet: locationData.secondStreet,
+            thirdStreet: locationData.thirdStreet,
+            fourthStreet: locationData.fourthStreet,
+            cityId: locationData.cityId,
+            isPark: locationData.isPark,
+            inactiveNotFound: locationData.inactiveNotFound,
+            categoryId: locationData.categoryId,
+            typeId: locationData.typeId,
+            narrowAdministrativeUnitId: locationData.narrowAdministrativeUnitId,
+            intermediateAdministrativeUnitId:
+              locationData.intermediateAdministrativeUnitId,
+            broadAdministrativeUnitId: locationData.broadAdministrativeUnitId,
+            isPublic: locationData.isPublic,
             mainImageId: image?.imageId,
           },
           select: {
@@ -260,6 +331,35 @@ const _createLocation = async (request: APIRequestData<CreateLocationData>) => {
             name: true,
           },
         });
+        let formSubmissionId: number | null = null;
+        if (formId !== null) {
+          const locationWithFormSubmission = await prisma.location.update({
+            where: { id: location.id },
+            data: {
+              formSubmission: {
+                create: {
+                  form: { connect: { id: formId } },
+                },
+              },
+            },
+            select: {
+              formSubmission: {
+                select: { id: true },
+              },
+            },
+          });
+          formSubmissionId =
+            locationWithFormSubmission.formSubmission?.id ?? null;
+        }
+        if (formSubmissionId !== null && formSubmission) {
+          const formSubmissionTransactions =
+            await getFormSubmissionUpdateTransactions({
+              formSubmissionId,
+              formSubmission,
+              prismaClient: prisma,
+            });
+          await Promise.all(formSubmissionTransactions);
+        }
         // Após a criação da localização, adicionar os polígonos
         const featuresGeoJson = z
           .string()
