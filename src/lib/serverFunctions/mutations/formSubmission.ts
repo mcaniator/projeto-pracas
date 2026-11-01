@@ -77,9 +77,9 @@ export type getFormSubmissionUpdateTransactionsParams = {
  * The caller is responsible for executing the returned operations in its own
  * transaction, together with any other domain-specific operations.
  *
- * Omit `tx` when the returned operations will be passed directly to a batch
+ * Omit `prismaClient` when the returned operations will be passed directly to a batch
  * `prisma.$transaction([...])`. When calling this helper from inside an
- * interactive `prisma.$transaction(async (tx) => ...)`, pass that `tx` so all
+ * interactive `prisma.$transaction(async (prismaClient) => ...)`, pass that `prismaClient` so all
  * reads and returned operations use the same connection and participate in
  * the same rollback.
  */

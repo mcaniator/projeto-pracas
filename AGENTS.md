@@ -224,6 +224,11 @@ const useFetchResource = (
 - Ao alterar uma rota, atualizar todas as referências: hook, tipos, chamadas e
   testes relacionados.
 
+### Inserções em massa
+
+- Não inserir vários registros chamando `create` do Prisma dentro de `map` ou de um loop; isso gera uma operação de inserção por item.
+- Preferir `createMany` quando a operação e as relações necessárias forem suportadas.
+- Quando `createMany` não atender à estrutura relacional necessária, usar `$executeRaw`/`$queryRaw` parametrizado com `Prisma.sql` e `Prisma.join`, agrupando as inserções em uma transação. Usar como referência a clonagem de protocolos em `createTallyProtocol`.
 ## Front-end
 
 ### Organização de componentes
@@ -316,3 +321,6 @@ const useFetchResource = (
 
 - Antes de criar ou alterar o front-end de um editor de templates de contagem,
   ler integralmente `.agents/tally-protocol-editor.md`.
+
+
+
