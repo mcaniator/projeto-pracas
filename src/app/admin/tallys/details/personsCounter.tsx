@@ -23,9 +23,6 @@ type TemplateGroup =
   TallyProtocolStructure["tallyProtocolGroups"][number];
 type TemplateCharacteristic = TemplateGroup["characteristics"][number];
 
-const sortCharacteristics = (characteristics: TemplateCharacteristic[]) =>
-  characteristics.slice().sort((a, b) => a.position - b.position);
-
 const CounterButton = ({
   characteristic,
   count,
@@ -55,17 +52,16 @@ const CounterButton = ({
 );
 
 const PersonsCounter = ({
-  tallyProtocolStructure,
+  groups,
   personObservations,
   readOnly,
   onQuantityChange,
 }: {
-  tallyProtocolStructure: TallyProtocolStructure;
+  groups: TallyProtocolStructure["tallyProtocolGroups"];
   personObservations: PersonObservationState;
   readOnly: boolean;
   onQuantityChange: (personCharacteristicIds: number[], delta: 1 | -1) => void;
 }) => {
-  const groups = tallyProtocolStructure.tallyProtocolGroups;
   const counterGroup = groups.find((group) => group.displayMode === "COUNTERS");
   const stateGroup = groups.find(
     (group) => group.displayMode === "SCREEN_CONTEXT_SELECTOR",
@@ -73,7 +69,7 @@ const PersonsCounter = ({
   const commonGroups = groups.filter((group) => group.displayMode === "COMMON");
 
   const stateCharacteristics = useMemo(
-    () => sortCharacteristics(stateGroup?.characteristics ?? []),
+    () => stateGroup?.characteristics ?? [],
     [stateGroup],
   );
   const [selectedStateCharacteristicId, setSelectedStateCharacteristicId] =
@@ -87,9 +83,7 @@ const PersonsCounter = ({
           commonGroups
             .filter((group) => !group.personCharacteristicGroup.isTagGroup)
             .flatMap((group) => {
-              const firstCharacteristic = sortCharacteristics(
-                group.characteristics,
-              )[0];
+              const firstCharacteristic = group.characteristics[0];
               return firstCharacteristic ?
                   [
                     [
@@ -222,7 +216,7 @@ const PersonsCounter = ({
           )}
 
           {commonGroups.map((group) => {
-            const characteristics = sortCharacteristics(group.characteristics);
+            const characteristics = group.characteristics;
 
             return (
               <div
@@ -326,7 +320,7 @@ const PersonsCounter = ({
                 {counterGroup.personCharacteristicGroup.title}
               </h5>
               <div className="flex min-h-24 flex-wrap justify-center gap-5 rounded p-1">
-                {sortCharacteristics(counterGroup.characteristics).map(
+                {counterGroup.characteristics.map(
                   (characteristic) => {
                     const characteristics =
                       getCounterCharacteristics(characteristic);

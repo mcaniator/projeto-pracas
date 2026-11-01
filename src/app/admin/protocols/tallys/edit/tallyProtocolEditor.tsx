@@ -9,6 +9,7 @@ import type { RefObject } from "react";
 
 import TallyProtocolCounters from "./tallyProtocolCounters";
 import type { TallyProtocolDraftGroup } from "./tallyProtocolDraft";
+import TallyProtocolPreview from "./tallyProtocolPreview";
 
 const TallyProtocolEditor = ({
   tallyProtocol,
@@ -40,13 +41,14 @@ const TallyProtocolEditor = ({
           readOnly={tallyProtocol.finalized}
           onChange={(event) => onNameChange(event.target.value)}
         />
-        {!tallyProtocol.finalized && (
-          <PermissionGuard requiresAnyRoles={["TALLY_MANAGER"]}>
-            <CButton sx={{ mt: "8px" }} onClick={onSave}>
-              Salvar
-            </CButton>
-          </PermissionGuard>
-        )}
+        <div className="mt-2 flex items-center gap-2">
+          <TallyProtocolPreview groups={groups} selectedForm={selectedForm} />
+          {!tallyProtocol.finalized && (
+            <PermissionGuard requiresAnyRoles={["TALLY_MANAGER"]}>
+              <CButton onClick={onSave}>Salvar</CButton>
+            </PermissionGuard>
+          )}
+        </div>
       </div>
       <Divider />
       <TallyProtocolFormManager

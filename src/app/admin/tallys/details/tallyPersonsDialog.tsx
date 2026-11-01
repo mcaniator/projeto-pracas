@@ -11,15 +11,17 @@ const TallyPersonsDialog = ({
   tallyProtocolStructure,
   personObservations,
   onClose,
+  keepMounted = true,
 }: {
   open: boolean;
   tallyProtocolStructure: TallyPersonsStatiticsStructure;
   personObservations: TallyPersonsStatiticsObservation[];
   onClose: () => void;
+  keepMounted?: boolean;
 }) => (
   <CDialog
     open={open}
-    keepMounted
+    keepMounted={keepMounted}
     onClose={onClose}
     title="Estatísticas"
     disableDialogActions
