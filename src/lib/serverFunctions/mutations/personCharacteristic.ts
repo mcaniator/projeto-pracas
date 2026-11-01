@@ -4,6 +4,7 @@ import {
   APIRequestData,
   APIResponseInfo,
 } from "@/lib/types/backendCalls/APIResponse";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { z } from "zod";
 
 const personCharacteristicColorSchema = z
@@ -28,55 +29,11 @@ export const savePersonCharacteristicGroup = async (
 
   try {
     if (data.personCharacteristicGroupId) {
-      const currentGroup = await prisma.personCharacteristicGroup.findUnique({
-        where: { id: data.personCharacteristicGroupId },
-        select: { isTagGroup: true },
-      });
-
-      if (!currentGroup) {
-        return {
-          responseInfo: {
-            statusCode: 404,
-            message: "Grupo de características não encontrado!",
-          } as APIResponseInfo,
-          data: null,
-        };
-      }
-
-      if (currentGroup.isTagGroup !== data.isTagGroup) {
-        const [templateUses, observationUses] = await Promise.all([
-          prisma.tallyProtocolGroup.count({
-            where: {
-              personCharacteristicGroupId: data.personCharacteristicGroupId,
-            },
-          }),
-          prisma.personObservationCharacteristic.count({
-            where: {
-              personCharacteristic: {
-                groupId: data.personCharacteristicGroupId,
-              },
-            },
-          }),
-        ]);
-
-        if (templateUses > 0 || observationUses > 0) {
-          return {
-            responseInfo: {
-              statusCode: 409,
-              message:
-                "O tipo do grupo não pode ser alterado porque ele já está em uso.",
-            } as APIResponseInfo,
-            data: null,
-          };
-        }
-      }
-
       const personCharacteristicGroup =
         await prisma.personCharacteristicGroup.update({
           where: { id: data.personCharacteristicGroupId },
           data: {
             title: data.title,
-            isTagGroup: data.isTagGroup,
           },
           select: { title: true },
         });
@@ -106,7 +63,20 @@ export const savePersonCharacteristicGroup = async (
       } as APIResponseInfo,
       data: null,
     };
-  } catch {
+  } catch (error) {
+    if (
+      error instanceof PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      return {
+        responseInfo: {
+          statusCode: 404,
+          message: "Grupo de características não encontrado!",
+        } as APIResponseInfo,
+        data: null,
+      };
+    }
+
     return {
       responseInfo: {
         statusCode: 500,

@@ -28,7 +28,7 @@ import {
   IconGripVertical,
   IconTrash,
 } from "@tabler/icons-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   type TallyProtocolDraftCharacteristic,
@@ -39,20 +39,16 @@ import {
   tallyProtocolGroupDisplayModes,
 } from "./tallyProtocolDraft";
 
-const sortByPosition = <T extends { position: number }>(items: T[]) =>
-  items.slice().sort((first, second) => first.position - second.position);
-
 const getReorderedItems = <T extends { id: string; position: number }>(
   items: T[],
   activeId: string,
   overId: string,
 ) => {
-  const sortedItems = sortByPosition(items);
-  const oldIndex = sortedItems.findIndex((item) => item.id === activeId);
-  const newIndex = sortedItems.findIndex((item) => item.id === overId);
+  const oldIndex = items.findIndex((item) => item.id === activeId);
+  const newIndex = items.findIndex((item) => item.id === overId);
   if (oldIndex === -1 || newIndex === -1) return items;
 
-  return arrayMove(sortedItems, oldIndex, newIndex).map((item, index) => ({
+  return arrayMove(items, oldIndex, newIndex).map((item, index) => ({
     ...item,
     position: index + 1,
   }));
@@ -196,7 +192,7 @@ const SortableCommonGroup = ({
   const characteristicSensors = useSensors(useSensor(PointerSensor));
   const [isDraggingCharacteristics, setIsDraggingCharacteristics] =
     useState(false);
-  const characteristics = sortByPosition(group.characteristics);
+  const characteristics = group.characteristics;
 
   const handleCharacteristicDragEnd = ({ active, over }: DragEndEvent) => {
     setIsDraggingCharacteristics(false);
@@ -298,17 +294,13 @@ const TallyProtocolCounters = ({
   const screenContextGroupOptions = counterGroupOptions.filter(
     (group) => group.id !== counterGroup?.id,
   );
-  const commonGroups = sortByPosition(
-    groups.filter(isTallyProtocolDraftCommonGroup),
-  );
+  const commonGroups = groups.filter(isTallyProtocolDraftCommonGroup);
   const [
     activeScreenContextCharacteristicId,
     setActiveScreenContextCharacteristicId,
   ] = useState<string>();
-  const screenContextCharacteristics = useMemo(
-    () => sortByPosition(screenContextGroup?.characteristics ?? []),
-    [screenContextGroup],
-  );
+  const screenContextCharacteristics =
+    screenContextGroup?.characteristics ?? [];
   const activeScreenContextCharacteristic = screenContextCharacteristics.find(
     (characteristic) =>
       characteristic.id === activeScreenContextCharacteristicId,
@@ -600,7 +592,7 @@ const TallyProtocolCounters = ({
                   }
                 >
                   <SortableContext
-                    items={sortByPosition(counterGroup.characteristics).map(
+                    items={counterGroup.characteristics.map(
                       (characteristic) => characteristic.id,
                     )}
                     strategy={horizontalListSortingStrategy}
@@ -610,7 +602,7 @@ const TallyProtocolCounters = ({
                         isDraggingCounters ? "bg-green-50" : ""
                       }`}
                     >
-                      {sortByPosition(counterGroup.characteristics).map(
+                      {counterGroup.characteristics.map(
                         (characteristic) => (
                           <SortableCounterCharacteristic
                             key={characteristic.id}
