@@ -160,6 +160,7 @@ export const updateBehavioralMapProtocolDataSchema = z.object({
     )
     .superRefine((groups, ctx) => {
       const ids = new Set<number>();
+      const groupPositions = new Set<number>();
       groups.forEach((group, index) => {
         if (ids.has(group.personCharacteristicGroupId))
           ctx.addIssue({
@@ -168,7 +169,24 @@ export const updateBehavioralMapProtocolDataSchema = z.object({
             path: [index, "personCharacteristicGroupId"],
           });
         ids.add(group.personCharacteristicGroupId);
+        if (groupPositions.has(group.position))
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "A posição de um grupo não pode ser repetida.",
+            path: [index, "position"],
+          });
+        groupPositions.add(group.position);
+
+        if (group.characteristics.length === 0)
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message:
+              "Um grupo do protocolo deve ter ao menos uma característica.",
+            path: [index, "characteristics"],
+          });
+
         const chars = new Set<number>();
+        const characteristicPositions = new Set<number>();
         group.characteristics.forEach((characteristic, charIndex) => {
           if (chars.has(characteristic.personCharacteristicId))
             ctx.addIssue({
@@ -177,6 +195,14 @@ export const updateBehavioralMapProtocolDataSchema = z.object({
               path: [index, "characteristics", charIndex],
             });
           chars.add(characteristic.personCharacteristicId);
+          if (characteristicPositions.has(characteristic.position))
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message:
+                "A posição de uma característica não pode se repetir dentro do grupo.",
+              path: [index, "characteristics", charIndex, "position"],
+            });
+          characteristicPositions.add(characteristic.position);
         });
       });
     }),
