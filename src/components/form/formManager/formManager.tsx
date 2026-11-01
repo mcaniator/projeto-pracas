@@ -71,6 +71,10 @@ type FormManagerProps = {
   onValueChange?: (value: FormRow | null) => void;
   enablePreview?: boolean;
   formEditorRoute?: string;
+  onLoadingFormStructureChange?: (isLoading: boolean) => void;
+  onPreviewFormStructureChange?: (
+    formStructure: fetchFormStructureResponse["formStructure"] | undefined,
+  ) => void;
 };
 
 const FormManager = forwardRef<FormManagerRef, FormManagerProps>(
@@ -82,6 +86,8 @@ const FormManager = forwardRef<FormManagerRef, FormManagerProps>(
       onValueChange,
       enablePreview = false,
       formEditorRoute,
+      onLoadingFormStructureChange,
+      onPreviewFormStructureChange,
     },
     ref,
   ) => {
@@ -98,13 +104,15 @@ const FormManager = forwardRef<FormManagerRef, FormManagerProps>(
         },
       },
     });
-    const [fetchFormStructure, isPreviewLoading] = useFetchFormStructure({
+    const [fetchFormStructure, isLoadingFormStructure] = useFetchFormStructure({
       callbacks: {
         onSuccess: ({ data }) => {
           setPreviewFormStructure(data?.formStructure);
+          onPreviewFormStructureChange?.(data?.formStructure);
         },
         onError: () => {
           setPreviewFormStructure(undefined);
+          onPreviewFormStructureChange?.(undefined);
         },
       },
     });
@@ -164,11 +172,21 @@ const FormManager = forwardRef<FormManagerRef, FormManagerProps>(
       setPreviewFormStructure(undefined);
 
       if (!enablePreview || value === undefined || value === null) {
+        onPreviewFormStructureChange?.(undefined);
         return;
       }
 
       void fetchFormStructure({ params: { formId: value } });
-    }, [enablePreview, fetchFormStructure, value]);
+    }, [
+      enablePreview,
+      fetchFormStructure,
+      onPreviewFormStructureChange,
+      value,
+    ]);
+
+    useEffect(() => {
+      onLoadingFormStructureChange?.(isLoadingFormStructure);
+    }, [isLoadingFormStructure, onLoadingFormStructureChange]);
 
     useEffect(() => {
       if (openFormEditorDialog || !needsListReload) return;
@@ -415,12 +433,12 @@ const FormManager = forwardRef<FormManagerRef, FormManagerProps>(
             </CAccordionSummary>
             <CAccordionDetails>
               <div className="h-[500px] min-h-0">
-                {isPreviewLoading && (
+                {isLoadingFormStructure && (
                   <div className="flex h-full items-center justify-center">
                     <CCircularProgress label="Carregando prévia..." />
                   </div>
                 )}
-                {!isPreviewLoading && previewFormSubmission && (
+                {!isLoadingFormStructure && previewFormSubmission && (
                   <ResponseFormV2
                     key={previewFormSubmission.formStructure.formId}
                     formSubmission={previewFormSubmission}

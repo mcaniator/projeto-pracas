@@ -11,7 +11,6 @@ import { buildFormPreviewSubmission } from "@/components/form/formPreviewUtils";
 import CLinearProgress from "@/components/ui/CLinearProgress";
 import CButton from "@/components/ui/cButton";
 import CDialog from "@/components/ui/dialog/cDialog";
-import { useFetchFormStructure } from "@/lib/serverFunctions/apiCalls/form";
 import type { fetchFormStructureResponse } from "@/lib/serverFunctions/queries/form";
 import type { GetTallySubmissionDataResult } from "@/lib/serverFunctions/queries/tally";
 import { IconChartBar, IconEye } from "@tabler/icons-react";
@@ -49,19 +48,18 @@ const buildTallyProtocolGroups = (
 const TallyProtocolPreview = ({
   groups,
   selectedForm,
+  formStructure,
+  isLoadingForm,
 }: {
   groups: TallyProtocolDraftGroup[];
   selectedForm: { id: number; name: string } | null;
+  formStructure: fetchFormStructureResponse["formStructure"] | undefined;
+  isLoadingForm: boolean;
 }) => {
   const [open, setOpen] = useState(false);
   const [isStatisticsOpen, setIsStatisticsOpen] = useState(false);
-  const [formStructure, setFormStructure] = useState<
-    fetchFormStructureResponse["formStructure"] | undefined
-  >();
-  const [isLoadingForm, setIsLoadingForm] = useState(false);
   const [personObservations, setPersonObservations] =
     useState<PersonObservationState>(() => new Map());
-  const [fetchFormStructure] = useFetchFormStructure();
   const tallyProtocolGroups = useMemo(
     () => buildTallyProtocolGroups(groups),
     [groups],
@@ -70,47 +68,21 @@ const TallyProtocolPreview = ({
     () => serializePersonObservationState(personObservations),
     [personObservations],
   );
+  const activeFormStructure =
+    selectedForm?.id === formStructure?.formId ? formStructure : undefined;
   const formSubmission = useMemo(
     () =>
-      formStructure ? buildFormPreviewSubmission({ formStructure }) : undefined,
-    [formStructure],
+      activeFormStructure ?
+        buildFormPreviewSubmission({ formStructure: activeFormStructure })
+      : undefined,
+    [activeFormStructure],
   );
+  const isFormStructurePending =
+    !!selectedForm && (isLoadingForm || !activeFormStructure);
 
   useEffect(() => {
     setPersonObservations(new Map());
   }, [groups, open]);
-
-  useEffect(() => {
-    if (!open || !selectedForm) {
-      setFormStructure(undefined);
-      setIsLoadingForm(false);
-      return;
-    }
-
-    let isActive = true;
-    setFormStructure(undefined);
-    setIsLoadingForm(true);
-
-    const loadFormStructure = async () => {
-      try {
-        const response = await fetchFormStructure({
-          params: { formId: selectedForm.id },
-        });
-        if (isActive) {
-          setFormStructure(response.data?.formStructure);
-        }
-      } catch {
-        if (isActive) setFormStructure(undefined);
-      } finally {
-        if (isActive) setIsLoadingForm(false);
-      }
-    };
-
-    void loadFormStructure();
-    return () => {
-      isActive = false;
-    };
-  }, [fetchFormStructure, open, selectedForm]);
 
   const personsCounter = (
     <PersonsCounter
@@ -151,7 +123,7 @@ const TallyProtocolPreview = ({
         open={open}
         onClose={() => setOpen(false)}
       >
-        {isLoadingForm ?
+        {isFormStructurePending ?
           <div>
             <CLinearProgress label="Carregando formulário..." />
           </div>

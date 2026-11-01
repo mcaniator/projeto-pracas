@@ -3,9 +3,10 @@ import PermissionGuard from "@/components/auth/permissionGuard";
 import type { FormManagerRef } from "@/components/form/formManager/formManager";
 import CButton from "@/components/ui/cButton";
 import CTextField from "@/components/ui/cTextField";
+import type { fetchFormStructureResponse } from "@/lib/serverFunctions/queries/form";
 import type { FetchTallyProtocolStructureResponse } from "@/lib/serverFunctions/queries/tally";
 import { Divider } from "@mui/material";
-import type { RefObject } from "react";
+import { useState, type RefObject } from "react";
 
 import TallyProtocolCounters from "./tallyProtocolCounters";
 import type { TallyProtocolDraftGroup } from "./tallyProtocolDraft";
@@ -32,6 +33,12 @@ const TallyProtocolEditor = ({
   onChangeGroups: (groups: TallyProtocolDraftGroup[]) => void;
   onSave: () => void;
 }) => {
+  const [previewFormStructure, setPreviewFormStructure] = useState<
+    fetchFormStructureResponse["formStructure"] | undefined
+  >();
+  const [isLoadingFormStructure, setIsLoadingFormStructure] =
+    useState(false);
+
   return (
     <div className="ml-1 mr-2 flex flex-col gap-3">
       <div className="flex items-start gap-2">
@@ -42,7 +49,12 @@ const TallyProtocolEditor = ({
           onChange={(event) => onNameChange(event.target.value)}
         />
         <div className="mt-2 flex items-center gap-2">
-          <TallyProtocolPreview groups={groups} selectedForm={selectedForm} />
+          <TallyProtocolPreview
+            groups={groups}
+            selectedForm={selectedForm}
+            formStructure={previewFormStructure}
+            isLoadingForm={isLoadingFormStructure}
+          />
           {!tallyProtocol.finalized && (
             <PermissionGuard requiresAnyRoles={["TALLY_MANAGER"]}>
               <CButton onClick={onSave}>Salvar</CButton>
@@ -55,6 +67,8 @@ const TallyProtocolEditor = ({
         formManagerRef={formManagerRef}
         value={selectedForm}
         onValueChange={onSelectedFormChange}
+        onLoadingFormStructureChange={setIsLoadingFormStructure}
+        onPreviewFormStructureChange={setPreviewFormStructure}
       />
       <Divider />
       <TallyProtocolCounters
