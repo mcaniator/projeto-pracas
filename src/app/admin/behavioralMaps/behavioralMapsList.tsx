@@ -1,10 +1,16 @@
 "use client";
 
+import CButton from "@/components/ui/cButton";
 import CIconChip from "@/components/ui/cIconChip";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
 import type { FetchBehavioralMapsResponse } from "@/lib/serverFunctions/queries/behavioralMap";
 import { Chip, CircularProgress, Divider } from "@mui/material";
-import { IconCalendar, IconClipboardList, IconUser } from "@tabler/icons-react";
+import {
+  IconCalendar,
+  IconClipboardList,
+  IconExternalLink,
+  IconUser,
+} from "@tabler/icons-react";
 import { Virtuoso } from "react-virtuoso";
 
 type BehavioralMapRow = FetchBehavioralMapsResponse["behavioralMaps"][number];
@@ -72,6 +78,16 @@ const BehavioralMapsList = ({
                 {map.user.username}
               </span>
               <Divider />
+              <span className="flex items-center gap-2 text-base sm:text-xl">
+                <CButton
+                  square
+                  loadingOnClick
+                  href={`/admin/behavioralMap/details?behavioralMapId=${map.id}`}
+                >
+                  <IconExternalLink />
+                  Acessar
+                </CButton>
+              </span>
             </div>
           </div>
         </div>

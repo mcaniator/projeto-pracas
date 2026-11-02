@@ -3,9 +3,10 @@ import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CDialog from "@/components/ui/dialog/cDialog";
 import { useCreateBehavioralMap } from "@/lib/serverFunctions/apiCalls/behavioralMapProtocol";
 import type { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
-import { Divider } from "@mui/material";
+import { Divider, LinearProgress } from "@mui/material";
 import { IconCheck } from "@tabler/icons-react";
 import dayjs, { type Dayjs } from "dayjs";
+import { useRouter } from "next-nprogress-bar";
 import { useMemo, useState } from "react";
 
 import BehavioralMapProtocolsDataGrid from "./behavioralMapProtocolsDataGrid";
@@ -17,6 +18,7 @@ export default function BehavioralMapCreationDialog({
   open: boolean;
   onClose: () => void;
 }) {
+  const router = useRouter();
   const [selectedLocation, setSelectedLocation] = useState<
     FetchLocationsResponse["locations"][number] | null
   >(null);
@@ -25,7 +27,18 @@ export default function BehavioralMapCreationDialog({
   );
   const [selectedBehavioralMapProtocolId, setSelectedBehavioralMapProtocolId] =
     useState<number | null>(null);
-  const [createBehavioralMap, isSaving] = useCreateBehavioralMap();
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [createBehavioralMap, isSaving] = useCreateBehavioralMap({
+    callbacks: {
+      onServerSuccess: ({ data }) => {
+        if (!data?.behavioralMapId) return;
+        setIsRedirecting(true);
+        router.push(
+          `/admin/behavioralMap/details?behavioralMapId=${data.behavioralMapId}`,
+        );
+      },
+    },
+  });
 
   const handleSubmit = () => {
     if (
@@ -60,29 +73,38 @@ export default function BehavioralMapCreationDialog({
       onConfirm={handleSubmit}
       confirmChildren={<IconCheck />}
       disableConfirmButton={!enabledSaveButton}
-      confirmLoading={isSaving}
+      confirmLoading={isSaving || isRedirecting}
+      removeCloseButton={isRedirecting}
     >
       <div className="flex flex-col gap-1">
-        <h4>Seleção de praça</h4>
-        <LocationSelector
-          useAccordion
-          selectedLocation={selectedLocation}
-          onSelectedLocationChange={setSelectedLocation}
-        />
-        <Divider />
-        <h4>Horário do mapa comportamental</h4>
-        <CDateTimePicker
-          label="Data de início"
-          name="startDate"
-          value={selectedDateTime}
-          onChange={setSelectedDateTime}
-        />
-        <Divider />
-        <h4>Seleção de protocolo</h4>
-        <BehavioralMapProtocolsDataGrid
-          selectedId={selectedBehavioralMapProtocolId}
-          onSelect={setSelectedBehavioralMapProtocolId}
-        />
+        {isRedirecting ?
+          <div className="flex w-full flex-col justify-center text-lg">
+            <LinearProgress />
+            Redirecionando...
+          </div>
+        : <>
+            <h4>Seleção de praça</h4>
+            <LocationSelector
+              useAccordion
+              selectedLocation={selectedLocation}
+              onSelectedLocationChange={setSelectedLocation}
+            />
+            <Divider />
+            <h4>Horário do mapa comportamental</h4>
+            <CDateTimePicker
+              label="Data de início"
+              name="startDate"
+              value={selectedDateTime}
+              onChange={setSelectedDateTime}
+            />
+            <Divider />
+            <h4>Seleção de protocolo</h4>
+            <BehavioralMapProtocolsDataGrid
+              selectedId={selectedBehavioralMapProtocolId}
+              onSelect={setSelectedBehavioralMapProtocolId}
+            />
+          </>
+        }
       </div>
     </CDialog>
   );

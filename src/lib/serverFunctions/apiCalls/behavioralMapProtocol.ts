@@ -6,6 +6,12 @@ import type {
   UpdateBehavioralMapProtocolData,
 } from "@/lib/serverFunctions/mutations/behavioralMapProtocol";
 import type {
+  SaveBehavioralMapData,
+  SaveBehavioralMapResponse,
+} from "@/lib/serverFunctions/mutations/behavioralMapSubmission";
+import type {
+  FetchBehavioralMapDetailsParams,
+  FetchBehavioralMapDetailsResponse,
   FetchBehavioralMapUsersResponse,
   FetchBehavioralMapsParams,
   FetchBehavioralMapsResponse,
@@ -39,6 +45,19 @@ export const useFetchBehavioralMaps = (
 ) => {
   return useFetchAPI<FetchBehavioralMapsResponse, FetchBehavioralMapsParams>({
     url: "/api/admin/behavioralMaps",
+    callbacks: params?.callbacks,
+    options: { method: "GET" },
+  });
+};
+
+export const useFetchBehavioralMapDetails = (
+  params?: UseFetchAPIParams<FetchBehavioralMapDetailsResponse>,
+) => {
+  return useFetchAPI<
+    FetchBehavioralMapDetailsResponse,
+    FetchBehavioralMapDetailsParams
+  >({
+    url: "/api/admin/behavioralMaps/details",
     callbacks: params?.callbacks,
     options: { method: "GET" },
   });
@@ -118,6 +137,20 @@ export const useUpdateBehavioralMapProtocolArchiveStatus = (
     UpdateBehavioralMapProtocolArchiveStatusData
   >({
     url: "/api/admin/behavioralMapProtocols/archiveStatus",
+    callbacks: params?.callbacks,
+    options: { method: "POST" },
+  });
+};
+
+export const useBehavioralMapSave = (
+  params?: UseFetchAPIParams<SaveBehavioralMapResponse>,
+) => {
+  return useFetchAPI<
+    SaveBehavioralMapResponse,
+    Record<string, never>,
+    SaveBehavioralMapData
+  >({
+    url: "/api/admin/behavioralMaps/save",
     callbacks: params?.callbacks,
     options: { method: "POST" },
   });
