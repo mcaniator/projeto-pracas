@@ -1,3 +1,4 @@
+import { auth } from "@/lib/auth/auth";
 import { prisma } from "@/lib/prisma";
 import {
   APIRequestData,
@@ -5,6 +6,78 @@ import {
 } from "@/lib/types/backendCalls/APIResponse";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
+
+export const createBehavioralMapDataSchema = z.object({
+  locationId: z.number().int().positive(),
+  startDate: z.coerce.date(),
+  behavioralMapProtocolId: z.number().int().positive(),
+});
+export type CreateBehavioralMapData = z.infer<
+  typeof createBehavioralMapDataSchema
+>;
+export const createBehavioralMap = async (
+  request: APIRequestData<CreateBehavioralMapData>,
+) => {
+  const session = await auth();
+  if (!session?.user?.id)
+    return {
+      responseInfo: {
+        statusCode: 401,
+        message: "Não foi possível obter o usuário logado!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  const data = request.data!;
+  try {
+    const protocol = await prisma.behavioralMapProtocol.findFirst({
+      where: {
+        id: data.behavioralMapProtocolId,
+        finalized: true,
+        archived: false,
+      },
+      select: { id: true, formId: true },
+    });
+    if (!protocol)
+      return {
+        responseInfo: {
+          statusCode: 404,
+          message:
+            "Protocolo de mapa comportamental finalizado não encontrado!",
+        } as APIResponseInfo,
+        data: null,
+      };
+    const behavioralMap = await prisma.behavioralMap.create({
+      data: {
+        startDate: data.startDate,
+        location: { connect: { id: data.locationId } },
+        user: { connect: { id: session.user.id } },
+        behavioralMapProtocol: { connect: { id: protocol.id } },
+        formSubmission:
+          protocol.formId ? { create: { formId: protocol.formId } } : undefined,
+      },
+      select: { id: true },
+    });
+    return {
+      responseInfo: {
+        statusCode: 201,
+        message: "Mapa comportamental criado com sucesso!",
+      } as APIResponseInfo,
+      data: { behavioralMapId: behavioralMap.id },
+    };
+  } catch {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao criar mapa comportamental!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+};
+
+export type CreateBehavioralMapResponse = NonNullable<
+  Awaited<ReturnType<typeof createBehavioralMap>>["data"]
+>;
 
 export const createBehavioralMapProtocolDataSchema = z.object({
   name: z.string().trim().min(1).max(255),

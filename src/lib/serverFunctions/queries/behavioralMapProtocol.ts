@@ -1,13 +1,19 @@
-import { APIRequestParams, APIResponseInfo } from "@/lib/types/backendCalls/APIResponse";
-import { booleanFromString } from "@/lib/zodValidators";
 import { prisma } from "@/lib/prisma";
+import {
+  APIRequestParams,
+  APIResponseInfo,
+} from "@/lib/types/backendCalls/APIResponse";
+import { booleanFromString } from "@/lib/zodValidators";
 import { z } from "zod";
 
 export const fetchBehavioralMapProtocolsParamsSchema = z.object({
   includeArchived: booleanFromString.nullish(),
+  finalizedOnly: booleanFromString.nullish(),
 });
 
-export type FetchBehavioralMapProtocolsParams = z.infer<typeof fetchBehavioralMapProtocolsParamsSchema>;
+export type FetchBehavioralMapProtocolsParams = z.infer<
+  typeof fetchBehavioralMapProtocolsParamsSchema
+>;
 
 export const fetchBehavioralMapProtocols = async (
   request: APIRequestParams<FetchBehavioralMapProtocolsParams>,
@@ -15,7 +21,10 @@ export const fetchBehavioralMapProtocols = async (
   const params = request.params!;
   try {
     const behavioralMapProtocols = await prisma.behavioralMapProtocol.findMany({
-      where: { ...(!params.includeArchived && { archived: false }) },
+      where: {
+        ...(!params.includeArchived && { archived: false }),
+        ...(params.finalizedOnly && { finalized: true }),
+      },
       select: {
         id: true,
         name: true,

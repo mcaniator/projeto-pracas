@@ -1,8 +1,15 @@
 import type {
+  CreateBehavioralMapData,
   CreateBehavioralMapProtocolData,
+  CreateBehavioralMapResponse,
   UpdateBehavioralMapProtocolArchiveStatusData,
   UpdateBehavioralMapProtocolData,
 } from "@/lib/serverFunctions/mutations/behavioralMapProtocol";
+import type {
+  FetchBehavioralMapUsersResponse,
+  FetchBehavioralMapsParams,
+  FetchBehavioralMapsResponse,
+} from "@/lib/serverFunctions/queries/behavioralMap";
 import type {
   FetchBehavioralMapProtocolsParams,
   FetchBehavioralMapProtocolsResponse,
@@ -11,13 +18,13 @@ import type {
   FetchBehavioralMapProtocolStructureParams,
   FetchBehavioralMapProtocolStructureResponse,
 } from "@/lib/serverFunctions/queries/behavioralMapProtocolStructure";
-import type { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
+import { UseFetchAPIParams } from "@/lib/types/backendCalls/APIResponse";
 import { useFetchAPI } from "@/lib/utils/useFetchAPI";
 
 export const useFetchBehavioralMapProtocols = (
   params?: UseFetchAPIParams<FetchBehavioralMapProtocolsResponse>,
-) =>
-  useFetchAPI<
+) => {
+  return useFetchAPI<
     FetchBehavioralMapProtocolsResponse,
     FetchBehavioralMapProtocolsParams
   >({
@@ -25,29 +32,87 @@ export const useFetchBehavioralMapProtocols = (
     callbacks: params?.callbacks,
     options: { method: "GET" },
   });
+};
+
+export const useFetchBehavioralMaps = (
+  params?: UseFetchAPIParams<FetchBehavioralMapsResponse>,
+) => {
+  return useFetchAPI<FetchBehavioralMapsResponse, FetchBehavioralMapsParams>({
+    url: "/api/admin/behavioralMaps",
+    callbacks: params?.callbacks,
+    options: { method: "GET" },
+  });
+};
+
+export const useFetchBehavioralMapUsers = (
+  params?: UseFetchAPIParams<FetchBehavioralMapUsersResponse>,
+) => {
+  return useFetchAPI<FetchBehavioralMapUsersResponse, Record<string, never>>({
+    url: "/api/admin/behavioralMaps/users",
+    callbacks: params?.callbacks,
+    options: { method: "GET" },
+  });
+};
+
+export const useCreateBehavioralMap = (
+  params?: UseFetchAPIParams<CreateBehavioralMapResponse>,
+) => {
+  return useFetchAPI<
+    CreateBehavioralMapResponse,
+    Record<string, never>,
+    CreateBehavioralMapData
+  >({
+    url: "/api/admin/behavioralMaps/create",
+    callbacks: params?.callbacks,
+    options: { method: "POST" },
+  });
+};
+
+export const useFetchBehavioralMapProtocolStructure = (
+  params?: UseFetchAPIParams<FetchBehavioralMapProtocolStructureResponse>,
+) => {
+  return useFetchAPI<
+    FetchBehavioralMapProtocolStructureResponse,
+    FetchBehavioralMapProtocolStructureParams
+  >({
+    url: "/api/admin/behavioralMapProtocols/details",
+    callbacks: params?.callbacks,
+    options: { method: "GET" },
+  });
+};
 
 export const useCreateBehavioralMapProtocol = (
   params?: UseFetchAPIParams<null>,
-) =>
-  useFetchAPI<null, Record<string, never>, CreateBehavioralMapProtocolData>({
+) => {
+  return useFetchAPI<
+    null,
+    Record<string, never>,
+    CreateBehavioralMapProtocolData
+  >({
     url: "/api/admin/behavioralMapProtocols/create",
     callbacks: params?.callbacks,
     options: { method: "POST" },
   });
+};
 
 export const useUpdateBehavioralMapProtocol = (
   params?: UseFetchAPIParams<null>,
-) =>
-  useFetchAPI<null, Record<string, never>, UpdateBehavioralMapProtocolData>({
+) => {
+  return useFetchAPI<
+    null,
+    Record<string, never>,
+    UpdateBehavioralMapProtocolData
+  >({
     url: "/api/admin/behavioralMapProtocols/update",
     callbacks: params?.callbacks,
     options: { method: "POST" },
   });
+};
 
 export const useUpdateBehavioralMapProtocolArchiveStatus = (
   params?: UseFetchAPIParams<null>,
-) =>
-  useFetchAPI<
+) => {
+  return useFetchAPI<
     null,
     Record<string, never>,
     UpdateBehavioralMapProtocolArchiveStatusData
@@ -56,15 +121,4 @@ export const useUpdateBehavioralMapProtocolArchiveStatus = (
     callbacks: params?.callbacks,
     options: { method: "POST" },
   });
-
-export const useFetchBehavioralMapProtocolStructure = (
-  params?: UseFetchAPIParams<FetchBehavioralMapProtocolStructureResponse>,
-) =>
-  useFetchAPI<
-    FetchBehavioralMapProtocolStructureResponse,
-    FetchBehavioralMapProtocolStructureParams
-  >({
-    url: "/api/admin/behavioralMapProtocols/details",
-    callbacks: params?.callbacks,
-    options: { method: "GET" },
-  });
+};

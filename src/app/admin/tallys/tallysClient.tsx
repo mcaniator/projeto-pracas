@@ -9,7 +9,6 @@ import TallysFilterSidebar from "@/app/admin/tallys/tallysFilterSidebar";
 import TallysList from "@/app/admin/tallys/tallysList";
 import CAdminHeader from "@/components/ui/cAdminHeader";
 import CButton from "@/components/ui/cButton";
-import CSkeletonGroup from "@/components/ui/cSkeletonGroup";
 import {
   useFetchTallyProtocols,
   useFetchTallyUsers,
@@ -22,14 +21,7 @@ import type {
 } from "@/lib/serverFunctions/queries/tally";
 import { IconFilter, IconPlus } from "@tabler/icons-react";
 import { useSearchParams } from "next/navigation";
-import {
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GrGroup } from "react-icons/gr";
 
 const TALLYS_PER_PAGE = 100;
@@ -46,36 +38,28 @@ export type TallysFilterType =
   | "CITY_ID"
   | "FINALIZATION_STATUS";
 
-export type TallyWithSyncStatus =
-  FetchTallysResponse["tallys"][number] & {
-    hasPendingSaveFromDraft: boolean;
-  };
+export type TallyWithSyncStatus = FetchTallysResponse["tallys"][number] & {
+  hasPendingSaveFromDraft: boolean;
+};
 
 const TallysClient = () => {
   const searchParams = useSearchParams();
   const [isMobileView, setIsMobileView] = useState(true);
-  const unsavedTallyIdsPromiseRef = useRef<Promise<Set<number>> | null>(
-    null,
-  );
+  const unsavedTallyIdsPromiseRef = useRef<Promise<Set<number>> | null>(null);
   const nextPageRef = useRef(1);
   const isLoadingMoreRef = useRef(false);
   const hasMoreTallysRef = useRef(false);
   const lastQueryVersionRef = useRef(0); // Detects when the query params have changed. This is used to prevent a previous query from being used after a new fetch is called.
-  const [tallys, setTallys] = useState<
-    TallyWithSyncStatus[]
-  >([]);
+  const [tallys, setTallys] = useState<TallyWithSyncStatus[]>([]);
   const [isLoadingMore, setIsLoadingMore] = useState(true);
-  const [users, setUsers] = useState<FetchTallyUsersResponse["users"]>(
-    [],
-  );
+  const [users, setUsers] = useState<FetchTallyUsersResponse["users"]>([]);
   const [tallyProtocols, setTallyProtocols] = useState<
     FetchTallyProtocolsResponse["tallyProtocols"]
   >([]);
   const [openCreationDialog, setOpenCreationDialog] = useState(false);
   const [openFiltersDialog, setOpenFiltersDialog] = useState(false);
   const [locationId, setLocationId] = useState<number>();
-  const [tallyProtocolId, setTallyProtocolId] =
-    useState<number>();
+  const [tallyProtocolId, setTallyProtocolId] = useState<number>();
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [userId, setUserId] = useState<string>();
@@ -91,14 +75,13 @@ const TallysClient = () => {
       onSuccess: ({ data }) => setUsers(data?.users ?? []),
     },
   });
-  const [fetchTallyProtocols, isLoadingTemplates] =
-    useFetchTallyProtocols({
-      callbacks: {
-        onSuccess: ({ data }) => {
-          setTallyProtocols(data?.tallyProtocols ?? []);
-        },
+  const [fetchTallyProtocols, isLoadingTemplates] = useFetchTallyProtocols({
+    callbacks: {
+      onSuccess: ({ data }) => {
+        setTallyProtocols(data?.tallyProtocols ?? []);
       },
-    });
+    },
+  });
 
   const onNoCitiesFound = useCallback(() => {
     isLoadingMoreRef.current = false;
@@ -120,9 +103,7 @@ const TallysClient = () => {
       return tallys.map(async (tally) => {
         if (unsavedTallyIds.has(tally.id)) {
           //If the tally has unsynced filling, we need to fetch some metadata from draft and insert the local unsynced data into the tally
-          const localTally = await fetchTallyDraft(
-            tally.id,
-          );
+          const localTally = await fetchTallyDraft(tally.id);
           if (!localTally) {
             return {
               ...tally,
@@ -287,8 +268,7 @@ const TallysClient = () => {
       }
 
       try {
-        let fetchedTallys: FetchTallysResponse["tallys"] =
-          [];
+        let fetchedTallys: FetchTallysResponse["tallys"] = [];
         let hasMore = false;
         const response = await _fetchTallys({
           params: {
@@ -311,9 +291,8 @@ const TallysClient = () => {
 
         const formattedTallysPromises =
           await formatTallysWithUnsavedFilling(fetchedTallys);
-        const formattedTallys = await Promise.all(
-          formattedTallysPromises,
-        );
+        const formattedTallys = await Promise.all(formattedTallysPromises);
+
         if (queryVersion !== lastQueryVersionRef.current) {
           return;
         }
@@ -455,24 +434,23 @@ const TallysClient = () => {
             onNearScrollEnd={loadMoreTallys}
           />
         </div>
-        <Suspense fallback={<CSkeletonGroup quantity={5} />}>
-          <TallysFilterSidebar
-            openDialog={openFiltersDialog}
-            isDialog={isMobileView}
-            onNoCitiesFound={onNoCitiesFound}
-            onCloseDialog={() => setOpenFiltersDialog(false)}
-            defaultLocationId={
-              searchParams.get("locationId") ?
-                Number(searchParams.get("locationId"))
-              : undefined
-            }
-            selectedLocationId={locationId}
-            tallyProtocols={tallyProtocols}
-            users={users}
-            isLoading={isLoadingUsers || isLoadingTemplates}
-            handleFilterChange={handleFilterChange}
-          />
-        </Suspense>
+
+        <TallysFilterSidebar
+          openDialog={openFiltersDialog}
+          isDialog={isMobileView}
+          onNoCitiesFound={onNoCitiesFound}
+          onCloseDialog={() => setOpenFiltersDialog(false)}
+          defaultLocationId={
+            searchParams.get("locationId") ?
+              Number(searchParams.get("locationId"))
+            : undefined
+          }
+          selectedLocationId={locationId}
+          tallyProtocols={tallyProtocols}
+          users={users}
+          isLoading={isLoadingUsers || isLoadingTemplates}
+          handleFilterChange={handleFilterChange}
+        />
       </div>
       <TallyCreationDialog
         open={openCreationDialog}
