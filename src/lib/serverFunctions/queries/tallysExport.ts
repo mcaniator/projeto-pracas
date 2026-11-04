@@ -57,6 +57,24 @@ type TallyExportPercentageColumn = {
   characteristicName: string;
 };
 
+const nonTotalCellFill: ExcelJS.Fill = {
+  type: "pattern",
+  pattern: "solid",
+  fgColor: { argb: "FFFFF2CB" },
+};
+
+const totalCellFill: ExcelJS.Fill = {
+  type: "pattern",
+  pattern: "solid",
+  fgColor: { argb: "FFFFE598" },
+};
+
+const mainTotalCellFill: ExcelJS.Fill = {
+  type: "pattern",
+  pattern: "solid",
+  fgColor: { argb: "FFFFD965" },
+};
+
 export const fetchTallysExport = async (
   request: APIRequestParams<FetchTallysExportParams>,
 ) => {
@@ -263,8 +281,7 @@ export const fetchTallysExport = async (
         1,
         metaQuestions.length + characteristicCount,
       );
-      worksheet.getCell(1, metaQuestions.length + 1).value =
-        "CONTAGEM DE PESSOAS";
+      worksheet.getCell(1, metaQuestions.length + 1).value = "CONTAGEM";
     }
     if (percentageCount > 0) {
       const firstPercentageColumn =
@@ -275,8 +292,7 @@ export const fetchTallysExport = async (
         1,
         firstPercentageColumn + percentageCount - 1,
       );
-      worksheet.getCell(1, firstPercentageColumn).value =
-        "PORCENTAGEM DE PESSOAS";
+      worksheet.getCell(1, firstPercentageColumn).value = "PORCENTAGEM";
     }
 
     metaSubcategories.forEach(({ name, startColumn, endColumn }) => {
@@ -301,8 +317,16 @@ export const fetchTallysExport = async (
             .map((group) => group.personCharacteristicGroup.title)
             .join(" + ");
         exportColumns.forEach((column, index) => {
-          worksheet.getCell(3, firstCharacteristicColumn + index).value =
+          const cell = worksheet.getCell(3, firstCharacteristicColumn + index);
+          cell.value =
             column.type === "total" ? column.label : column.names.join(" + ");
+          if (column.type !== "total") {
+            cell.fill = nonTotalCellFill;
+          } else if (column.label === "TOTAL") {
+            cell.fill = mainTotalCellFill;
+          } else {
+            cell.fill = totalCellFill;
+          }
         });
       } else {
         let currentColumn = firstCharacteristicColumn;
@@ -326,8 +350,16 @@ export const fetchTallysExport = async (
           worksheet.getCell(2, currentColumn).value = personCharacteristic.name;
 
           blockColumns.forEach((column) => {
-            worksheet.getCell(3, currentColumn).value =
+            const cell = worksheet.getCell(3, currentColumn);
+            cell.value =
               column.type === "total" ? column.label : column.names.join(" + ");
+            if (column.type !== "total") {
+              cell.fill = nonTotalCellFill;
+            } else if (column.label === "TOTAL") {
+              cell.fill = mainTotalCellFill;
+            } else {
+              cell.fill = totalCellFill;
+            }
             currentColumn += 1;
           });
         });
@@ -353,8 +385,9 @@ export const fetchTallysExport = async (
         group.personCharacteristicGroup.title;
 
       groupColumns.forEach((column) => {
-        worksheet.getCell(3, currentPercentageColumn).value =
-          `% ${column.characteristicName}`;
+        const cell = worksheet.getCell(3, currentPercentageColumn);
+        cell.value = `% ${column.characteristicName}`;
+        cell.fill = mainTotalCellFill;
         currentPercentageColumn += 1;
       });
     });
@@ -591,10 +624,24 @@ export const fetchTallysExport = async (
         ]);
         tallyRow.getCell(12).numFmt = "dd/mm/yyyy hh:mm";
         tallyRow.getCell(13).numFmt = "dd/mm/yyyy hh:mm";
+        exportColumns.forEach((column, index) => {
+          if (column.type !== "total") {
+            tallyRow.getCell(metaQuestions.length + index + 1).fill =
+              nonTotalCellFill;
+          } else if (column.label === "TOTAL") {
+            tallyRow.getCell(metaQuestions.length + index + 1).fill =
+              mainTotalCellFill;
+          } else {
+            tallyRow.getCell(metaQuestions.length + index + 1).fill =
+              totalCellFill;
+          }
+        });
         percentageValues.forEach((_, index) => {
-          tallyRow.getCell(
+          const cell = tallyRow.getCell(
             metaQuestions.length + exportColumns.length + index + 1,
-          ).numFmt = "0%";
+          );
+          cell.numFmt = "0%";
+          cell.fill = mainTotalCellFill;
         });
 
         tallyRow.alignment = { horizontal: "center" };
