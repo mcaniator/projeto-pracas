@@ -36,7 +36,7 @@ export type FetchTallysExportResponse = NonNullable<
 >;
 
 type TallyProtocolGroupForExport = {
-  personCharacteristicGroup: { title: string };
+  personCharacteristicGroup: { title: string; isTagGroup: boolean };
   characteristics: {
     personCharacteristic: { id: number; name: string };
   }[];
@@ -50,6 +50,12 @@ type TallyExportColumn =
       label: string;
       mainCharacteristicId: number;
     };
+
+type TallyExportPercentageColumn = {
+  groupIndex: number;
+  characteristicId: number;
+  characteristicName: string;
+};
 
 export const fetchTallysExport = async (
   request: APIRequestParams<FetchTallysExportParams>,
@@ -237,6 +243,18 @@ export const fetchTallysExport = async (
     });
 
     const characteristicCount = exportColumns.length;
+    const percentageGroups = groupsWithCharacteristics.filter(
+      (group) => !group.personCharacteristicGroup.isTagGroup,
+    );
+    const percentageColumns: TallyExportPercentageColumn[] =
+      percentageGroups.flatMap((group) =>
+        group.characteristics.map(({ personCharacteristic }) => ({
+          groupIndex: percentageGroups.indexOf(group),
+          characteristicId: personCharacteristic.id,
+          characteristicName: personCharacteristic.name,
+        })),
+      );
+    const percentageCount = percentageColumns.length;
 
     if (characteristicCount > 0) {
       worksheet.mergeCells(
@@ -247,6 +265,18 @@ export const fetchTallysExport = async (
       );
       worksheet.getCell(1, metaQuestions.length + 1).value =
         "CONTAGEM DE PESSOAS";
+    }
+    if (percentageCount > 0) {
+      const firstPercentageColumn =
+        metaQuestions.length + characteristicCount + 1;
+      worksheet.mergeCells(
+        1,
+        firstPercentageColumn,
+        1,
+        firstPercentageColumn + percentageCount - 1,
+      );
+      worksheet.getCell(1, firstPercentageColumn).value =
+        "PORCENTAGEM DE PESSOAS";
     }
 
     metaSubcategories.forEach(({ name, startColumn, endColumn }) => {
@@ -304,6 +334,31 @@ export const fetchTallysExport = async (
       }
     }
 
+    const firstPercentageColumn =
+      metaQuestions.length + characteristicCount + 1;
+    let currentPercentageColumn = firstPercentageColumn;
+    percentageGroups.forEach((group, groupIndex) => {
+      const groupColumns = percentageColumns.filter(
+        (column) => column.groupIndex === groupIndex,
+      );
+      if (groupColumns.length === 0) return;
+
+      worksheet.mergeCells(
+        2,
+        currentPercentageColumn,
+        2,
+        currentPercentageColumn + groupColumns.length - 1,
+      );
+      worksheet.getCell(2, currentPercentageColumn).value =
+        group.personCharacteristicGroup.title;
+
+      groupColumns.forEach((column) => {
+        worksheet.getCell(3, currentPercentageColumn).value =
+          `% ${column.characteristicName}`;
+        currentPercentageColumn += 1;
+      });
+    });
+
     // Add right border to the last column of each category in the first three rows
     const categoryBoundaryColumns = [
       9,
@@ -313,6 +368,9 @@ export const fetchTallysExport = async (
       ),
       ...(characteristicCount > 0 ?
         [metaQuestions.length + characteristicCount]
+      : []),
+      ...(percentageCount > 0 ?
+        [metaQuestions.length + characteristicCount + percentageCount]
       : []),
     ];
     for (let rowNumber = 1; rowNumber <= 3; rowNumber += 1) {
@@ -327,7 +385,7 @@ export const fetchTallysExport = async (
       });
     }
 
-    return exportColumns;
+    return { exportColumns, percentageColumns };
   };
 
   try {
@@ -379,7 +437,7 @@ export const fetchTallysExport = async (
               orderBy: { position: "asc" },
               select: {
                 personCharacteristicGroup: {
-                  select: { title: true },
+                  select: { title: true, isTagGroup: true },
                 },
                 characteristics: {
                   orderBy: { position: "asc" },
@@ -461,7 +519,7 @@ export const fetchTallysExport = async (
       { name, tallyProtocolGroups, tallys },
     ] of tallysByProtocolId) {
       const worksheet = workbook.addWorksheet(getWorksheetName(name));
-      const exportColumns = addTallyMetadataHeader({
+      const { exportColumns, percentageColumns } = addTallyMetadataHeader({
         worksheet,
         tallyProtocolGroups,
       });
@@ -474,6 +532,44 @@ export const fetchTallysExport = async (
               (tally.endDate.getTime() - tally.startDate.getTime()) / 60_000,
             )
           : null;
+
+        const totalPeople = tally.personObservations.reduce(
+          (total, observation) => total + observation.quantity,
+          0,
+        );
+        const countValues = exportColumns.map((column) => {
+          return tally.personObservations.reduce(
+            (total, observation) =>
+              (
+                column.ids.every((id) =>
+                  observation.characteristics.some(
+                    (characteristic) =>
+                      characteristic.personCharacteristicId === id,
+                  ),
+                )
+              ) ?
+                total + observation.quantity
+              : total,
+            0,
+          );
+        });
+        const percentageValues = percentageColumns.map((column) => {
+          const characteristicCount = tally.personObservations.reduce(
+            (total, observation) =>
+              (
+                observation.characteristics.some(
+                  (characteristic) =>
+                    characteristic.personCharacteristicId ===
+                    column.characteristicId,
+                )
+              ) ?
+                total + observation.quantity
+              : total,
+            0,
+          );
+
+          return totalPeople > 0 ? characteristicCount / totalPeople : 0;
+        });
 
         const tallyRow = worksheet.addRow([
           location.id,
@@ -490,42 +586,16 @@ export const fetchTallysExport = async (
           tally.startDate,
           tally.endDate,
           durationInMinutes,
-          ...exportColumns.map((column) => {
-            if (column.type === "total") {
-              return tally.personObservations.reduce(
-                (total, observation) =>
-                  (
-                    column.ids.every((id) =>
-                      observation.characteristics.some(
-                        (characteristic) =>
-                          characteristic.personCharacteristicId === id,
-                      ),
-                    )
-                  ) ?
-                    total + observation.quantity
-                  : total,
-                0,
-              );
-            }
-
-            return tally.personObservations.reduce(
-              (total, observation) =>
-                (
-                  column.ids.every((id) =>
-                    observation.characteristics.some(
-                      (characteristic) =>
-                        characteristic.personCharacteristicId === id,
-                    ),
-                  )
-                ) ?
-                  total + observation.quantity
-                : total,
-              0,
-            );
-          }),
+          ...countValues,
+          ...percentageValues,
         ]);
         tallyRow.getCell(12).numFmt = "dd/mm/yyyy hh:mm";
         tallyRow.getCell(13).numFmt = "dd/mm/yyyy hh:mm";
+        percentageValues.forEach((_, index) => {
+          tallyRow.getCell(
+            metaQuestions.length + exportColumns.length + index + 1,
+          ).numFmt = "0%";
+        });
 
         tallyRow.alignment = { horizontal: "center" };
         tallyRow.getCell(1).alignment = { horizontal: "right" };
@@ -538,6 +608,13 @@ export const fetchTallysExport = async (
           ...exportColumns.flatMap((column, index) =>
             column.type === "total" ? [metaQuestions.length + index + 1] : [],
           ),
+          ...(percentageColumns.length > 0 ?
+            [
+              metaQuestions.length +
+                exportColumns.length +
+                percentageColumns.length,
+            ]
+          : []),
         ].forEach((column) => {
           tallyRow.getCell(column).border = {
             ...tallyRow.getCell(column).border,
