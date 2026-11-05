@@ -189,11 +189,13 @@ export const insertFormSubmissionDataInWorkSheet = async ({
   categories,
   workSheet,
   publicQuestionsOnly = false,
+  startColumn,
 }: {
   formSubmissionId: number;
   categories: CategoryItem[];
   workSheet: ExcelJS.Worksheet;
   publicQuestionsOnly?: boolean;
+  startColumn?: number;
 }) => {
   const { responsesFormValues } =
     await getFormSubmissionResponsesAndFilterEmptyCategoriesAndSubcategories({
@@ -213,7 +215,7 @@ export const insertFormSubmissionDataInWorkSheet = async ({
   }
 
   const firstQuestionColumn =
-    workSheet.actualColumnCount - questions.length + 1;
+    startColumn ?? workSheet.actualColumnCount - questions.length + 1;
   questions.forEach((question, index) => {
     const cell = workSheet.getCell(responseRow, firstQuestionColumn + index);
     const questionResponseCellData = getQuestionResponseCellData(

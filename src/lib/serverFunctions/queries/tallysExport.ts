@@ -1,4 +1,5 @@
 import { FINALIZATION_STATUS } from "@/lib/enums/finalizationStatus";
+import type { CategoryItem } from "@/lib/types/forms/formStructure";
 import { prisma } from "@lib/prisma";
 import { BrazilianStates } from "@prisma/client";
 import ExcelJS from "exceljs";
@@ -12,6 +13,11 @@ import {
   autoWidthWorksheetColumns,
   getWorksheetName,
 } from "../../utils/exceljs";
+import { getFormStructure } from "./form";
+import {
+  insertFormHeaderInWorkSheet,
+  insertFormSubmissionDataInWorkSheet,
+} from "./formSubmissionExport";
 
 export const fetchTallysExportParamsSchema = z.object({
   startDate: z.coerce.date().optional(),
@@ -118,9 +124,13 @@ export const fetchTallysExport = async (
   const addTallyMetadataHeader = ({
     worksheet,
     tallyProtocolGroups,
+    assessmentCategories,
+    assessmentQuestionCount,
   }: {
     worksheet: ExcelJS.Worksheet;
     tallyProtocolGroups: TallyProtocolGroupForExport[];
+    assessmentCategories: CategoryItem[];
+    assessmentQuestionCount: number;
   }) => {
     worksheet.views = [
       {
@@ -274,18 +284,32 @@ export const fetchTallysExport = async (
       );
     const percentageCount = percentageColumns.length;
 
+    metaSubcategories.forEach(({ name, startColumn, endColumn }) => {
+      worksheet.mergeCells(2, startColumn, 2, endColumn);
+      const cell = worksheet.getCell(2, startColumn);
+      cell.value = name;
+    });
+
+    worksheet.addRow(metaQuestions);
+    if (assessmentQuestionCount > 0) {
+      insertFormHeaderInWorkSheet({
+        categories: assessmentCategories,
+        workSheet: worksheet,
+      });
+    }
+
+    const firstCountColumn = metaQuestions.length + assessmentQuestionCount + 1;
     if (characteristicCount > 0) {
       worksheet.mergeCells(
         1,
-        metaQuestions.length + 1,
+        firstCountColumn,
         1,
-        metaQuestions.length + characteristicCount,
+        firstCountColumn + characteristicCount - 1,
       );
-      worksheet.getCell(1, metaQuestions.length + 1).value = "CONTAGEM";
+      worksheet.getCell(1, firstCountColumn).value = "CONTAGEM";
     }
     if (percentageCount > 0) {
-      const firstPercentageColumn =
-        metaQuestions.length + characteristicCount + 1;
+      const firstPercentageColumn = firstCountColumn + characteristicCount;
       worksheet.mergeCells(
         1,
         firstPercentageColumn,
@@ -295,16 +319,8 @@ export const fetchTallysExport = async (
       worksheet.getCell(1, firstPercentageColumn).value = "PORCENTAGEM";
     }
 
-    metaSubcategories.forEach(({ name, startColumn, endColumn }) => {
-      worksheet.mergeCells(2, startColumn, 2, endColumn);
-      const cell = worksheet.getCell(2, startColumn);
-      cell.value = name;
-    });
-
-    worksheet.addRow(metaQuestions);
-
     if (characteristicCount > 0) {
-      const firstCharacteristicColumn = metaQuestions.length + 1;
+      const firstCharacteristicColumn = firstCountColumn;
       if (!sexGroup) {
         worksheet.mergeCells(
           2,
@@ -366,8 +382,7 @@ export const fetchTallysExport = async (
       }
     }
 
-    const firstPercentageColumn =
-      metaQuestions.length + characteristicCount + 1;
+    const firstPercentageColumn = firstCountColumn + characteristicCount;
     let currentPercentageColumn = firstPercentageColumn;
     percentageGroups.forEach((group, groupIndex) => {
       const groupColumns = percentageColumns.filter(
@@ -396,14 +411,17 @@ export const fetchTallysExport = async (
     const categoryBoundaryColumns = [
       9,
       14,
+      ...(assessmentQuestionCount > 0
+        ? [firstCountColumn - 1]
+      : []),
       ...exportColumns.flatMap((column, index) =>
-        column.type === "total" ? [metaQuestions.length + index + 1] : [],
+        column.type === "total" ? [firstCountColumn + index] : [],
       ),
       ...(characteristicCount > 0 ?
-        [metaQuestions.length + characteristicCount]
+        [firstCountColumn + characteristicCount - 1]
       : []),
       ...(percentageCount > 0 ?
-        [metaQuestions.length + characteristicCount + percentageCount]
+        [firstCountColumn + characteristicCount + percentageCount - 1]
       : []),
     ];
     for (let rowNumber = 1; rowNumber <= 3; rowNumber += 1) {
@@ -466,6 +484,11 @@ export const fetchTallysExport = async (
         tallyProtocol: {
           select: {
             name: true,
+            form: {
+              select: {
+                id: true,
+              },
+            },
             tallyProtocolGroups: {
               orderBy: { position: "asc" },
               select: {
@@ -552,10 +575,40 @@ export const fetchTallysExport = async (
       { name, tallyProtocolGroups, tallys },
     ] of tallysByProtocolId) {
       const worksheet = workbook.addWorksheet(getWorksheetName(name));
+      const formId = tallys[0]?.tallyProtocol.form?.id;
+      const formCategories =
+        formId ?
+          (
+            await getFormStructure({
+              formId,
+              publicQuestionsOnly: false,
+              includeCalculations: false,
+            })
+          ).categories
+        : [];
       const { exportColumns, percentageColumns } = addTallyMetadataHeader({
         worksheet,
         tallyProtocolGroups,
+        assessmentCategories: formCategories,
+        assessmentQuestionCount: formCategories.reduce(
+          (count, category) =>
+            count +
+            category.categoryChildren.reduce(
+              (childCount, child) =>
+                childCount +
+                ("questions" in child ? child.questions.length : 1),
+              0,
+            ),
+          0,
+        ),
       });
+      const assessmentQuestionCount =
+        worksheet.actualColumnCount -
+        metaQuestions.length -
+        exportColumns.length -
+        percentageColumns.length;
+      const firstCountColumn =
+        metaQuestions.length + assessmentQuestionCount + 1;
 
       for (const tally of tallys) {
         const { location } = tally;
@@ -619,6 +672,7 @@ export const fetchTallysExport = async (
           tally.startDate,
           tally.endDate,
           durationInMinutes,
+          ...Array<null>(assessmentQuestionCount).fill(null),
           ...countValues,
           ...percentageValues,
         ]);
@@ -626,19 +680,16 @@ export const fetchTallysExport = async (
         tallyRow.getCell(13).numFmt = "dd/mm/yyyy hh:mm";
         exportColumns.forEach((column, index) => {
           if (column.type !== "total") {
-            tallyRow.getCell(metaQuestions.length + index + 1).fill =
-              nonTotalCellFill;
+            tallyRow.getCell(firstCountColumn + index).fill = nonTotalCellFill;
           } else if (column.label === "TOTAL") {
-            tallyRow.getCell(metaQuestions.length + index + 1).fill =
-              mainTotalCellFill;
+            tallyRow.getCell(firstCountColumn + index).fill = mainTotalCellFill;
           } else {
-            tallyRow.getCell(metaQuestions.length + index + 1).fill =
-              totalCellFill;
+            tallyRow.getCell(firstCountColumn + index).fill = totalCellFill;
           }
         });
         percentageValues.forEach((_, index) => {
           const cell = tallyRow.getCell(
-            metaQuestions.length + exportColumns.length + index + 1,
+            firstCountColumn + exportColumns.length + index,
           );
           cell.numFmt = "0%";
           cell.fill = mainTotalCellFill;
@@ -652,14 +703,18 @@ export const fetchTallysExport = async (
         [
           9,
           14,
+          ...(assessmentQuestionCount > 0
+            ? [firstCountColumn - 1]
+          : []),
           ...exportColumns.flatMap((column, index) =>
-            column.type === "total" ? [metaQuestions.length + index + 1] : [],
+            column.type === "total" ? [firstCountColumn + index] : [],
           ),
           ...(percentageColumns.length > 0 ?
             [
-              metaQuestions.length +
+              firstCountColumn +
                 exportColumns.length +
-                percentageColumns.length,
+                percentageColumns.length -
+                1,
             ]
           : []),
         ].forEach((column) => {
@@ -674,7 +729,7 @@ export const fetchTallysExport = async (
 
         if (exportColumns.length > 0) {
           const lastCharacteristicColumn =
-            metaQuestions.length + exportColumns.length;
+            firstCountColumn + exportColumns.length - 1;
           tallyRow.getCell(lastCharacteristicColumn).border = {
             ...tallyRow.getCell(lastCharacteristicColumn).border,
             right: {
@@ -682,6 +737,15 @@ export const fetchTallysExport = async (
               color: { argb: "000000" },
             },
           };
+        }
+
+        if (formCategories.length > 0 && tally.formSubmissionId) {
+          await insertFormSubmissionDataInWorkSheet({
+            formSubmissionId: tally.formSubmissionId,
+            categories: formCategories,
+            workSheet: worksheet,
+            startColumn: metaQuestions.length + 1,
+          });
         }
       }
 
