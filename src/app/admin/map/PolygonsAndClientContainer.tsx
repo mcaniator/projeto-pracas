@@ -86,6 +86,9 @@ const PolygonsAndClientContainer = () => {
   ] = useState<Set<number>>(() => new Set());
   const [selectedAssessmentsModeCategory, setSelectedAssessmentsModeCategory] =
     useState<MapAssessmentComparisonCategory | null>(null);
+  const [selectedExportLocationIds, setSelectedExportLocationIds] = useState<
+    Set<number>
+  >(() => new Set());
   const [
     loadingAssessmentsModeCategories,
     setLoadingAssessmentsModeCategories,
@@ -312,7 +315,11 @@ const PolygonsAndClientContainer = () => {
   }, [assessmentsModeLocationsWithPolygon, filter]);
 
   const loadLocations = useCallback(async () => {
-    if (sidebarMode !== sidebarModes.LOCATIONS) return;
+    if (
+      sidebarMode !== sidebarModes.LOCATIONS &&
+      sidebarMode !== sidebarModes.EXPORT
+    )
+      return;
     if (!selectedCity) {
       setLocationsModeLocationsWithPolygon([]);
       return;
@@ -472,6 +479,7 @@ const PolygonsAndClientContainer = () => {
   }, [filteredAssessmentsModeLocationsWithPolygon]);
 
   const isLocationsMode = sidebarMode === sidebarModes.LOCATIONS;
+  const isExportMode = sidebarMode === sidebarModes.EXPORT;
 
   //Detecção de largura da tela
   const [isMobileView, setIsMobileView] = useState<boolean>(true);
@@ -491,12 +499,14 @@ const PolygonsAndClientContainer = () => {
   return (
     <PolygonProvider
       fullLocations={
-        isLocationsMode ?
+        isLocationsMode || isExportMode ?
           filteredLocationsModeLocationsWithPolygon
         : filteredAssessmentsModeLocationsWithPolygon
       }
       handleSelectLocation={
-        isLocationsMode ? selectLocation : selectAssessmentLocation
+        isLocationsMode || isExportMode ? selectLocation : (
+          selectAssessmentLocation
+        )
       }
       selectedLocation={isLocationsMode ? selectedLocationsModeLocation : null}
       selectedLocations={
@@ -535,6 +545,22 @@ const PolygonsAndClientContainer = () => {
               state,
             }}
             mode={sidebarMode}
+            exportSidebarProps={{
+              citiesOptions,
+              filter,
+              loadingCities,
+              loadingLocations: loadingLocationsModeLocations,
+              locationCategories,
+              locations: filteredLocationsModeLocationsWithPolygon,
+              locationTypes,
+              selectedCity,
+              selectedLocationIds: selectedExportLocationIds,
+              setCity: setSelectedCity,
+              setFilter,
+              setSelectedLocationIds: setSelectedExportLocationIds,
+              setState,
+              state,
+            }}
             locationsSidebarProps={{
               loadingLocations: loadingLocationsModeLocations,
               loadingCities,
