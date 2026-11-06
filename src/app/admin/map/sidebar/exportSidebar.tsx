@@ -4,9 +4,8 @@ import { LocationsMapClientFilter } from "@/app/admin/map/PolygonsAndClientConta
 import CImage from "@/components/ui/CImage";
 import CButton from "@/components/ui/cButton";
 import CCheckbox from "@/components/ui/cCheckbox";
-import { downloadCSVFileFromText } from "@/lib/downloadFile";
+import { downloadBlob } from "@/lib/downloadFile";
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
-import { useExportRegistrationData } from "@/lib/serverFunctions/apiCalls/export";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
 import { FetchLocationsResponse } from "@/lib/serverFunctions/queries/location";
 import { FetchLocationCategoriesResponse } from "@/lib/serverFunctions/queries/locationCategory";
@@ -17,6 +16,7 @@ import { IconTableExport, IconTree } from "@tabler/icons-react";
 import { Dispatch, SetStateAction, useEffect } from "react";
 import { Virtuoso } from "react-virtuoso";
 import LocationsMapFilters from "./locationMapFilters";
+import { useFetchLocationsExport } from "@/lib/serverFunctions/apiCalls/locationExport";
 
 export type ExportSidebarProps = {
   citiesOptions: FetchCitiesResponse["cities"] | null;
@@ -54,7 +54,20 @@ const ExportSidebar = ({
   state,
 }: ExportSidebarProps) => {
   const { enqueueSnackbar } = useAppSnackbar();
-  const [exportRegistrationData, exporting] = useExportRegistrationData();
+  
+  const [fetchLocationExport, isExporting] = useFetchLocationsExport({
+    callbacks: {
+          onSuccess: ({ data, filename, mimeType }) => {
+            if (!data || !filename || !mimeType) return;
+    
+            void downloadBlob({
+              filename: filename,
+              mimeType: mimeType,
+              blob: data,
+            });
+          },
+        },
+      });      
 
   useEffect(() => {
     const availableLocationIds = new Set(
@@ -93,31 +106,7 @@ const ExportSidebar = ({
       return;
     }
 
-    const result = await exportRegistrationData({ data: { locationsIds } });
-    if (result.responseInfo.statusCode === 401) {
-      enqueueSnackbar(<>Sem permissão para exportar dados de praças!</>, {
-        variant: "error",
-      });
-      return;
-    }
-    if (result.responseInfo.statusCode !== 200 || !result.data?.CSVstring) {
-      enqueueSnackbar(<>Erro ao exportar dados de praças!</>, {
-        variant: "error",
-      });
-      return;
-    }
-
-    try {
-      await downloadCSVFileFromText({
-        filename: "Informações-Cadastro.csv",
-        content: result.data.CSVstring,
-      });
-      enqueueSnackbar(<>Dados de praças exportados!</>, { variant: "success" });
-    } catch {
-      enqueueSnackbar(<>Não foi possível salvar o arquivo no dispositivo!</>, {
-        variant: "error",
-      });
-    }
+    await fetchLocationExport({params: { locationsIds }});
   };
 
   return (
@@ -220,7 +209,7 @@ const ExportSidebar = ({
       <div className="flex w-full items-center justify-center pt-2">
         <div className="w-fit">
           <CButton
-            loading={exporting}
+            loading={isExporting}
             onClick={() => {
               void handleExport();
             }}
