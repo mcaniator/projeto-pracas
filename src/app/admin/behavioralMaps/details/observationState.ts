@@ -9,7 +9,7 @@ export type BehavioralMapObservation = {
   personCharacteristicIds: number[];
 };
 
-export type BehavioralMapInteraction = {
+export type BehavioralMapLink = {
   localId: string;
   observationALocalId: string;
   observationBLocalId: string;

@@ -14,13 +14,13 @@ const IdleState = ({
   onOpenEvaluation,
   onOpenSave,
   onCreateGroup,
-  onCreateInteraction,
+  onCreateLink,
 }: {
   onOpenForm?: () => void;
   onOpenEvaluation?: () => void;
   onOpenSave?: () => void;
   onCreateGroup?: () => void;
-  onCreateInteraction?: () => void;
+  onCreateLink?: () => void;
 }) => (
   <>
     <div className="flex min-h-0 flex-1 items-center justify-center p-4 text-center text-lg">
@@ -43,9 +43,9 @@ const IdleState = ({
         <IconUsersGroup />
         Criar grupo
       </CButton>
-      <CButton sx={{ width: "100%" }} onClick={onCreateInteraction}>
+      <CButton sx={{ width: "100%" }} onClick={onCreateLink}>
         <IconLink />
-        Adicionar interação
+        Adicionar ligação
       </CButton>
       <CButton
         sx={{ width: "100%" }}

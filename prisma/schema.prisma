@@ -784,7 +784,7 @@ model BehavioralMap {
 
   groups                                 BehavioralMapGroup[]
   personObservations                     BehavioralMapPersonObservation[]
-  personObservationInteractions          BehavioralMapPersonObservationInteraction[]
+  personObservationLinks          BehavioralMapPersonObservationLink[]
   personObservationResponseGeometryLinks BehavioralMapPersonObservationResponseGeometry[]
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -822,8 +822,8 @@ model BehavioralMapPersonObservation {
   groupMemberships           BehavioralMapPersonObservationGroup[]
   characteristics            BehavioralMapPersonObservationCharacteristic[]
   responseGeometryLinks      BehavioralMapPersonObservationResponseGeometry[]
-  interactionsAsObservationA BehavioralMapPersonObservationInteraction[]      @relation("behavioral_map_interaction_observation_a")
-  interactionsAsObservationB BehavioralMapPersonObservationInteraction[]      @relation("behavioral_map_interaction_observation_b")
+  linksAsObservationA BehavioralMapPersonObservationLink[]      @relation("behavioral_map_link_observation_a")
+  linksAsObservationB BehavioralMapPersonObservationLink[]      @relation("behavioral_map_link_observation_b")
 
   @@index([behavioralMapId])
   @@map("behavioral_map_person_observation")
@@ -865,21 +865,21 @@ model BehavioralMapPersonObservationResponseGeometry {
   @@map("behavioral_map_person_observation_response_geometry")
 }
 
-model BehavioralMapPersonObservationInteraction {
+model BehavioralMapPersonObservationLink {
   id Int @id @default(autoincrement())
 
   behavioralMapId Int                            @map("behavioral_map_id")
   behavioralMap   BehavioralMap                  @relation(fields: [behavioralMapId], references: [id], onDelete: Cascade)
   observationAId  Int                            @map("observation_a_id")
-  observationA    BehavioralMapPersonObservation @relation("behavioral_map_interaction_observation_a", fields: [observationAId], references: [id], onDelete: Cascade, map: "behavioral_map_obs_interaction_obs_a_fkey")
+  observationA    BehavioralMapPersonObservation @relation("behavioral_map_link_observation_a", fields: [observationAId], references: [id], onDelete: Cascade, map: "behavioral_map_obs_link_obs_a_fkey")
   observationBId  Int                            @map("observation_b_id")
-  observationB    BehavioralMapPersonObservation @relation("behavioral_map_interaction_observation_b", fields: [observationBId], references: [id], onDelete: Cascade, map: "behavioral_map_obs_interaction_obs_b_fkey")
+  observationB    BehavioralMapPersonObservation @relation("behavioral_map_link_observation_b", fields: [observationBId], references: [id], onDelete: Cascade, map: "behavioral_map_obs_link_obs_b_fkey")
   description     String                         @db.Text
 
   @@index([behavioralMapId])
   @@index([observationAId])
   @@index([observationBId])
-  @@map("behavioral_map_person_observation_interaction")
+  @@map("behavioral_map_person_observation_link")
 }
 
 model TallyProtocolGroup {

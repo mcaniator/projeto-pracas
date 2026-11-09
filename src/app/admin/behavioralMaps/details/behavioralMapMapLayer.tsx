@@ -21,7 +21,7 @@ import { useContext, useEffect, useMemo } from "react";
 
 import type {
   BehavioralMapGroup,
-  BehavioralMapInteraction,
+  BehavioralMapLink,
 } from "./observationState";
 import type {
   BehavioralMapObservation,
@@ -32,7 +32,7 @@ type Details = FetchBehavioralMapDetailsResponse["behavioralMapDetails"];
 
 type MapPosition = [number, number];
 
-const interactionSourceIconSrc =
+const linkSourceIconSrc =
   "data:image/svg+xml;charset=utf-8," +
   encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.5-7-11a7 7 0 1 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>',
@@ -106,39 +106,39 @@ const createGroupOutline = (points: MapPosition[]): MapPosition[] => {
 const BehavioralMapMapLayer = ({
   details,
   isGroupsVisible,
-  isInteractionsVisible,
+  isLinksVisible,
   isObservationsVisible,
   observations,
-  interactions,
+  links,
   personGroups,
   selectedGroupTargetLocalIds,
-  selectedInteractionTargetLocalIds,
-  selectedInteractionLocalId,
-  selectedInteractionSourceLocalId,
+  selectedLinkTargetLocalIds,
+  selectedLinkLocalId,
+  selectedLinkSourceLocalId,
   selectedGroupLocalId,
   pendingPosition,
   onMapClick,
   onObservationClick,
-  onInteractionClick,
+  onLinkClick,
   onGroupClick,
   selectedObservationLocalId,
 }: {
   details: Details;
   isGroupsVisible: boolean;
-  isInteractionsVisible: boolean;
+  isLinksVisible: boolean;
   isObservationsVisible: boolean;
   observations: BehavioralMapObservation[];
   personGroups: BehavioralMapGroup[];
   selectedGroupTargetLocalIds: string[];
-  interactions: BehavioralMapInteraction[];
-  selectedInteractionTargetLocalIds: string[];
-  selectedInteractionLocalId: string | null;
-  selectedInteractionSourceLocalId: string | null;
+  links: BehavioralMapLink[];
+  selectedLinkTargetLocalIds: string[];
+  selectedLinkLocalId: string | null;
+  selectedLinkSourceLocalId: string | null;
   selectedGroupLocalId: string | null;
   pendingPosition: BehavioralMapPendingPosition | null;
   onMapClick: (position: [number, number]) => void;
   onObservationClick: (localId: string) => void;
-  onInteractionClick: (localId: string) => void;
+  onLinkClick: (localId: string) => void;
   onGroupClick: (localId: string) => void;
   selectedObservationLocalId: string | null;
 }) => {
@@ -175,36 +175,36 @@ const BehavioralMapMapLayer = ({
       }),
     [groupSource],
   );
-  const interactionSource = useMemo(
+  const linkSource = useMemo(
     () => new VectorSource<Feature<Geometry>>(),
     [],
   );
-  const interactionLayer = useMemo(
+  const linkLayer = useMemo(
     () =>
       new VectorLayer({
-        source: interactionSource,
+        source: linkSource,
         zIndex: 9,
         style: (feature) =>
           new Style({
             stroke: new Stroke({
               color:
-                feature.get("isSelectedInteraction") ? "#e53935" : "#8e24aa",
+                feature.get("isSelectedLink") ? "#e53935" : "#8e24aa",
               width: 2,
             }),
             text: new Text({
               text: String(feature.get("description") ?? ""),
               font: "600 12px sans-serif",
-              offsetY: feature.get("isSelfInteraction") ? -12 : -10,
+              offsetY: feature.get("isSelfLink") ? -12 : -10,
               padding: [2, 4, 2, 4],
               backgroundFill: new Fill({ color: "rgba(255,255,255,0.9)" }),
               fill: new Fill({
                 color:
-                  feature.get("isSelectedInteraction") ? "#e53935" : "#6a1b9a",
+                  feature.get("isSelectedLink") ? "#e53935" : "#6a1b9a",
               }),
             }),
           }),
       }),
-    [interactionSource],
+    [linkSource],
   );
   const observationSource = useMemo(
     () => new VectorSource<Feature<Point>>(),
@@ -218,23 +218,23 @@ const BehavioralMapMapLayer = ({
         style: (feature) => {
           const isDraft = feature.get("isDraft") === true;
           const isSelected = feature.get("isSelected") === true;
-          const isRelatedToSelectedInteraction =
-            feature.get("isRelatedToSelectedInteraction") === true;
+          const isRelatedToSelectedLink =
+            feature.get("isRelatedToSelectedLink") === true;
           const isSelectedGroupMember =
             feature.get("isSelectedGroupMember") === true;
-          const isInteractionTarget =
-            feature.get("isInteractionTarget") === true;
+          const isLinkTarget =
+            feature.get("isLinkTarget") === true;
           const isGroupTarget = feature.get("isGroupTarget") === true;
-          const isInteractionSource =
-            feature.get("isInteractionSource") === true;
+          const isLinkSource =
+            feature.get("isLinkSource") === true;
           const color =
             (
               isDraft ||
               isSelected ||
-              isRelatedToSelectedInteraction ||
+              isRelatedToSelectedLink ||
               isSelectedGroupMember ||
               isGroupTarget ||
-              isInteractionTarget
+              isLinkTarget
             ) ?
               "#e53935"
             : "#1976d2";
@@ -268,16 +268,16 @@ const BehavioralMapMapLayer = ({
           });
 
           const quantity = Number(feature.get("quantity") ?? 1);
-          const interactionSourceStyle = new Style({
+          const linkSourceStyle = new Style({
             image: new Icon({
-              src: interactionSourceIconSrc,
+              src: linkSourceIconSrc,
               scale: 0.6,
               anchor: [0.5, 0.5],
             }),
           });
           if (quantity === 1) {
-            return isInteractionSource ?
-                [pointStyle, interactionSourceStyle]
+            return isLinkSource ?
+                [pointStyle, linkSourceStyle]
               : pointStyle;
           }
 
@@ -293,8 +293,8 @@ const BehavioralMapMapLayer = ({
               fill: new Fill({ color }),
             }),
           });
-          return isInteractionSource ?
-              [pointStyle, interactionSourceStyle, quantityBadgeStyle]
+          return isLinkSource ?
+              [pointStyle, linkSourceStyle, quantityBadgeStyle]
             : [pointStyle, quantityBadgeStyle];
         },
       }),
@@ -306,8 +306,8 @@ const BehavioralMapMapLayer = ({
   }, [groupLayer, isGroupsVisible]);
 
   useEffect(() => {
-    interactionLayer.setVisible(isInteractionsVisible);
-  }, [interactionLayer, isInteractionsVisible]);
+    linkLayer.setVisible(isLinksVisible);
+  }, [linkLayer, isLinksVisible]);
 
   useEffect(() => {
     if (!map) return;
@@ -319,11 +319,11 @@ const BehavioralMapMapLayer = ({
 
   useEffect(() => {
     if (!map) return;
-    map.addLayer(interactionLayer);
+    map.addLayer(linkLayer);
     return () => {
-      map.removeLayer(interactionLayer);
+      map.removeLayer(linkLayer);
     };
-  }, [interactionLayer, map]);
+  }, [linkLayer, map]);
 
   useEffect(() => {
     const observationsByGroup = new Map<string, BehavioralMapObservation[]>();
@@ -356,9 +356,9 @@ const BehavioralMapMapLayer = ({
     const observationsById = new Map(
       observations.map((observation) => [observation.localId, observation]),
     );
-    const features = interactions.flatMap((interaction) => {
-      const source = observationsById.get(interaction.observationALocalId);
-      const target = observationsById.get(interaction.observationBLocalId);
+    const features = links.flatMap((link) => {
+      const source = observationsById.get(link.observationALocalId);
+      const target = observationsById.get(link.observationBLocalId);
       if (!source || !target) return [];
       let coordinates: [number, number][] = [source.position, target.position];
       if (source.localId === target.localId) {
@@ -375,22 +375,22 @@ const BehavioralMapMapLayer = ({
       const feature = new Feature<Geometry>({
         geometry: new LineString(coordinates),
       });
-      feature.set("interactionLocalId", interaction.localId);
+      feature.set("linkLocalId", link.localId);
       feature.set(
-        "isSelectedInteraction",
-        interaction.localId === selectedInteractionLocalId,
+        "isSelectedLink",
+        link.localId === selectedLinkLocalId,
       );
-      feature.set("description", interaction.description);
-      feature.set("isSelfInteraction", source.localId === target.localId);
+      feature.set("description", link.description);
+      feature.set("isSelfLink", source.localId === target.localId);
       return [feature];
     });
-    interactionSource.clear(true);
-    interactionSource.addFeatures(features);
+    linkSource.clear(true);
+    linkSource.addFeatures(features);
   }, [
-    interactions,
-    interactionSource,
+    links,
+    linkSource,
     observations,
-    selectedInteractionLocalId,
+    selectedLinkLocalId,
     selectedGroupLocalId,
   ]);
 
@@ -416,20 +416,20 @@ const BehavioralMapMapLayer = ({
         observationLocalId: observation.localId,
         quantity: observation.quantity,
         isSelected: observation.localId === selectedObservationLocalId,
-        isRelatedToSelectedInteraction: interactions.some(
-          (interaction) =>
-            interaction.localId === selectedInteractionLocalId &&
-            (interaction.observationALocalId === observation.localId ||
-              interaction.observationBLocalId === observation.localId),
+        isRelatedToSelectedLink: links.some(
+          (link) =>
+            link.localId === selectedLinkLocalId &&
+            (link.observationALocalId === observation.localId ||
+              link.observationBLocalId === observation.localId),
         ),
-        isInteractionTarget: selectedInteractionTargetLocalIds.includes(
+        isLinkTarget: selectedLinkTargetLocalIds.includes(
           observation.localId,
         ),
         isGroupTarget: selectedGroupTargetLocalIds.includes(
           observation.localId,
         ),
-        isInteractionSource:
-          observation.localId === selectedInteractionSourceLocalId,
+        isLinkSource:
+          observation.localId === selectedLinkSourceLocalId,
         isSelectedGroupMember:
           selectedGroupLocalId !== null &&
           observation.groupLocalIds.includes(selectedGroupLocalId),
@@ -452,12 +452,12 @@ const BehavioralMapMapLayer = ({
     observationSource,
     pendingPosition,
     selectedObservationLocalId,
-    selectedInteractionTargetLocalIds,
+    selectedLinkTargetLocalIds,
     selectedGroupTargetLocalIds,
-    selectedInteractionSourceLocalId,
+    selectedLinkSourceLocalId,
     selectedGroupLocalId,
-    selectedInteractionLocalId,
-    interactions,
+    selectedLinkLocalId,
+    links,
   ]);
 
   useEffect(() => {
@@ -509,16 +509,16 @@ const BehavioralMapMapLayer = ({
         return;
       }
 
-      const interactionLocalId = map.forEachFeatureAtPixel(
+      const linkLocalId = map.forEachFeatureAtPixel(
         event.pixel,
         (feature, layer) => {
-          if (layer !== interactionLayer) return undefined;
-          return feature.get("interactionLocalId");
+          if (layer !== linkLayer) return undefined;
+          return feature.get("linkLocalId");
         },
-        { layerFilter: (layer) => layer === interactionLayer, hitTolerance: 6 },
+        { layerFilter: (layer) => layer === linkLayer, hitTolerance: 6 },
       );
-      if (typeof interactionLocalId === "string") {
-        onInteractionClick(interactionLocalId);
+      if (typeof linkLocalId === "string") {
+        onLinkClick(linkLocalId);
         return;
       }
 
@@ -556,17 +556,17 @@ const BehavioralMapMapLayer = ({
         { layerFilter: (layer) => layer === observationLayer },
       );
 
-      const clickableInteraction = map.forEachFeatureAtPixel(
+      const clickableLink = map.forEachFeatureAtPixel(
         event.pixel,
         (feature, layer) =>
           (
-            layer === interactionLayer &&
-            typeof feature.get("interactionLocalId") === "string"
+            layer === linkLayer &&
+            typeof feature.get("linkLocalId") === "string"
           ) ?
             feature
           : undefined,
         {
-          layerFilter: (layer) => layer === interactionLayer,
+          layerFilter: (layer) => layer === linkLayer,
           hitTolerance: 6,
         },
       );
@@ -586,7 +586,7 @@ const BehavioralMapMapLayer = ({
       const currentTarget = map.getTargetElement();
       if (currentTarget) {
         currentTarget.style.cursor =
-          clickableObservation || clickableInteraction || clickableGroup ?
+          clickableObservation || clickableLink || clickableGroup ?
             "pointer"
           : originalCursor;
       }
@@ -600,11 +600,11 @@ const BehavioralMapMapLayer = ({
   }, [
     map,
     observationLayer,
-    interactionLayer,
+    linkLayer,
     groupLayer,
     onMapClick,
     onObservationClick,
-    onInteractionClick,
+    onLinkClick,
     onGroupClick,
   ]);
 

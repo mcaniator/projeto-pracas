@@ -5,29 +5,29 @@ import CCheckbox from "@/components/ui/cCheckbox";
 import CTextField from "@/components/ui/cTextField";
 import { IconArrowLeft, IconCheck } from "@tabler/icons-react";
 
-const AddingInteractionState = ({
+const AddingLinkState = ({
   description,
   selectedCount,
   hasSource,
-  isSelfInteractionSelected,
+  isSelfLinkSelected,
   onDescriptionChange,
-  onSelfInteractionChange,
+  onSelfLinkChange,
   onCancel,
   onConfirm,
 }: {
   description: string;
   selectedCount: number;
   hasSource: boolean;
-  isSelfInteractionSelected: boolean;
+  isSelfLinkSelected: boolean;
   onDescriptionChange: (value: string) => void;
-  onSelfInteractionChange: (checked: boolean) => void;
+  onSelfLinkChange: (checked: boolean) => void;
   onCancel: () => void;
   onConfirm: () => void;
 }) => (
   <>
     <div className="min-h-0 flex-1 overflow-auto p-3">
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-3">
-        <h2 className="text-lg font-semibold">Adicionar interação</h2>
+        <h2 className="text-lg font-semibold">Adicionar ligação</h2>
         <p className="text-sm text-gray-600">
           {hasSource ?
             "Origem selecionada. Agora escolha as observações que deseja ligar."
@@ -36,15 +36,15 @@ const AddingInteractionState = ({
           {selectedCount > 0 ? ` ${selectedCount} selecionada(s).` : ""}
         </p>
         <CTextField
-          label="Descrição da interação"
+          label="Descrição da ligação"
           value={description}
           required
           onChange={(event) => onDescriptionChange(event.target.value)}
         />
         <CCheckbox
-          checked={isSelfInteractionSelected}
+          checked={isSelfLinkSelected}
           disabled={!hasSource}
-          onChange={(event) => onSelfInteractionChange(event.target.checked)}
+          onChange={(event) => onSelfLinkChange(event.target.checked)}
           label="Ligar a si próprio"
         />
       </div>
@@ -65,4 +65,4 @@ const AddingInteractionState = ({
   </>
 );
 
-export default AddingInteractionState;
+export default AddingLinkState;

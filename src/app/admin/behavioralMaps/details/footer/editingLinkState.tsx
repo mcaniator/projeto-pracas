@@ -4,7 +4,7 @@ import CButton from "@/components/ui/cButton";
 import CTextField from "@/components/ui/cTextField";
 import { IconArrowLeft, IconTrash } from "@tabler/icons-react";
 
-const EditingInteractionState = ({
+const EditingLinkState = ({
   description,
   onDescriptionChange,
   onBack,
@@ -18,9 +18,9 @@ const EditingInteractionState = ({
   <>
     <div className="min-h-0 flex-1 overflow-auto p-3">
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-3">
-        <h2 className="text-lg font-semibold">Interação selecionada</h2>
+        <h2 className="text-lg font-semibold">Ligação selecionada</h2>
         <CTextField
-          label="Descrição da interação"
+          label="Descrição da ligação"
           value={description}
           required
           onChange={(event) => onDescriptionChange(event.target.value)}
@@ -40,4 +40,4 @@ const EditingInteractionState = ({
   </>
 );
 
-export default EditingInteractionState;
+export default EditingLinkState;

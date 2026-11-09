@@ -119,10 +119,10 @@ export const getBehavioralMapSubmissionData = async ({
           characteristics: {
             select: { personCharacteristicId: true },
           },
-          interactionsAsObservationA: {
+          linksAsObservationA: {
             select: { id: true, observationBId: true, description: true },
           },
-          interactionsAsObservationB: {
+          linksAsObservationB: {
             select: { id: true, observationAId: true, description: true },
           },
           responseGeometryLinks: {

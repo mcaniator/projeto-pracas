@@ -4,13 +4,13 @@ import type { FetchBehavioralMapDetailsResponse } from "@/lib/serverFunctions/qu
 
 import type {
   BehavioralMapGroup,
-  BehavioralMapInteraction,
+  BehavioralMapLink,
 } from "../observationState";
 import AddingGroupState from "./addingGroupState";
-import AddingInteractionState from "./addingInteractionState";
+import AddingLinkState from "./addingLinkState";
 import AddingObservationState from "./addingObservationState";
 import EditingGroupState from "./editingGroupState";
-import EditingInteractionState from "./editingInteractionState";
+import EditingLinkState from "./editingLinkState";
 import { BehavioralMapFooterState } from "./footerState";
 import IdleState from "./idleState";
 import ObservationSelectedState from "./observationSelectedState";
@@ -27,29 +27,29 @@ const BehavioralMapFooter = ({
   onCancel,
   onSubmitObservation,
   onCloseSelectedObservation,
-  interactionDescription,
-  hasInteractionSource,
-  selectedInteractionTargetCount,
-  isSelfInteractionSelected,
-  onInteractionDescriptionChange,
-  onSelfInteractionChange,
-  onCancelInteraction,
-  onConfirmInteraction,
-  selectedInteraction,
+  linkDescription,
+  hasLinkSource,
+  selectedLinkTargetCount,
+  isSelfLinkSelected,
+  onLinkDescriptionChange,
+  onSelfLinkChange,
+  onCancelLink,
+  onConfirmLink,
+  selectedLink,
   selectedGroup,
   onGroupLabelEdit,
   onBackFromGroupEdit,
   onDeleteGroup,
-  onInteractionDescriptionEdit,
-  onBackFromInteractionEdit,
-  onDeleteInteraction,
+  onLinkDescriptionEdit,
+  onBackFromLinkEdit,
+  onDeleteLink,
   onAddGroup,
   groupLabel,
   selectedGroupCount,
   onGroupLabelChange,
   onCancelGroup,
   onConfirmGroup,
-  onAddInteraction,
+  onAddLink,
   onOpenForm,
   onOpenEvaluation,
   onOpenSave,
@@ -68,29 +68,29 @@ const BehavioralMapFooter = ({
     quantity: number,
   ) => void;
   onCloseSelectedObservation: () => void;
-  onAddInteraction: () => void;
+  onAddLink: () => void;
   onAddGroup: () => void;
   groupLabel: string;
   selectedGroupCount: number;
   onGroupLabelChange: (value: string) => void;
   onCancelGroup: () => void;
   onConfirmGroup: () => void;
-  interactionDescription: string;
-  hasInteractionSource: boolean;
-  selectedInteractionTargetCount: number;
-  isSelfInteractionSelected: boolean;
-  onInteractionDescriptionChange: (value: string) => void;
-  onSelfInteractionChange: (checked: boolean) => void;
-  onCancelInteraction: () => void;
-  onConfirmInteraction: () => void;
-  selectedInteraction: BehavioralMapInteraction | null;
+  linkDescription: string;
+  hasLinkSource: boolean;
+  selectedLinkTargetCount: number;
+  isSelfLinkSelected: boolean;
+  onLinkDescriptionChange: (value: string) => void;
+  onSelfLinkChange: (checked: boolean) => void;
+  onCancelLink: () => void;
+  onConfirmLink: () => void;
+  selectedLink: BehavioralMapLink | null;
   selectedGroup: BehavioralMapGroup | null;
   onGroupLabelEdit: (value: string) => void;
   onBackFromGroupEdit: () => void;
   onDeleteGroup: () => void;
-  onInteractionDescriptionEdit: (value: string) => void;
-  onBackFromInteractionEdit: () => void;
-  onDeleteInteraction: () => void;
+  onLinkDescriptionEdit: (value: string) => void;
+  onBackFromLinkEdit: () => void;
+  onDeleteLink: () => void;
   onOpenForm?: () => void;
   onOpenEvaluation?: () => void;
   onOpenSave?: () => void;
@@ -102,7 +102,7 @@ const BehavioralMapFooter = ({
         onOpenEvaluation={onOpenEvaluation}
         onOpenSave={onOpenSave}
         onCreateGroup={onAddGroup}
-        onCreateInteraction={onAddInteraction}
+        onCreateLink={onAddLink}
       />
     : state === BehavioralMapFooterState.ADDING_OBSERVATION ?
       <AddingObservationState
@@ -119,16 +119,16 @@ const BehavioralMapFooter = ({
         onCancel={onCancelGroup}
         onConfirm={onConfirmGroup}
       />
-    : state === BehavioralMapFooterState.ADDING_INTERACTION ?
-      <AddingInteractionState
-        description={interactionDescription}
-        selectedCount={selectedInteractionTargetCount}
-        hasSource={hasInteractionSource}
-        isSelfInteractionSelected={isSelfInteractionSelected}
-        onDescriptionChange={onInteractionDescriptionChange}
-        onSelfInteractionChange={onSelfInteractionChange}
-        onCancel={onCancelInteraction}
-        onConfirm={onConfirmInteraction}
+    : state === BehavioralMapFooterState.ADDING_LINK ?
+      <AddingLinkState
+        description={linkDescription}
+        selectedCount={selectedLinkTargetCount}
+        hasSource={hasLinkSource}
+        isSelfLinkSelected={isSelfLinkSelected}
+        onDescriptionChange={onLinkDescriptionChange}
+        onSelfLinkChange={onSelfLinkChange}
+        onCancel={onCancelLink}
+        onConfirm={onConfirmLink}
       />
     : state === BehavioralMapFooterState.EDITING_GROUP && selectedGroup ?
       <EditingGroupState
@@ -138,14 +138,14 @@ const BehavioralMapFooter = ({
         onDelete={onDeleteGroup}
       />
     : (
-      state === BehavioralMapFooterState.EDITING_INTERACTION &&
-      selectedInteraction
+      state === BehavioralMapFooterState.EDITING_LINK &&
+      selectedLink
     ) ?
-      <EditingInteractionState
-        description={selectedInteraction.description}
-        onDescriptionChange={onInteractionDescriptionEdit}
-        onBack={onBackFromInteractionEdit}
-        onDelete={onDeleteInteraction}
+      <EditingLinkState
+        description={selectedLink.description}
+        onDescriptionChange={onLinkDescriptionEdit}
+        onBack={onBackFromLinkEdit}
+        onDelete={onDeleteLink}
       />
     : selectedObservation ?
       <ObservationSelectedState
@@ -158,7 +158,7 @@ const BehavioralMapFooter = ({
         onOpenEvaluation={onOpenEvaluation}
         onOpenSave={onOpenSave}
         onCreateGroup={onAddGroup}
-        onCreateInteraction={onAddInteraction}
+        onCreateLink={onAddLink}
       />
     }
   </footer>

@@ -17,7 +17,7 @@ import BehavioralMapMapFilterBox from "./behavioralMapMapFilterBox";
 import BehavioralMapMapLayer from "./behavioralMapMapLayer";
 import type {
   BehavioralMapGroup,
-  BehavioralMapInteraction,
+  BehavioralMapLink,
 } from "./observationState";
 import type {
   BehavioralMapObservation,
@@ -37,35 +37,35 @@ const BehavioralMapMap = ({
   details,
   groups,
   observations,
-  interactions,
+  links,
   personGroups,
   selectedGroupTargetLocalIds,
-  selectedInteractionTargetLocalIds,
-  selectedInteractionLocalId,
-  selectedInteractionSourceLocalId,
+  selectedLinkTargetLocalIds,
+  selectedLinkLocalId,
+  selectedLinkSourceLocalId,
   selectedGroupLocalId,
   pendingPosition,
   selectedObservationLocalId,
   onMapClick,
   onObservationClick,
-  onInteractionClick,
+  onLinkClick,
   onGroupClick,
 }: {
   details: BehavioralMapDetails;
   groups: ProtocolGroups;
   observations: BehavioralMapObservation[];
-  interactions: BehavioralMapInteraction[];
+  links: BehavioralMapLink[];
   personGroups: BehavioralMapGroup[];
   selectedGroupTargetLocalIds: string[];
-  selectedInteractionTargetLocalIds: string[];
-  selectedInteractionLocalId: string | null;
-  selectedInteractionSourceLocalId: string | null;
+  selectedLinkTargetLocalIds: string[];
+  selectedLinkLocalId: string | null;
+  selectedLinkSourceLocalId: string | null;
   selectedGroupLocalId: string | null;
   pendingPosition: BehavioralMapPendingPosition | null;
   selectedObservationLocalId: string | null;
   onMapClick: (position: [number, number]) => void;
   onObservationClick: (localId: string) => void;
-  onInteractionClick: (localId: string) => void;
+  onLinkClick: (localId: string) => void;
   onGroupClick: (localId: string) => void;
 }) => {
   const [activeCharacteristicIds, setActiveCharacteristicIds] = useState(
@@ -87,7 +87,7 @@ const BehavioralMapMap = ({
   const [visibleLayers, setVisibleLayers] = useState([
     "observations",
     "groups",
-    "interactions",
+    "links",
   ]);
   const visibilityOptions = [
     {
@@ -97,7 +97,7 @@ const BehavioralMapMap = ({
     },
     { value: "groups", label: <IconUsersGroup />, tooltip: "Mostrar grupos" },
     {
-      value: "interactions",
+      value: "links",
       label: <IconLink />,
       tooltip: "Mostrar intera��es",
     },
@@ -186,14 +186,14 @@ const BehavioralMapMap = ({
     () => new Set(filteredObservations.map(({ localId }) => localId)),
     [filteredObservations],
   );
-  const filteredInteractions = useMemo(
+  const filteredLinks = useMemo(
     () =>
-      interactions.filter(
-        (interaction) =>
-          visibleObservationIds.has(interaction.observationALocalId) &&
-          visibleObservationIds.has(interaction.observationBLocalId),
+      links.filter(
+        (link) =>
+          visibleObservationIds.has(link.observationALocalId) &&
+          visibleObservationIds.has(link.observationBLocalId),
       ),
-    [interactions, visibleObservationIds],
+    [links, visibleObservationIds],
   );
 
   const appliedFiltersCount = groups.reduce((count, group) => {
@@ -222,20 +222,20 @@ const BehavioralMapMap = ({
         <BehavioralMapMapLayer
           details={details}
           isGroupsVisible={visibleLayers.includes("groups")}
-          isInteractionsVisible={visibleLayers.includes("interactions")}
+          isLinksVisible={visibleLayers.includes("links")}
           isObservationsVisible={visibleLayers.includes("observations")}
           observations={filteredObservations}
-          interactions={filteredInteractions}
+          links={filteredLinks}
           personGroups={personGroups}
           selectedGroupTargetLocalIds={selectedGroupTargetLocalIds}
-          selectedInteractionTargetLocalIds={selectedInteractionTargetLocalIds}
-          selectedInteractionLocalId={selectedInteractionLocalId}
-          selectedInteractionSourceLocalId={selectedInteractionSourceLocalId}
+          selectedLinkTargetLocalIds={selectedLinkTargetLocalIds}
+          selectedLinkLocalId={selectedLinkLocalId}
+          selectedLinkSourceLocalId={selectedLinkSourceLocalId}
           selectedGroupLocalId={selectedGroupLocalId}
           pendingPosition={pendingPosition}
           onMapClick={onMapClick}
           onObservationClick={onObservationClick}
-          onInteractionClick={onInteractionClick}
+          onLinkClick={onLinkClick}
           onGroupClick={onGroupClick}
           selectedObservationLocalId={selectedObservationLocalId}
         />

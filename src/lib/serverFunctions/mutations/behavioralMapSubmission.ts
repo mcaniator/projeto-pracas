@@ -37,7 +37,7 @@ const behavioralMapGroupSchema = z.object({
   label: z.string().trim().min(1).max(255),
 });
 
-const behavioralMapInteractionSchema = z.object({
+const behavioralMapLinkSchema = z.object({
   observationALocalId: z.string().min(1),
   observationBLocalId: z.string().min(1),
   description: z.string().trim().min(1).max(2000),
@@ -49,7 +49,7 @@ export const saveBehavioralMapDataSchema = z
     formSubmission: formSubmissionDataSchema.optional(),
     observations: z.array(behavioralMapObservationSchema),
     groups: z.array(behavioralMapGroupSchema),
-    interactions: z.array(behavioralMapInteractionSchema),
+    links: z.array(behavioralMapLinkSchema),
     startDate: z.coerce.date(),
     endDate: z.coerce.date().nullable(),
     isFinalized: z.boolean(),
@@ -99,15 +99,15 @@ export const saveBehavioralMapDataSchema = z
         }
       });
     });
-    data.interactions.forEach((interaction, index) => {
+    data.links.forEach((link, index) => {
       if (
-        !localIds.has(interaction.observationALocalId) ||
-        !localIds.has(interaction.observationBLocalId)
+        !localIds.has(link.observationALocalId) ||
+        !localIds.has(link.observationBLocalId)
       ) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
-          path: ["interactions", index],
-          message: "A interação referencia uma observação inexistente.",
+          path: ["links", index],
+          message: "A ligação referencia uma observação inexistente.",
         });
       }
     });
@@ -257,35 +257,35 @@ export const saveBehavioralMapPersonObservationGroups = async ({
   `);
 };
 
-export const saveBehavioralMapPersonObservationInteractions = async ({
+export const saveBehavioralMapPersonObservationLinks = async ({
   tx,
   behavioralMapId,
-  interactions,
+  links,
   observationIdsByLocalId,
 }: {
   tx: Prisma.TransactionClient;
   behavioralMapId: number;
-  interactions: SaveBehavioralMapData["interactions"];
+  links: SaveBehavioralMapData["links"];
   observationIdsByLocalId: Map<string, number>;
 }) => {
-  await tx.$executeRaw`DELETE FROM "behavioral_map_person_observation_interaction" WHERE "behavioral_map_id" = ${behavioralMapId}`;
-  if (interactions.length === 0) return;
+  await tx.$executeRaw`DELETE FROM "behavioral_map_person_observation_link" WHERE "behavioral_map_id" = ${behavioralMapId}`;
+  if (links.length === 0) return;
 
-  const values = interactions.map((interaction) => {
+  const values = links.map((link) => {
     const observationAId = observationIdsByLocalId.get(
-      interaction.observationALocalId,
+      link.observationALocalId,
     );
     const observationBId = observationIdsByLocalId.get(
-      interaction.observationBLocalId,
+      link.observationBLocalId,
     );
     if (!observationAId || !observationBId) {
-      throw new Error("Uma interação referencia uma observação inexistente.");
+      throw new Error("Uma ligação referencia uma observação inexistente.");
     }
-    return Prisma.sql`(${behavioralMapId}, ${observationAId}, ${observationBId}, ${interaction.description})`;
+    return Prisma.sql`(${behavioralMapId}, ${observationAId}, ${observationBId}, ${link.description})`;
   });
 
   await tx.$executeRaw(Prisma.sql`
-    INSERT INTO "behavioral_map_person_observation_interaction"
+    INSERT INTO "behavioral_map_person_observation_link"
       ("behavioral_map_id", "observation_a_id", "observation_b_id", "description")
     VALUES ${Prisma.join(values, ",")}
   `);
@@ -455,10 +455,10 @@ export const saveBehavioralMap = async (
         groupIdsByLocalId,
         observationIdsByLocalId,
       });
-      await saveBehavioralMapPersonObservationInteractions({
+      await saveBehavioralMapPersonObservationLinks({
         tx,
         behavioralMapId: data.behavioralMapId,
-        interactions: data.interactions,
+        links: data.links,
         observationIdsByLocalId,
       });
 

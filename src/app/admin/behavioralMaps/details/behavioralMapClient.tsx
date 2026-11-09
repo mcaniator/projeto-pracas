@@ -17,7 +17,7 @@ import BehavioralMapSaveDialog from "./behavioralMapSaveDialog";
 import BehavioralMapFooter, { BehavioralMapFooterState } from "./footer";
 import type {
   BehavioralMapGroup,
-  BehavioralMapInteraction,
+  BehavioralMapLink,
   BehavioralMapObservation,
   BehavioralMapPendingPosition,
 } from "./observationState";
@@ -82,30 +82,30 @@ const BehavioralMapClient = ({
       }),
   );
 
-  const [interactions, setInteractions] = useState<BehavioralMapInteraction[]>(
+  const [links, setLinks] = useState<BehavioralMapLink[]>(
     () =>
       behavioralMapSubmission.personObservations.flatMap((observation) =>
-        observation.interactionsAsObservationA.map((interaction) => ({
-          localId: `saved-interaction-${interaction.id}`,
+        observation.linksAsObservationA.map((link) => ({
+          localId: `saved-link-${link.id}`,
           observationALocalId: `saved-${observation.id}`,
-          observationBLocalId: `saved-${interaction.observationBId}`,
-          description: interaction.description,
+          observationBLocalId: `saved-${link.observationBId}`,
+          description: link.description,
         })),
       ),
   );
   const [groupLabel, setGroupLabel] = useState("");
   const [selectedGroupTargetLocalIds, setSelectedGroupTargetLocalIds] =
     useState<string[]>([]);
-  const [interactionDescription, setInteractionDescription] = useState("");
+  const [linkDescription, setLinkDescription] = useState("");
   const [
-    selectedInteractionSourceLocalId,
-    setSelectedInteractionSourceLocalId,
+    selectedLinkSourceLocalId,
+    setSelectedLinkSourceLocalId,
   ] = useState<string | null>(null);
   const [
-    selectedInteractionTargetLocalIds,
-    setSelectedInteractionTargetLocalIds,
+    selectedLinkTargetLocalIds,
+    setSelectedLinkTargetLocalIds,
   ] = useState<string[]>([]);
-  const [isSelfInteractionSelected, setIsSelfInteractionSelected] =
+  const [isSelfLinkSelected, setIsSelfLinkSelected] =
     useState(false);
 
   const [pendingPosition, setPendingPosition] =
@@ -113,7 +113,7 @@ const BehavioralMapClient = ({
   const [footerState, setFooterState] = useState<BehavioralMapFooterState>(
     BehavioralMapFooterState.IDLE,
   );
-  const [selectedInteractionLocalId, setSelectedInteractionLocalId] = useState<
+  const [selectedLinkLocalId, setSelectedLinkLocalId] = useState<
     string | null
   >(null);
   const [selectedGroupLocalId, setSelectedGroupLocalId] = useState<
@@ -135,9 +135,9 @@ const BehavioralMapClient = ({
     (position: [number, number]) => {
       if (
         footerState === BehavioralMapFooterState.ADDING_OBSERVATION ||
-        footerState === BehavioralMapFooterState.ADDING_INTERACTION ||
+        footerState === BehavioralMapFooterState.ADDING_LINK ||
         footerState === BehavioralMapFooterState.ADDING_GROUP ||
-        footerState === BehavioralMapFooterState.EDITING_INTERACTION ||
+        footerState === BehavioralMapFooterState.EDITING_LINK ||
         footerState === BehavioralMapFooterState.EDITING_GROUP ||
         pendingPosition
       ) {
@@ -145,7 +145,7 @@ const BehavioralMapClient = ({
       }
 
       setSelectedObservationLocalId(null);
-      setSelectedInteractionLocalId(null);
+      setSelectedLinkLocalId(null);
       setSelectedGroupLocalId(null);
       setPendingPosition({
         position,
@@ -227,13 +227,13 @@ const BehavioralMapClient = ({
         );
         return;
       }
-      if (footerState === BehavioralMapFooterState.ADDING_INTERACTION) {
-        if (!selectedInteractionSourceLocalId) {
-          setSelectedInteractionSourceLocalId(localId);
+      if (footerState === BehavioralMapFooterState.ADDING_LINK) {
+        if (!selectedLinkSourceLocalId) {
+          setSelectedLinkSourceLocalId(localId);
           return;
         }
-        if (localId === selectedInteractionSourceLocalId) return;
-        setSelectedInteractionTargetLocalIds((current) =>
+        if (localId === selectedLinkSourceLocalId) return;
+        setSelectedLinkTargetLocalIds((current) =>
           current.includes(localId) ?
             current.filter((id) => id !== localId)
           : [...current, localId],
@@ -242,71 +242,71 @@ const BehavioralMapClient = ({
         return;
       }
       if (footerState === BehavioralMapFooterState.ADDING_OBSERVATION) return;
-      setSelectedInteractionLocalId(null);
+      setSelectedLinkLocalId(null);
       setSelectedGroupLocalId(null);
       setSelectedObservationLocalId(localId);
       setFooterState(BehavioralMapFooterState.OBSERVATION_SELECTED);
     },
-    [footerState, selectedInteractionSourceLocalId, selectedObservationLocalId],
+    [footerState, selectedLinkSourceLocalId, selectedObservationLocalId],
   );
 
   const handleCloseSelectedObservation = useCallback(() => {
-    setSelectedInteractionLocalId(null);
+    setSelectedLinkLocalId(null);
     setSelectedObservationLocalId(null);
     setFooterState(BehavioralMapFooterState.IDLE);
   }, []);
 
-  const handleStartAddingInteraction = useCallback(() => {
+  const handleStartAddingLink = useCallback(() => {
     setSelectedObservationLocalId(null);
     setSelectedGroupLocalId(null);
-    setSelectedInteractionLocalId(null);
-    setSelectedInteractionSourceLocalId(null);
-    setInteractionDescription("");
-    setSelectedInteractionTargetLocalIds([]);
-    setIsSelfInteractionSelected(false);
-    setFooterState(BehavioralMapFooterState.ADDING_INTERACTION);
+    setSelectedLinkLocalId(null);
+    setSelectedLinkSourceLocalId(null);
+    setLinkDescription("");
+    setSelectedLinkTargetLocalIds([]);
+    setIsSelfLinkSelected(false);
+    setFooterState(BehavioralMapFooterState.ADDING_LINK);
   }, []);
 
-  const handleCancelInteraction = useCallback(() => {
-    setSelectedInteractionSourceLocalId(null);
-    setSelectedInteractionTargetLocalIds([]);
-    setIsSelfInteractionSelected(false);
+  const handleCancelLink = useCallback(() => {
+    setSelectedLinkSourceLocalId(null);
+    setSelectedLinkTargetLocalIds([]);
+    setIsSelfLinkSelected(false);
     setFooterState(BehavioralMapFooterState.IDLE);
   }, []);
 
-  const handleConfirmInteraction = useCallback(() => {
-    if (!selectedInteractionSourceLocalId || !interactionDescription.trim())
+  const handleConfirmLink = useCallback(() => {
+    if (!selectedLinkSourceLocalId || !linkDescription.trim())
       return;
-    const destinationIds = [...selectedInteractionTargetLocalIds];
-    if (isSelfInteractionSelected)
-      destinationIds.push(selectedInteractionSourceLocalId);
+    const destinationIds = [...selectedLinkTargetLocalIds];
+    if (isSelfLinkSelected)
+      destinationIds.push(selectedLinkSourceLocalId);
     if (destinationIds.length === 0) return;
-    setInteractions((current) => [
+    setLinks((current) => [
       ...current,
       ...destinationIds.map((observationBLocalId) => ({
-        localId: `local-interaction-${crypto.randomUUID()}`,
-        observationALocalId: selectedInteractionSourceLocalId,
+        localId: `local-link-${crypto.randomUUID()}`,
+        observationALocalId: selectedLinkSourceLocalId,
         observationBLocalId,
-        description: interactionDescription.trim(),
+        description: linkDescription.trim(),
       })),
     ]);
-    setSelectedInteractionSourceLocalId(null);
-    setSelectedInteractionTargetLocalIds([]);
-    setIsSelfInteractionSelected(false);
+    setSelectedLinkSourceLocalId(null);
+    setSelectedLinkTargetLocalIds([]);
+    setIsSelfLinkSelected(false);
     setFooterState(BehavioralMapFooterState.IDLE);
   }, [
-    interactionDescription,
-    isSelfInteractionSelected,
-    selectedInteractionTargetLocalIds,
-    selectedInteractionSourceLocalId,
+    linkDescription,
+    isSelfLinkSelected,
+    selectedLinkTargetLocalIds,
+    selectedLinkSourceLocalId,
   ]);
 
-  const selectedInteraction = useMemo(
+  const selectedLink = useMemo(
     () =>
-      interactions.find(
-        ({ localId }) => localId === selectedInteractionLocalId,
+      links.find(
+        ({ localId }) => localId === selectedLinkLocalId,
       ) ?? null,
-    [interactions, selectedInteractionLocalId],
+    [links, selectedLinkLocalId],
   );
 
   const selectedObservation = useMemo(
@@ -319,7 +319,7 @@ const BehavioralMapClient = ({
 
   const handleStartAddingGroup = useCallback(() => {
     setSelectedObservationLocalId(null);
-    setSelectedInteractionLocalId(null);
+    setSelectedLinkLocalId(null);
     setSelectedGroupLocalId(null);
     setGroupLabel("");
     setSelectedGroupTargetLocalIds([]);
@@ -363,7 +363,7 @@ const BehavioralMapClient = ({
 
   const handleGroupClick = useCallback((localId: string) => {
     setSelectedObservationLocalId(null);
-    setSelectedInteractionLocalId(null);
+    setSelectedLinkLocalId(null);
     setSelectedGroupLocalId(localId);
     setFooterState(BehavioralMapFooterState.EDITING_GROUP);
   }, []);
@@ -406,40 +406,40 @@ const BehavioralMapClient = ({
     setFooterState(BehavioralMapFooterState.IDLE);
   }, [selectedGroupLocalId]);
 
-  const handleInteractionClick = useCallback((localId: string) => {
+  const handleLinkClick = useCallback((localId: string) => {
     setSelectedObservationLocalId(null);
     setSelectedGroupLocalId(null);
-    setSelectedInteractionLocalId(localId);
-    setFooterState(BehavioralMapFooterState.EDITING_INTERACTION);
+    setSelectedLinkLocalId(localId);
+    setFooterState(BehavioralMapFooterState.EDITING_LINK);
   }, []);
 
-  const handleInteractionDescriptionEdit = useCallback(
+  const handleLinkDescriptionEdit = useCallback(
     (description: string) => {
-      if (!selectedInteractionLocalId) return;
-      setInteractions((current) =>
-        current.map((interaction) =>
-          interaction.localId === selectedInteractionLocalId ?
-            { ...interaction, description }
-          : interaction,
+      if (!selectedLinkLocalId) return;
+      setLinks((current) =>
+        current.map((link) =>
+          link.localId === selectedLinkLocalId ?
+            { ...link, description }
+          : link,
         ),
       );
     },
-    [selectedInteractionLocalId],
+    [selectedLinkLocalId],
   );
 
-  const handleBackFromInteractionEdit = useCallback(() => {
-    setSelectedInteractionLocalId(null);
+  const handleBackFromLinkEdit = useCallback(() => {
+    setSelectedLinkLocalId(null);
     setFooterState(BehavioralMapFooterState.IDLE);
   }, []);
 
-  const handleDeleteInteraction = useCallback(() => {
-    if (!selectedInteractionLocalId) return;
-    setInteractions((current) =>
-      current.filter(({ localId }) => localId !== selectedInteractionLocalId),
+  const handleDeleteLink = useCallback(() => {
+    if (!selectedLinkLocalId) return;
+    setLinks((current) =>
+      current.filter(({ localId }) => localId !== selectedLinkLocalId),
     );
-    setSelectedInteractionLocalId(null);
+    setSelectedLinkLocalId(null);
     setFooterState(BehavioralMapFooterState.IDLE);
-  }, [selectedInteractionLocalId]);
+  }, [selectedLinkLocalId]);
 
   const handleOpenEvaluation = useCallback(
     () => setIsEvaluationDialogOpen(true),
@@ -471,20 +471,20 @@ const BehavioralMapClient = ({
         details={behavioralMapDetails}
         groups={groups}
         observations={observations}
-        interactions={interactions}
-        selectedInteractionTargetLocalIds={selectedInteractionTargetLocalIds}
+        links={links}
+        selectedLinkTargetLocalIds={selectedLinkTargetLocalIds}
         personGroups={behavioralMapGroups}
         selectedGroupTargetLocalIds={selectedGroupTargetLocalIds}
         selectedGroupLocalId={selectedGroupLocalId}
-        selectedInteractionLocalId={selectedInteractionLocalId}
-        selectedInteractionSourceLocalId={selectedInteractionSourceLocalId}
+        selectedLinkLocalId={selectedLinkLocalId}
+        selectedLinkSourceLocalId={selectedLinkSourceLocalId}
         pendingPosition={pendingPosition}
         selectedObservationLocalId={
-          selectedInteractionSourceLocalId ?? selectedObservationLocalId
+          selectedLinkSourceLocalId ?? selectedObservationLocalId
         }
         onMapClick={handleMapClick}
         onObservationClick={handleObservationClick}
-        onInteractionClick={handleInteractionClick}
+        onLinkClick={handleLinkClick}
         onGroupClick={handleGroupClick}
       />
 
@@ -496,26 +496,26 @@ const BehavioralMapClient = ({
         onCancel={handleCancelObservation}
         onSubmitObservation={handleSubmitObservation}
         onCloseSelectedObservation={handleCloseSelectedObservation}
-        selectedInteraction={selectedInteraction}
+        selectedLink={selectedLink}
         selectedGroup={selectedGroup}
         onGroupLabelEdit={handleGroupLabelEdit}
         onBackFromGroupEdit={handleBackFromGroupEdit}
         onDeleteGroup={handleDeleteGroup}
-        interactionDescription={interactionDescription}
-        hasInteractionSource={selectedInteractionSourceLocalId !== null}
-        selectedInteractionTargetCount={
-          selectedInteractionTargetLocalIds.length +
-          (isSelfInteractionSelected ? 1 : 0)
+        linkDescription={linkDescription}
+        hasLinkSource={selectedLinkSourceLocalId !== null}
+        selectedLinkTargetCount={
+          selectedLinkTargetLocalIds.length +
+          (isSelfLinkSelected ? 1 : 0)
         }
-        isSelfInteractionSelected={isSelfInteractionSelected}
-        onInteractionDescriptionChange={setInteractionDescription}
-        onSelfInteractionChange={setIsSelfInteractionSelected}
-        onCancelInteraction={handleCancelInteraction}
-        onConfirmInteraction={handleConfirmInteraction}
-        onInteractionDescriptionEdit={handleInteractionDescriptionEdit}
-        onBackFromInteractionEdit={handleBackFromInteractionEdit}
-        onDeleteInteraction={handleDeleteInteraction}
-        onAddInteraction={handleStartAddingInteraction}
+        isSelfLinkSelected={isSelfLinkSelected}
+        onLinkDescriptionChange={setLinkDescription}
+        onSelfLinkChange={setIsSelfLinkSelected}
+        onCancelLink={handleCancelLink}
+        onConfirmLink={handleConfirmLink}
+        onLinkDescriptionEdit={handleLinkDescriptionEdit}
+        onBackFromLinkEdit={handleBackFromLinkEdit}
+        onDeleteLink={handleDeleteLink}
+        onAddLink={handleStartAddingLink}
         groupLabel={groupLabel}
         selectedGroupCount={selectedGroupTargetLocalIds.length}
         onGroupLabelChange={setGroupLabel}
@@ -557,8 +557,8 @@ const BehavioralMapClient = ({
           : undefined
         }
         observations={observations}
-        interactions={interactions.map(
-          ({ localId: _localId, ...interaction }) => interaction,
+        links={links.map(
+          ({ localId: _localId, ...link }) => link,
         )}
         groups={behavioralMapGroups}
         startDate={startDate}
