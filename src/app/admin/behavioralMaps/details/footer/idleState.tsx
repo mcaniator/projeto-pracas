@@ -6,16 +6,21 @@ import {
   IconDeviceFloppy,
   IconFileText,
   IconLink,
+  IconUsersGroup,
 } from "@tabler/icons-react";
 
 const IdleState = ({
   onOpenForm,
   onOpenEvaluation,
   onOpenSave,
+  onCreateGroup,
+  onCreateInteraction,
 }: {
   onOpenForm?: () => void;
   onOpenEvaluation?: () => void;
   onOpenSave?: () => void;
+  onCreateGroup?: () => void;
+  onCreateInteraction?: () => void;
 }) => (
   <>
     <div className="flex min-h-0 flex-1 items-center justify-center p-4 text-center text-lg">
@@ -34,11 +39,19 @@ const IdleState = ({
         <IconClipboardCheck />
         Avaliação
       </CButton>
-      <CButton sx={{ width: "100%" }}>
-        <IconLink />
-        Ligações
+      <CButton sx={{ width: "100%" }} onClick={onCreateGroup}>
+        <IconUsersGroup />
+        Criar grupo
       </CButton>
-      <CButton sx={{ width: "100%" }} onClick={onOpenSave}>
+      <CButton sx={{ width: "100%" }} onClick={onCreateInteraction}>
+        <IconLink />
+        Adicionar interação
+      </CButton>
+      <CButton
+        sx={{ width: "100%" }}
+        className="col-span-2"
+        onClick={onOpenSave}
+      >
         <IconDeviceFloppy />
         Salvar
       </CButton>

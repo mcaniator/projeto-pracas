@@ -26,7 +26,7 @@ const BehavioralMapsList = ({
   <div className="flex h-full flex-col gap-1">
     {behavioralMaps.length === 0 && !isLoadingMore && (
       <div className="text-center text-xl font-semibold">
-        Nenhum mapa comportamental encontrado.
+        Nenhum mapa comportamental corresponde aos filtros!
       </div>
     )}
     <Virtuoso
@@ -82,7 +82,7 @@ const BehavioralMapsList = ({
                 <CButton
                   square
                   loadingOnClick
-                  href={`/admin/behavioralMap/details?behavioralMapId=${map.id}`}
+                  href={`/admin/behavioralMaps/details?behavioralMapId=${map.id}`}
                 >
                   <IconExternalLink />
                   Acessar

@@ -1,10 +1,10 @@
 "use client";
 
 import CButton from "@/components/ui/cButton";
-import CColorViewer from "@/components/ui/cColorViewer";
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
 import { dateTimeWithoutSecondsFormater } from "@/lib/formatters/dateFormatters";
 import type { FetchBehavioralMapDetailsResponse } from "@/lib/serverFunctions/queries/behavioralMap";
+import Chip from "@mui/material/Chip";
 import { IconArrowLeft } from "@tabler/icons-react";
 
 type Details = FetchBehavioralMapDetailsResponse["behavioralMapDetails"];
@@ -59,15 +59,21 @@ const ObservationSelectedState = ({
               {selectedCharacteristics.length > 0 ?
                 <div className="flex flex-wrap gap-2">
                   {selectedCharacteristics.map(({ personCharacteristic }) => (
-                    <div
+                    <Chip
                       key={personCharacteristic.id}
-                      className="flex items-center gap-2 rounded-full border px-3 py-2"
-                      style={{ borderColor: personCharacteristic.color }}
-                    >
-                      <CColorViewer color={personCharacteristic.color} />
-                      <CDynamicIcon iconKey={personCharacteristic.iconKey} />
-                      <span>{personCharacteristic.name}</span>
-                    </div>
+                      icon={
+                        <span className="px-1" style={{ color: "#ffffff" }}>
+                          <CDynamicIcon
+                            iconKey={personCharacteristic.iconKey}
+                          />
+                        </span>
+                      }
+                      label={personCharacteristic.name}
+                      style={{
+                        backgroundColor: personCharacteristic.color,
+                        color: "#ffffff",
+                      }}
+                    />
                   ))}
                 </div>
               : <p className="text-sm text-gray-500">

@@ -21,6 +21,8 @@ const BehavioralMapSaveDialog = ({
   behavioralMapId,
   formSubmission,
   observations,
+  interactions,
+  groups,
   startDate,
   endDate,
   isFinalized,
@@ -33,6 +35,8 @@ const BehavioralMapSaveDialog = ({
   behavioralMapId: number;
   formSubmission?: FormSubmissionData;
   observations: SaveBehavioralMapData["observations"];
+  interactions: SaveBehavioralMapData["interactions"];
+  groups: SaveBehavioralMapData["groups"];
   startDate: Dayjs;
   endDate: Dayjs | null;
   isFinalized: boolean;
@@ -74,6 +78,8 @@ const BehavioralMapSaveDialog = ({
           behavioralMapId,
           formSubmission,
           observations,
+          interactions,
+          groups,
           startDate: startDate.toDate(),
           endDate: endDate?.toDate() ?? null,
           isFinalized,

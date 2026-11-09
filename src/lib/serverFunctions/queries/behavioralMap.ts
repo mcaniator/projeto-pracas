@@ -113,7 +113,9 @@ export const getBehavioralMapSubmissionData = async ({
           id: true,
           quantity: true,
           observedAt: true,
-          behavioralMapGroupId: true,
+          groupMemberships: {
+            select: { behavioralMapGroupId: true },
+          },
           characteristics: {
             select: { personCharacteristicId: true },
           },

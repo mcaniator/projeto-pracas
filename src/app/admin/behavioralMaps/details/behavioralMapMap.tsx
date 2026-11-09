@@ -1,14 +1,24 @@
 "use client";
 
 import CButton from "@/components/ui/cButton";
+import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
 import CDialog from "@/components/ui/dialog/cDialog";
 import type { FetchBehavioralMapDetailsResponse } from "@/lib/serverFunctions/queries/behavioralMap";
-import { IconFilter } from "@tabler/icons-react";
+import {
+  IconFilter,
+  IconLink,
+  IconMapPin,
+  IconUsersGroup,
+} from "@tabler/icons-react";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 
 import BehavioralMapMapFilterBox from "./behavioralMapMapFilterBox";
 import BehavioralMapMapLayer from "./behavioralMapMapLayer";
+import type {
+  BehavioralMapGroup,
+  BehavioralMapInteraction,
+} from "./observationState";
 import type {
   BehavioralMapObservation,
   BehavioralMapPendingPosition,
@@ -27,18 +37,36 @@ const BehavioralMapMap = ({
   details,
   groups,
   observations,
+  interactions,
+  personGroups,
+  selectedGroupTargetLocalIds,
+  selectedInteractionTargetLocalIds,
+  selectedInteractionLocalId,
+  selectedInteractionSourceLocalId,
+  selectedGroupLocalId,
   pendingPosition,
   selectedObservationLocalId,
   onMapClick,
   onObservationClick,
+  onInteractionClick,
+  onGroupClick,
 }: {
   details: BehavioralMapDetails;
   groups: ProtocolGroups;
   observations: BehavioralMapObservation[];
+  interactions: BehavioralMapInteraction[];
+  personGroups: BehavioralMapGroup[];
+  selectedGroupTargetLocalIds: string[];
+  selectedInteractionTargetLocalIds: string[];
+  selectedInteractionLocalId: string | null;
+  selectedInteractionSourceLocalId: string | null;
+  selectedGroupLocalId: string | null;
   pendingPosition: BehavioralMapPendingPosition | null;
   selectedObservationLocalId: string | null;
   onMapClick: (position: [number, number]) => void;
   onObservationClick: (localId: string) => void;
+  onInteractionClick: (localId: string) => void;
+  onGroupClick: (localId: string) => void;
 }) => {
   const [activeCharacteristicIds, setActiveCharacteristicIds] = useState(
     () =>
@@ -56,6 +84,24 @@ const BehavioralMapMap = ({
     () => new Set(),
   );
   const [isFiltersDialogOpen, setIsFiltersDialogOpen] = useState(false);
+  const [visibleLayers, setVisibleLayers] = useState([
+    "observations",
+    "groups",
+    "interactions",
+  ]);
+  const visibilityOptions = [
+    {
+      value: "observations",
+      label: <IconMapPin />,
+      tooltip: "Mostrar observações",
+    },
+    { value: "groups", label: <IconUsersGroup />, tooltip: "Mostrar grupos" },
+    {
+      value: "interactions",
+      label: <IconLink />,
+      tooltip: "Mostrar intera��es",
+    },
+  ];
 
   useEffect(() => {
     setActiveCharacteristicIds(
@@ -136,6 +182,20 @@ const BehavioralMapMap = ({
     });
   }, [activeCharacteristicIds, groups, noTagFilterGroupIds, observations]);
 
+  const visibleObservationIds = useMemo(
+    () => new Set(filteredObservations.map(({ localId }) => localId)),
+    [filteredObservations],
+  );
+  const filteredInteractions = useMemo(
+    () =>
+      interactions.filter(
+        (interaction) =>
+          visibleObservationIds.has(interaction.observationALocalId) &&
+          visibleObservationIds.has(interaction.observationBLocalId),
+      ),
+    [interactions, visibleObservationIds],
+  );
+
   const appliedFiltersCount = groups.reduce((count, group) => {
     if (group.personCharacteristicGroup.isTagGroup) {
       if (noTagFilterGroupIds.has(group.id)) return count + 1;
@@ -161,13 +221,39 @@ const BehavioralMapMap = ({
       <MapProvider>
         <BehavioralMapMapLayer
           details={details}
+          isGroupsVisible={visibleLayers.includes("groups")}
+          isInteractionsVisible={visibleLayers.includes("interactions")}
+          isObservationsVisible={visibleLayers.includes("observations")}
           observations={filteredObservations}
+          interactions={filteredInteractions}
+          personGroups={personGroups}
+          selectedGroupTargetLocalIds={selectedGroupTargetLocalIds}
+          selectedInteractionTargetLocalIds={selectedInteractionTargetLocalIds}
+          selectedInteractionLocalId={selectedInteractionLocalId}
+          selectedInteractionSourceLocalId={selectedInteractionSourceLocalId}
+          selectedGroupLocalId={selectedGroupLocalId}
           pendingPosition={pendingPosition}
           onMapClick={onMapClick}
           onObservationClick={onObservationClick}
+          onInteractionClick={onInteractionClick}
+          onGroupClick={onGroupClick}
           selectedObservationLocalId={selectedObservationLocalId}
         />
       </MapProvider>
+      <div className="absolute left-3 top-3 z-20">
+        <CToggleButtonGroup
+          options={visibilityOptions}
+          value={visibleLayers}
+          multiple
+          getLabel={(option) => option.label}
+          getValue={(option) => option.value}
+          getTooltip={(option) => option.tooltip}
+          onMultipleChange={(_, selected) =>
+            setVisibleLayers(selected.map(({ value }) => value))
+          }
+          aria-label="Visibilidade de grupos, intera��es e observa��es"
+        />
+      </div>
       <div className="absolute right-3 top-3 z-20">
         <CButton
           square

@@ -803,7 +803,7 @@ model BehavioralMapGroup {
   behavioralMap   BehavioralMap @relation(fields: [behavioralMapId], references: [id], onDelete: Cascade)
   label           String?       @db.VarChar(255)
 
-  personObservations BehavioralMapPersonObservation[]
+  personObservationGroups BehavioralMapPersonObservationGroup[]
 
   @@index([behavioralMapId])
   @@map("behavioral_map_group")
@@ -819,17 +819,25 @@ model BehavioralMapPersonObservation {
   position        Unsupported("Geometry(Point, 4326)")?
   observedAt      DateTime                              @map("observed_at") @db.Timestamptz(0)
 
-  behavioralMapGroupId Int?                @map("behavioral_map_group_id")
-  behavioralMapGroup   BehavioralMapGroup? @relation(fields: [behavioralMapGroupId], references: [id], onDelete: SetNull)
-
+  groupMemberships           BehavioralMapPersonObservationGroup[]
   characteristics            BehavioralMapPersonObservationCharacteristic[]
   responseGeometryLinks      BehavioralMapPersonObservationResponseGeometry[]
   interactionsAsObservationA BehavioralMapPersonObservationInteraction[]      @relation("behavioral_map_interaction_observation_a")
   interactionsAsObservationB BehavioralMapPersonObservationInteraction[]      @relation("behavioral_map_interaction_observation_b")
 
   @@index([behavioralMapId])
-  @@index([behavioralMapGroupId])
   @@map("behavioral_map_person_observation")
+}
+
+model BehavioralMapPersonObservationGroup {
+  behavioralMapGroupId Int                            @map("behavioral_map_group_id")
+  behavioralMapGroup   BehavioralMapGroup             @relation(fields: [behavioralMapGroupId], references: [id], onDelete: Cascade)
+  personObservationId  Int                            @map("person_observation_id")
+  personObservation    BehavioralMapPersonObservation @relation(fields: [personObservationId], references: [id], onDelete: Cascade)
+
+  @@id([behavioralMapGroupId, personObservationId])
+  @@index([personObservationId])
+  @@map("behavioral_map_person_observation_group")
 }
 
 model BehavioralMapPersonObservationCharacteristic {

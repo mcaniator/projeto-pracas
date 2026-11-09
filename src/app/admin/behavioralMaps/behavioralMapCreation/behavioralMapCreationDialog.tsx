@@ -34,7 +34,7 @@ export default function BehavioralMapCreationDialog({
         if (!data?.behavioralMapId) return;
         setIsRedirecting(true);
         router.push(
-          `/admin/behavioralMap/details?behavioralMapId=${data.behavioralMapId}`,
+          `/admin/behavioralMaps/details?behavioralMapId=${data.behavioralMapId}`,
         );
       },
     },

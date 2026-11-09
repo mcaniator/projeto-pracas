@@ -2,7 +2,6 @@
 
 import CButton from "@/components/ui/cButton";
 import CCheckbox from "@/components/ui/cCheckbox";
-import CColorViewer from "@/components/ui/cColorViewer";
 import CCounterButtons from "@/components/ui/cCounterButtons";
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
 import { dateTimeWithoutSecondsFormater } from "@/lib/formatters/dateFormatters";
@@ -120,7 +119,7 @@ const AddingObservationState = ({
               </p>
             )}
 
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {currentGroup.characteristics.map(({ personCharacteristic }) => {
                 const characteristicId = personCharacteristic.id;
                 const isSelected = currentSelection.includes(characteristicId);
@@ -131,8 +130,8 @@ const AddingObservationState = ({
                       key={characteristicId}
                       className="flex min-h-14 items-center rounded-lg border p-2"
                       style={{
-                        borderColor: isSelected ? color : "#d1d5db",
-                        backgroundColor: isSelected ? "#f8fafc" : "#ffffff",
+                        borderColor: color,
+                        backgroundColor: "#ffffff",
                       }}
                     >
                       <CCheckbox
@@ -144,6 +143,7 @@ const AddingObservationState = ({
                           )
                         }
                         sx={{
+                          color,
                           "&.Mui-checked": { color },
                         }}
                         formControlLabelSx={{
@@ -151,8 +151,10 @@ const AddingObservationState = ({
                           width: "100%",
                         }}
                         label={
-                          <span className="flex items-center gap-2">
-                            <CColorViewer color={color} />
+                          <span
+                            className="flex items-center gap-2"
+                            style={{ color }}
+                          >
                             <CDynamicIcon
                               iconKey={personCharacteristic.iconKey}
                             />
@@ -161,25 +163,45 @@ const AddingObservationState = ({
                         }
                       />
                     </div>
-                  : <button
+                  : <CButton
                       key={characteristicId}
+                      variant={isSelected ? "contained" : "outlined"}
                       type="button"
                       aria-pressed={isSelected}
                       onClick={() =>
                         toggleCharacteristic(characteristicId, true)
                       }
-                      className="flex min-h-16 items-center gap-3 rounded-lg border-2 p-3 text-left transition-colors"
-                      style={{
-                        borderColor: isSelected ? color : "#d1d5db",
-                        backgroundColor: isSelected ? "#f8fafc" : "#ffffff",
+                      className="min-h-16 w-full"
+                      sx={{
+                        width: "100%",
+                        height: "100%",
+                        justifyContent: "flex-start",
+                        gap: 1.5,
+                        px: 1.5,
+                        textAlign: "left",
+                        color: isSelected ? "common.white" : color,
+                        ...(isSelected ?
+                          {
+                            backgroundColor: color,
+                            "&:hover": {
+                              backgroundColor: color,
+                              filter: "brightness(0.9)",
+                            },
+                          }
+                        : {
+                            borderColor: color,
+                            "&:hover": {
+                              borderColor: color,
+                              backgroundColor: `${color}14`,
+                            },
+                          }),
                       }}
                     >
-                      <CColorViewer color={color} />
                       <CDynamicIcon iconKey={personCharacteristic.iconKey} />
                       <span className="font-medium">
                         {personCharacteristic.name}
                       </span>
-                    </button>;
+                    </CButton>;
               })}
             </div>
           </div>
