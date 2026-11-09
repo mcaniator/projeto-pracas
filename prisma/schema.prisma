@@ -152,7 +152,8 @@ model User {
 
   response       Response[]
   responseOption ResponseOption[]
-  tally   Tally[]
+  tally          Tally[]
+  behavioralMaps BehavioralMap[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -314,12 +315,15 @@ model ResponseGeometry {
   formSubmissionId Int            @map("form_submission_id")
   formSubmission   FormSubmission @relation(fields: [formSubmissionId], references: [id], onDelete: Cascade)
 
-  geometry Unsupported("Geometry")?
+  geometry    Unsupported("Geometry")?
+  description String?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([formSubmissionId, questionId], name: "formSubmissionId_questionId")
+  behavioralMapPersonObservationLinks BehavioralMapPersonObservationResponseGeometry[]
+
+  @@index([formSubmissionId, id])
   @@map("response_geometry")
 }
 
@@ -402,7 +406,8 @@ model FormSubmission {
 
   location           Location?
   assessment         Assessment?
-  tally       Tally?
+  tally              Tally?
+  behavioralMap      BehavioralMap?
   responseGeometries ResponseGeometry[]
   responses          Response[]
   responseOptions    ResponseOption[]
@@ -414,16 +419,17 @@ model FormSubmission {
 }
 
 model Form {
-  id                    Int                    @id @default(autoincrement())
-  formUse               FormUse                @map("form_use")
-  name                  String                 @db.VarChar(255)
-  archived              Boolean                @default(false)
-  finalized             Boolean                @default(false)
-  assessment            Assessment[]
-  calculations          Calculation[]
-  formSubmissions       FormSubmission[]
-  formItems             FormItem[]
-  tallyProtocols TallyProtocol[]
+  id                     Int                     @id @default(autoincrement())
+  formUse                FormUse                 @map("form_use")
+  name                   String                  @db.VarChar(255)
+  archived               Boolean                 @default(false)
+  finalized              Boolean                 @default(false)
+  assessment             Assessment[]
+  calculations           Calculation[]
+  formSubmissions        FormSubmission[]
+  formItems              FormItem[]
+  tallyProtocols         TallyProtocol[]
+  behavioralMapProtocols BehavioralMapProtocol[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -504,8 +510,9 @@ model Location {
   broadAdministrativeUnitId        Int?                            @map("broad_administrative_unit_id")
   broadAdministrativeUnit          BroadAdministrativeUnit?        @relation(fields: [broadAdministrativeUnitId], references: [id])
 
-  assessment   Assessment[]
-  tally Tally[]
+  assessment     Assessment[]
+  tally          Tally[]
+  behavioralMaps BehavioralMap[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -653,8 +660,9 @@ model PersonCharacteristicGroup {
   title      String  @db.VarChar(255)
   isTagGroup Boolean @default(false) @map("is_tag_group")
 
-  personCharacteristics PersonCharacteristic[]
-  tallyProtocolGroups   TallyProtocolGroup[]
+  personCharacteristics       PersonCharacteristic[]
+  tallyProtocolGroups         TallyProtocolGroup[]
+  behavioralMapProtocolGroups BehavioralMapProtocolGroup[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -672,8 +680,10 @@ model PersonCharacteristic {
   groupId Int                       @map("group_id")
   group   PersonCharacteristicGroup @relation(fields: [groupId], references: [id])
 
-  tallyProtocolCharacteristics TallyProtocolCharacteristic[]
-  observationCharacteristics   PersonObservationCharacteristic[]
+  tallyProtocolCharacteristics            TallyProtocolCharacteristic[]
+  behavioralMapProtocolCharacteristics    BehavioralMapProtocolCharacteristic[]
+  observationCharacteristics              PersonObservationCharacteristic[]
+  behavioralMapObservationCharacteristics BehavioralMapPersonObservationCharacteristic[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -693,7 +703,7 @@ model TallyProtocol {
   form   Form? @relation(fields: [formId], references: [id])
 
   tallyProtocolGroups TallyProtocolGroup[]
-  tally        Tally[]
+  tally               Tally[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -701,11 +711,183 @@ model TallyProtocol {
   @@map("tally_protocol")
 }
 
+model BehavioralMapProtocol {
+  id Int @id @default(autoincrement())
+
+  name      String  @db.VarChar(255)
+  archived  Boolean @default(false)
+  finalized Boolean @default(false)
+
+  formId Int?  @map("form_id")
+  form   Form? @relation(fields: [formId], references: [id])
+
+  behavioralMapProtocolGroups BehavioralMapProtocolGroup[]
+  behavioralMaps              BehavioralMap[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("behavioral_map_protocol")
+}
+
+model BehavioralMapProtocolGroup {
+  id Int @id @default(autoincrement())
+
+  behavioralMapProtocolId     Int                       @map("behavioral_map_protocol_id")
+  behavioralMapProtocol       BehavioralMapProtocol     @relation(fields: [behavioralMapProtocolId], references: [id], onDelete: Cascade)
+  personCharacteristicGroupId Int                       @map("person_characteristic_group_id")
+  personCharacteristicGroup   PersonCharacteristicGroup @relation(fields: [personCharacteristicGroupId], references: [id])
+
+  position Int
+
+  characteristics BehavioralMapProtocolCharacteristic[] @relation("behavioral_map_protocol_group_characteristics")
+
+  @@unique([behavioralMapProtocolId, personCharacteristicGroupId])
+  @@unique([behavioralMapProtocolId, position])
+  @@index([personCharacteristicGroupId])
+  @@map("behavioral_map_protocol_group")
+}
+
+model BehavioralMapProtocolCharacteristic {
+  id Int @id @default(autoincrement())
+
+  behavioralMapProtocolGroupId Int                        @map("behavioral_map_protocol_group_id")
+  behavioralMapProtocolGroup   BehavioralMapProtocolGroup @relation("behavioral_map_protocol_group_characteristics", fields: [behavioralMapProtocolGroupId], references: [id], onDelete: Cascade)
+  personCharacteristicId       Int                        @map("person_characteristic_id")
+  personCharacteristic         PersonCharacteristic       @relation(fields: [personCharacteristicId], references: [id])
+
+  position Int
+
+  @@unique([behavioralMapProtocolGroupId, personCharacteristicId], map: "behavioral_map_protocol_char_group_char_key")
+  @@unique([behavioralMapProtocolGroupId, position], map: "behavioral_map_protocol_char_group_position_key")
+  @@index([personCharacteristicId])
+  @@map("behavioral_map_protocol_characteristic")
+}
+
+model BehavioralMap {
+  id Int @id @default(autoincrement())
+
+  startDate   DateTime  @map("start_date") @db.Timestamptz(0)
+  endDate     DateTime? @map("end_date") @db.Timestamptz(0)
+  isFinalized Boolean   @default(false) @map("is_finalized")
+
+  userId String @map("user_id") @db.VarChar(255)
+  user   User   @relation(fields: [userId], references: [id])
+
+  locationId Int      @map("location_id")
+  location   Location @relation(fields: [locationId], references: [id])
+
+  behavioralMapProtocolId Int                   @map("behavioral_map_protocol_id")
+  behavioralMapProtocol   BehavioralMapProtocol @relation(fields: [behavioralMapProtocolId], references: [id])
+
+  formSubmissionId Int?            @unique @map("form_submission_id")
+  formSubmission   FormSubmission? @relation(fields: [formSubmissionId], references: [id])
+
+  groups                                 BehavioralMapGroup[]
+  personObservations                     BehavioralMapPersonObservation[]
+  personObservationLinks                 BehavioralMapPersonObservationLink[]
+  personObservationResponseGeometryLinks BehavioralMapPersonObservationResponseGeometry[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([locationId])
+  @@index([behavioralMapProtocolId])
+  @@map("behavioral_map")
+}
+
+model BehavioralMapGroup {
+  id Int @id @default(autoincrement())
+
+  behavioralMapId Int           @map("behavioral_map_id")
+  behavioralMap   BehavioralMap @relation(fields: [behavioralMapId], references: [id], onDelete: Cascade)
+  label           String?       @db.VarChar(255)
+
+  personObservationGroups BehavioralMapPersonObservationGroup[]
+
+  @@index([behavioralMapId])
+  @@map("behavioral_map_group")
+}
+
+model BehavioralMapPersonObservation {
+  id Int @id @default(autoincrement())
+
+  behavioralMapId Int                                   @map("behavioral_map_id")
+  behavioralMap   BehavioralMap                         @relation(fields: [behavioralMapId], references: [id], onDelete: Cascade)
+  quantity        Int
+  // Prisma exposes Unsupported geometry columns as optional. Require this value in application validation and migrations.
+  position        Unsupported("Geometry(Point, 4326)")?
+  observedAt      DateTime                              @map("observed_at") @db.Timestamptz(0)
+
+  groupMemberships      BehavioralMapPersonObservationGroup[]
+  characteristics       BehavioralMapPersonObservationCharacteristic[]
+  responseGeometryLinks BehavioralMapPersonObservationResponseGeometry[]
+  linksAsObservationA   BehavioralMapPersonObservationLink[]             @relation("behavioral_map_link_observation_a")
+  linksAsObservationB   BehavioralMapPersonObservationLink[]             @relation("behavioral_map_link_observation_b")
+
+  @@index([behavioralMapId])
+  @@map("behavioral_map_person_observation")
+}
+
+model BehavioralMapPersonObservationGroup {
+  behavioralMapGroupId Int                            @map("behavioral_map_group_id")
+  behavioralMapGroup   BehavioralMapGroup             @relation(fields: [behavioralMapGroupId], references: [id], onDelete: Cascade)
+  personObservationId  Int                            @map("person_observation_id")
+  personObservation    BehavioralMapPersonObservation @relation(fields: [personObservationId], references: [id], onDelete: Cascade)
+
+  @@id([behavioralMapGroupId, personObservationId])
+  @@index([personObservationId])
+  @@map("behavioral_map_person_observation_group")
+}
+
+model BehavioralMapPersonObservationCharacteristic {
+  behavioralMapPersonObservationId Int                            @map("behavioral_map_person_observation_id")
+  behavioralMapPersonObservation   BehavioralMapPersonObservation @relation(fields: [behavioralMapPersonObservationId], references: [id], onDelete: Cascade)
+  personCharacteristicId           Int                            @map("person_characteristic_id")
+  personCharacteristic             PersonCharacteristic           @relation(fields: [personCharacteristicId], references: [id])
+
+  @@id([behavioralMapPersonObservationId, personCharacteristicId])
+  @@index([personCharacteristicId])
+  @@map("behavioral_map_person_observation_characteristic")
+}
+
+model BehavioralMapPersonObservationResponseGeometry {
+  behavioralMapId     Int                            @map("behavioral_map_id")
+  behavioralMap       BehavioralMap                  @relation(fields: [behavioralMapId], references: [id], onDelete: Cascade)
+  personObservationId Int                            @map("person_observation_id")
+  personObservation   BehavioralMapPersonObservation @relation(fields: [personObservationId], references: [id], onDelete: Cascade)
+  responseGeometryId  Int                            @map("response_geometry_id")
+  responseGeometry    ResponseGeometry               @relation(fields: [responseGeometryId], references: [id], onDelete: Cascade)
+  description         String                         @db.Text
+
+  @@id([behavioralMapId, personObservationId, responseGeometryId])
+  @@index([responseGeometryId])
+  @@map("behavioral_map_person_observation_response_geometry")
+}
+
+model BehavioralMapPersonObservationLink {
+  id Int @id @default(autoincrement())
+
+  behavioralMapId Int                            @map("behavioral_map_id")
+  behavioralMap   BehavioralMap                  @relation(fields: [behavioralMapId], references: [id], onDelete: Cascade)
+  observationAId  Int                            @map("observation_a_id")
+  observationA    BehavioralMapPersonObservation @relation("behavioral_map_link_observation_a", fields: [observationAId], references: [id], onDelete: Cascade, map: "behavioral_map_obs_link_obs_a_fkey")
+  observationBId  Int                            @map("observation_b_id")
+  observationB    BehavioralMapPersonObservation @relation("behavioral_map_link_observation_b", fields: [observationBId], references: [id], onDelete: Cascade, map: "behavioral_map_obs_link_obs_b_fkey")
+  description     String                         @db.Text
+
+  @@index([behavioralMapId])
+  @@index([observationAId])
+  @@index([observationBId])
+  @@map("behavioral_map_person_observation_link")
+}
+
 model TallyProtocolGroup {
   id Int @id @default(autoincrement())
 
-  tallyProtocolId      Int                       @map("tally_protocol_id")
-  tallyProtocol        TallyProtocol      @relation(fields: [tallyProtocolId], references: [id])
+  tallyProtocolId             Int                       @map("tally_protocol_id")
+  tallyProtocol               TallyProtocol             @relation(fields: [tallyProtocolId], references: [id])
   personCharacteristicGroupId Int                       @map("person_characteristic_group_id")
   personCharacteristicGroup   PersonCharacteristicGroup @relation(fields: [personCharacteristicGroupId], references: [id])
 
@@ -748,7 +930,7 @@ model Tally {
   locationId Int      @map("location_id")
   location   Location @relation(fields: [locationId], references: [id])
 
-  tallyProtocolId Int                  @map("tally_protocol_id")
+  tallyProtocolId Int           @map("tally_protocol_id")
   tallyProtocol   TallyProtocol @relation(fields: [tallyProtocolId], references: [id])
 
   formSubmissionId Int?            @unique @map("form_submission_id")
@@ -768,9 +950,9 @@ model Tally {
 model PersonObservation {
   id Int @id @default(autoincrement())
 
-  tallyId Int          @map("tally_id")
-  tally   Tally @relation(fields: [tallyId], references: [id], onDelete: Cascade)
-  quantity       Int
+  tallyId  Int   @map("tally_id")
+  tally    Tally @relation(fields: [tallyId], references: [id], onDelete: Cascade)
+  quantity Int
 
   characteristics PersonObservationCharacteristic[]
 

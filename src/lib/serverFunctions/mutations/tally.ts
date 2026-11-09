@@ -20,17 +20,13 @@ export const createTallyDataSchema = z.object({
   tallyProtocolId: z.number().int().positive(),
 });
 
-export type CreateTallyData = z.infer<
-  typeof createTallyDataSchema
->;
+export type CreateTallyData = z.infer<typeof createTallyDataSchema>;
 
 export type CreateTallyResponse = NonNullable<
   Awaited<ReturnType<typeof createTally>>["data"]
 >;
 
-export const createTally = async (
-  request: APIRequestData<CreateTallyData>,
-) => {
+export const createTally = async (request: APIRequestData<CreateTallyData>) => {
   const data = request.data!;
   const session = await auth();
 
@@ -105,13 +101,9 @@ export const deleteTallyDataSchema = z.object({
   tallyId: z.coerce.number().int().positive(),
 });
 
-export type DeleteTallyData = z.infer<
-  typeof deleteTallyDataSchema
->;
+export type DeleteTallyData = z.infer<typeof deleteTallyDataSchema>;
 
-export const deleteTally = async (
-  request: APIRequestData<DeleteTallyData>,
-) => {
+export const deleteTally = async (request: APIRequestData<DeleteTallyData>) => {
   const { tallyId } = request.data!;
 
   try {
@@ -301,17 +293,13 @@ export const tallySubmitDataSchema = z
     }
   });
 
-export type TallySubmitData = z.infer<
-  typeof tallySubmitDataSchema
->;
+export type TallySubmitData = z.infer<typeof tallySubmitDataSchema>;
 
 export type TallySubmitResponse = NonNullable<
   Awaited<ReturnType<typeof tallySubmit>>["data"]
 >;
 
-export const tallySubmit = async (
-  request: APIRequestData<TallySubmitData>,
-) => {
+export const tallySubmit = async (request: APIRequestData<TallySubmitData>) => {
   const data = request.data;
 
   if (!data) {
@@ -415,8 +403,7 @@ export const tallySubmit = async (
       };
     }
 
-    const templateGroups =
-      tally.tallyProtocol.tallyProtocolGroups;
+    const templateGroups = tally.tallyProtocol.tallyProtocolGroups;
     const allowedCharacteristicIds = new Set(
       templateGroups.flatMap((group) =>
         group.characteristics.map(
@@ -497,7 +484,7 @@ export const tallySubmit = async (
       if (tally.formSubmissionId && formSubmission) {
         const formSubmissionTransactions =
           await getFormSubmissionUpdateTransactions({
-            tx,
+            prismaClient: tx,
             formSubmissionId: tally.formSubmissionId,
             formSubmission,
           });

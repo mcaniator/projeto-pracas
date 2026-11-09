@@ -617,49 +617,20 @@ const adminSQLiteAssessmentSubmit = async (
 
     // The assessment is part of the same transaction and is only updated when
     // every form-submission operation succeeds.
-    await adminSQLiteDb.executeBulkUpsertTransaction([
+    await adminSQLiteDb.executeTransaction([
       {
-        table: "assessment",
-        insertColumns: [
-          "id",
-          "exists_remotely",
-          "start_date",
-          "end_date",
-          "is_finalized",
-          "is_public",
-          "drive_folder_url",
-          "user_id",
-          "location_id",
-          "form_id",
-          "form_submission_id",
-          "created_at",
-          "updated_at",
-        ],
-        updateColumns: [
-          "start_date",
-          "end_date",
-          "is_finalized",
-          "is_public",
-          "drive_folder_url",
-          "updated_at",
-        ],
-        conflictColumns: ["id"],
-        rows: [
-          [
-            assessment.id,
-            assessment.existsRemotely,
-            startDate.toISOString(),
-            endDate?.toISOString() ?? null,
-            isFinalized,
-            isFinalized && assessment.isPublic,
-            driveFolderUrl,
-            assessment.userId,
-            assessment.locationId,
-            assessment.formId,
-            assessment.formSubmissionId,
-            assessment.createdAt.toISOString(),
-            now.toISOString(),
-          ],
+        statement: `UPDATE assessment
+          SET start_date = ?, end_date = ?, is_finalized = ?, is_public = ?,
+            drive_folder_url = ?, updated_at = ?
+          WHERE id = ?`,
+        values: [
+          startDate.toISOString(),
+          endDate?.toISOString() ?? null,
+          isFinalized ? 1 : 0,
+          isFinalized && assessment.isPublic ? 1 : 0,
+          driveFolderUrl,
+          now.toISOString(),
+          assessment.id,
         ],
       },
       ...formSubmissionOperations,

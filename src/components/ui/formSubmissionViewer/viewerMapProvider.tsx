@@ -1,42 +1,23 @@
 "use client";
 
 import type { ResponseGeometry } from "@/lib/types/formSubmission/responseFormTypes";
-import Feature from "ol/Feature";
+import {
+  createResponseGeometryFeature,
+  getResponseGeometryStyle,
+} from "@/lib/utils/responseGeometryMap";
 import Map from "ol/Map";
 import View from "ol/View";
-import { Point, Polygon } from "ol/geom";
 import TileLayer from "ol/layer/Tile";
 import VectorLayer from "ol/layer/Vector";
 import { useGeographic } from "ol/proj";
 import OSM from "ol/source/OSM";
 import VectorSource from "ol/source/Vector";
-import CircleStyle from "ol/style/Circle";
-import Fill from "ol/style/Fill";
-import Stroke from "ol/style/Stroke";
-import Style from "ol/style/Style";
 import { useEffect, useMemo, useRef } from "react";
 
 import {
   getInitialViewTargetKey,
   resolveInitialViewTarget,
 } from "../responseForm/responseFormMapInitialView";
-
-const styleFunction = () =>
-  new Style({
-    fill: new Fill({
-      color: "#9B59B24D",
-    }),
-    stroke: new Stroke({
-      color: "#7C4091",
-      lineCap: "butt",
-      width: 3,
-    }),
-    image: new CircleStyle({
-      radius: 8,
-      fill: new Fill({ color: "#9B59B24D" }),
-      stroke: new Stroke({ color: "#7C4091", width: 3 }),
-    }),
-  });
 
 const FormSubmissionViewerMapProvider = ({
   geometries,
@@ -54,7 +35,7 @@ const FormSubmissionViewerMapProvider = ({
   const map = useMemo(() => {
     const vectorLayer = new VectorLayer({
       source: vectorSource.current,
-      style: styleFunction,
+      style: (feature) => getResponseGeometryStyle(feature),
     });
 
     return new Map({
@@ -88,16 +69,7 @@ const FormSubmissionViewerMapProvider = ({
     vectorSource.current.clear();
 
     geometries.forEach((geometry) => {
-      let feature: Feature | undefined;
-
-      if (geometry.type === "Point") {
-        feature = new Feature(new Point(geometry.coordinates as number[]));
-      } else if (geometry.type === "Polygon") {
-        feature = new Feature(
-          new Polygon(geometry.coordinates as number[][][]),
-        );
-      }
-
+      const feature = createResponseGeometryFeature(geometry);
       if (feature) {
         vectorSource.current.addFeature(feature);
       }

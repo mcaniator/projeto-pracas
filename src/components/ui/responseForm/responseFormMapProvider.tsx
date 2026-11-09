@@ -2,20 +2,27 @@
 
 import { useGeolocation } from "@/components/context/geolocationContext";
 import CButton from "@/components/ui/cButton";
+import CTextField from "@/components/ui/cTextField";
 import CToggleButtonGroup from "@/components/ui/cToggleButtonGroup";
+import CDialog from "@/components/ui/dialog/cDialog";
 import useCenterOnUserLocation from "@/lib/hooks/useCenterOnUserLocation";
 import { ResponseGeometry } from "@/lib/types/formSubmission/responseFormTypes";
+import {
+  createResponseGeometryFeature,
+  getResponseGeometryStyle,
+} from "@/lib/utils/responseGeometryMap";
 import { QuestionGeometryTypes } from "@prisma/client";
 import {
   IconClick,
   IconDragDrop,
   IconLocationPin,
+  IconPencil,
   IconPolygon,
 } from "@tabler/icons-react";
-import Feature from "ol/Feature";
+import type Feature from "ol/Feature";
 import Map from "ol/Map";
 import View from "ol/View";
-import { click } from "ol/events/condition";
+import { click, never } from "ol/events/condition";
 import { Point, Polygon } from "ol/geom";
 import { Draw, Modify, Select } from "ol/interaction";
 import TileLayer from "ol/layer/Tile";
@@ -23,13 +30,11 @@ import VectorLayer from "ol/layer/Vector";
 import { useGeographic } from "ol/proj";
 import OSM from "ol/source/OSM";
 import VectorSource from "ol/source/Vector";
-import CircleStyle from "ol/style/Circle";
-import Fill from "ol/style/Fill";
-import Stroke from "ol/style/Stroke";
-import Style from "ol/style/Style";
+import { getUid } from "ol/util";
 import {
   createContext,
   forwardRef,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -66,7 +71,11 @@ const mapModeOptions: {
   tooltip: string;
 }[] = [
   { id: "DRAW", icon: <IconPolygon />, tooltip: "Desenhar" },
-  { id: "SELECT", icon: <IconClick />, tooltip: "Excluir" },
+  {
+    id: "SELECT",
+    icon: <IconClick />,
+    tooltip: "Selecionar para editar a descrição ou excluir",
+  },
   { id: "DRAG", icon: <IconDragDrop />, tooltip: "Arrastar" },
 ];
 
@@ -79,7 +88,7 @@ interface MapProviderProps {
     questionId: number,
     geometries: ResponseGeometry[],
   ) => void;
-  handleChangeIsInSelectMode: (val: boolean) => void;
+  onGeometrySelectionChange: (hasSelection: boolean) => void;
   finalized: boolean;
 }
 
@@ -93,7 +102,7 @@ const MapProvider = forwardRef(
       locationPolygonGeoJson,
       initialGeometries,
       handleResponseGeometryChange,
-      handleChangeIsInSelectMode,
+      onGeometrySelectionChange,
       finalized,
     }: MapProviderProps,
     ref,
@@ -114,34 +123,17 @@ const MapProvider = forwardRef(
     const [selectedFeature, setSelectedFeature] = useState<Feature | null>(
       null,
     );
+    const [descriptionFeature, setDescriptionFeature] =
+      useState<Feature | null>(null);
+    const descriptionInputRef = useRef<HTMLTextAreaElement>(null);
     const vectorSource = useRef<VectorSource>(new VectorSource());
     const mapRef = useRef<HTMLDivElement>(null);
     const lastAppliedInitialViewKeyRef = useRef<string | null>(null);
 
-    const styleFunction = () => {
-      const style = new Style({
-        fill: new Fill({
-          color: "#9B59B24D",
-        }),
-        stroke: new Stroke({
-          color: "#7C4091",
-          lineCap: "butt",
-          width: 3,
-        }),
-        image: new CircleStyle({
-          radius: 8,
-          fill: new Fill({ color: "#9B59B24D" }),
-          stroke: new Stroke({ color: "#7C4091", width: 3 }),
-        }),
-      });
-
-      return style;
-    };
-
     const map = useMemo(() => {
       const vectorLayer = new VectorLayer({
         source: vectorSource.current,
-        style: styleFunction,
+        style: (feature) => getResponseGeometryStyle(feature),
       });
 
       return new Map({
@@ -163,22 +155,7 @@ const MapProvider = forwardRef(
     const isUserLocationLoading =
       !cachedUserCoordinates && isReadingUserLocation;
 
-    useEffect(() => {
-      if (mapRef.current !== null) {
-        map.setTarget(mapRef.current);
-      }
-
-      const interactions = map.getInteractions();
-      interactions.forEach((interaction) => {
-        if (
-          interaction instanceof Draw ||
-          interaction instanceof Modify ||
-          interaction instanceof Select
-        ) {
-          map.removeInteraction(interaction);
-        }
-      });
-
+    const createDrawInteraction = useCallback(() => {
       const draw = new Draw({
         source: vectorSource.current,
         type: currentGeometryType,
@@ -196,33 +173,46 @@ const MapProvider = forwardRef(
               "circle-fill-color": "#9B59B2",
             },
       });
+      draw.on("drawend", ({ feature }) => {
+        feature.setId(crypto.randomUUID());
+        setDescriptionFeature(feature);
+      });
+      return draw;
+    }, [currentGeometryType]);
 
+    useEffect(() => {
+      if (mapRef.current !== null) {
+        map.setTarget(mapRef.current);
+      }
+
+      for (const interaction of map.getInteractions().getArray().slice()) {
+        if (
+          interaction instanceof Draw ||
+          interaction instanceof Modify ||
+          interaction instanceof Select
+        ) {
+          map.removeInteraction(interaction);
+        }
+      }
       if (!finalized) {
-        map.addInteraction(draw);
-        handleChangeIsInSelectMode(false);
+        map.addInteraction(createDrawInteraction());
         setMapMode("DRAW");
       }
+      setSelectedFeature(null);
+      onGeometrySelectionChange(false);
 
       return () => {
         map.setTarget(undefined);
       };
-    }, [map, currentGeometryType, finalized, handleChangeIsInSelectMode]);
+    }, [map, createDrawInteraction, finalized, onGeometrySelectionChange]);
 
     useEffect(() => {
       vectorSource.current.clear();
 
       initialGeometries?.forEach((geometry) => {
-        let feature: Feature | undefined;
-
-        if (geometry.type === "Point") {
-          feature = new Feature(new Point(geometry.coordinates as number[]));
-        } else if (geometry.type === "Polygon") {
-          feature = new Feature(
-            new Polygon(geometry.coordinates as number[][][]),
-          );
-        }
-
+        const feature = createResponseGeometryFeature(geometry);
         if (feature) {
+          if (feature.getId() === undefined) feature.setId(crypto.randomUUID());
           vectorSource.current.addFeature(feature);
         }
       });
@@ -265,9 +255,15 @@ const MapProvider = forwardRef(
         .map((feature) => {
           const geometry = feature.getGeometry();
           if (geometry instanceof Point || geometry instanceof Polygon) {
+            const description = feature.get("description") as
+              | string
+              | null
+              | undefined;
             return {
+              localId: String(feature.getId()),
               type: geometry.getType(),
               coordinates: geometry.getCoordinates(),
+              description: description?.trim() || null,
             };
           }
         })
@@ -279,65 +275,63 @@ const MapProvider = forwardRef(
     };
 
     const removeSelectedFeature = () => {
-      if (selectedFeature) {
-        vectorSource.current.removeFeature(selectedFeature);
-        setSelectedFeature(null);
+      if (!selectedFeature) return;
+      for (const interaction of map.getInteractions().getArray()) {
+        if (interaction instanceof Select) {
+          interaction.getFeatures().remove(selectedFeature);
+        }
       }
+      vectorSource.current.removeFeature(selectedFeature);
+      setSelectedFeature(null);
+      onGeometrySelectionChange(false);
     };
 
     const switchMode = (newMode: MapMode) => {
-      if (finalized) return;
+      if (finalized || newMode === mapMode) return;
+
+      for (const interaction of map.getInteractions().getArray().slice()) {
+        if (
+          interaction instanceof Draw ||
+          interaction instanceof Modify ||
+          interaction instanceof Select
+        ) {
+          map.removeInteraction(interaction);
+        }
+      }
+      setSelectedFeature(null);
+      onGeometrySelectionChange(false);
 
       if (newMode === "SELECT") {
-        const interactions = map.getInteractions();
-
-        interactions.forEach((interaction) => {
-          if (interaction instanceof Draw || interaction instanceof Modify) {
-            map.removeInteraction(interaction);
-          }
-        });
-
         const selectInteraction = new Select({
           condition: click,
+          toggleCondition: never,
           hitTolerance: 10,
+          style: (feature) =>
+            getResponseGeometryStyle(feature, { selected: true }),
         });
         selectInteraction.on("select", (event) => {
-          const selected = event.selected[0];
-          if (selected) {
-            setSelectedFeature(selected);
-            handleChangeIsInSelectMode(true);
-          } else {
-            setSelectedFeature(null);
-          }
+          const selected = event.selected[0] ?? null;
+          setSelectedFeature(selected);
+          onGeometrySelectionChange(selected !== null);
         });
         map.addInteraction(selectInteraction);
-        setMapMode("SELECT");
       } else if (newMode === "DRAW") {
-        const interactions = map.getInteractions();
-        interactions.forEach((interaction) => {
-          if (interaction instanceof Modify || interaction instanceof Select) {
-            map.removeInteraction(interaction);
-          }
-        });
-        const draw = new Draw({
-          source: vectorSource.current,
-          type: currentGeometryType,
-        });
-        map.addInteraction(draw);
-        setMapMode("DRAW");
-        handleChangeIsInSelectMode(false);
+        map.addInteraction(createDrawInteraction());
       } else {
-        const interactions = map.getInteractions();
-        interactions.forEach((interaction) => {
-          if (interaction instanceof Select || interaction instanceof Draw) {
-            map.removeInteraction(interaction);
-          }
-        });
         const modify = new Modify({ source: vectorSource.current });
         map.addInteraction(modify);
-        setMapMode("DRAG");
-        handleChangeIsInSelectMode(false);
       }
+      setMapMode(newMode);
+    };
+
+    const closeDescriptionDialog = () => setDescriptionFeature(null);
+
+    const saveDescription = () => {
+      const value = descriptionInputRef.current?.value;
+      if (descriptionFeature && value !== undefined) {
+        descriptionFeature.set("description", value.trim());
+      }
+      closeDescriptionDialog();
     };
 
     useImperativeHandle(ref, () => ({
@@ -375,6 +369,39 @@ const MapProvider = forwardRef(
               />
             </div>
           )}
+          {!finalized && selectedFeature && (
+            <div className="absolute bottom-2 left-2 z-50">
+              <CButton onClick={() => setDescriptionFeature(selectedFeature)}>
+                <IconPencil />
+                Editar descrição
+              </CButton>
+            </div>
+          )}
+          <CDialog
+            open={descriptionFeature !== null}
+            title="Descrição da geometria"
+            onClose={closeDescriptionDialog}
+            onCancel={closeDescriptionDialog}
+            onConfirm={saveDescription}
+            cancelChildren="Cancelar"
+            confirmChildren="Confirmar"
+          >
+            {descriptionFeature && (
+              <CTextField
+                key={getUid(descriptionFeature)}
+                label="Descrição (opcional)"
+                defaultValue={
+                  descriptionFeature.get("description") ?
+                    String(descriptionFeature.get("description"))
+                  : null
+                }
+                inputRef={descriptionInputRef}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") event.stopPropagation();
+                }}
+              />
+            )}
+          </CDialog>
           <div className="pointer-events-auto absolute bottom-2 right-2 z-50 flex h-fit w-fit flex-col gap-2 overflow-auto">
             <CButton
               square
