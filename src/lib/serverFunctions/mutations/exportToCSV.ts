@@ -104,13 +104,9 @@ const _exportRegistrationData = async (
           formatCSVField(location.popularName),
           formatCSVField(location.category?.name),
           formatCSVField(location?.type?.name),
-          formatCSVField(location.notes),
           formatCSVField(
             `${formatCSVField(location.firstStreet)}${formatCSVField(location.secondStreet ? " / " + location.secondStreet : "")}${formatCSVField(location.thirdStreet ? " / " + location.thirdStreet : "")}${formatCSVField(location.fourthStreet ? " / " + location.fourthStreet : "")}${formatCSVField(location.broadAdministrativeUnit ? " - " + location.broadAdministrativeUnit.name : "")}${formatCSVField(location.intermediateAdministrativeUnit ? " - " + location.intermediateAdministrativeUnit.name : "")}${formatCSVField(location.narrowAdministrativeUnit ? " - " + location.narrowAdministrativeUnit.name : "")} - ${formatCSVField(location.city.name)} - ${formatCSVField(location.city.state)}`,
           ),
-          location.creationYear,
-          location.lastMaintenanceYear,
-          location.legislation,
         ].join(";");
 
         return locationString;
