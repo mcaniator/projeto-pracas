@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import { TextFieldProps } from "@mui/material/TextField";
+import { useForkRef } from "@mui/material/utils";
 import { IconChevronDown, IconChevronUp, IconX } from "@tabler/icons-react";
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
@@ -44,30 +45,15 @@ type CNumberFieldProps = Omit<TextFieldProps, "onChange" | "sx"> & {
   sx?: SxProps<Theme>;
 };
 
-const assignRef = <T,>(ref: React.Ref<T> | undefined, value: T | null) => {
-  if (!ref) return;
-  if (typeof ref === "function") {
-    ref(value);
-    return;
-  }
-  ref.current = value;
-};
-
 const isSxArray = (
   value: SxProps<Theme> | undefined,
 ): value is readonly CNumberFieldSx[] => {
   return Array.isArray(value);
 };
 
-type NumberFieldTextControl = HTMLInputElement | HTMLTextAreaElement;
-
-const setNativeInputValue = (input: NumberFieldTextControl, value: string) => {
-  const inputPrototype =
-    input instanceof window.HTMLTextAreaElement ?
-      window.HTMLTextAreaElement.prototype
-    : window.HTMLInputElement.prototype;
+const setNativeInputValue = (input: HTMLInputElement, value: string) => {
   const valueDescriptor = Object.getOwnPropertyDescriptor(
-    inputPrototype,
+    window.HTMLInputElement.prototype,
     "value",
   );
 
@@ -75,7 +61,7 @@ const setNativeInputValue = (input: NumberFieldTextControl, value: string) => {
 };
 
 const getValueWithInsertedText = (
-  input: NumberFieldTextControl,
+  input: HTMLInputElement,
   text: string,
 ) => {
   const selectionStart = input.selectionStart ?? input.value.length;
@@ -147,6 +133,7 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
     const id = idProp ?? generatedId;
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const inputRef = useRef<HTMLInputElement | null>(null);
+    const handleInputRef = useForkRef(inputRef, ref);
     const [isValid, setIsValid] = useState(true);
     const [optimisticValue, setOptimisticValue] = useState<number | null>(
       value ?? null,
@@ -253,7 +240,6 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
         readOnly={readOnly}
         required={required}
         format={resolvedFormat}
-        inputRef={inputRef}
         onValueChange={handleValueChange}
         render={(rootProps) => (
           <FormControl
@@ -285,80 +271,61 @@ const CNumberField = React.forwardRef<HTMLInputElement, CNumberFieldProps>(
               placeholder={placeholder}
               label={label}
               disabled={disabled || readOnly}
-              inputRef={(node: HTMLInputElement | null) => {
-                inputRef.current = node;
-                assignRef(inputProps.ref, node);
-                assignRef(ref, node);
-              }}
+              inputRef={handleInputRef}
               value={state.inputValue}
-              onFocus={inputProps.onFocus}
-              onKeyDown={(event) => {
-                if (event.key === ".") {
+              inputProps={{
+                ...inputProps,
+                onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => {
+                  if (event.key !== ".") {
+                    inputProps.onKeyDown?.(event);
+                    return;
+                  }
+
                   event.preventDefault();
-
+                  const input = event.currentTarget;
+                  const selectionStart = input.selectionStart;
                   const normalizedValue = normalizeNumberFieldInputValue(
-                    getValueWithInsertedText(event.currentTarget, event.key),
-                    {
-                      decimalPointIndex:
-                        event.currentTarget.selectionStart ?? undefined,
-                    },
+                    getValueWithInsertedText(input, event.key),
+                    { decimalPointIndex: selectionStart ?? undefined },
                   );
-                  const caretPosition =
-                    event.currentTarget.selectionStart == null ?
-                      null
-                    : event.currentTarget.selectionStart + 1;
-
-                  if (normalizedValue !== event.currentTarget.value) {
-                    setNativeInputValue(event.currentTarget, normalizedValue);
-                    event.currentTarget.dispatchEvent(
-                      new Event("input", { bubbles: true }),
-                    );
-                    if (caretPosition != null) {
-                      event.currentTarget.setSelectionRange(
-                        caretPosition,
-                        caretPosition,
+                  if (normalizedValue !== input.value) {
+                    setNativeInputValue(input, normalizedValue);
+                    input.dispatchEvent(new Event("input", { bubbles: true }));
+                    if (selectionStart != null) {
+                      input.setSelectionRange(
+                        selectionStart + 1,
+                        selectionStart + 1,
                       );
                     }
                   }
-                  return;
-                }
-
-                inputProps.onKeyDown?.(event);
-              }}
-              onKeyUp={inputProps.onKeyUp}
-              onChange={(event) => {
-                const nativeEvent = event.nativeEvent as InputEvent;
-                const decimalPointIndex =
-                  (
-                    nativeEvent.data === "." &&
-                    event.currentTarget.selectionStart != null
-                  ) ?
-                    event.currentTarget.selectionStart - 1
-                  : undefined;
-                const normalizedValue = normalizeNumberFieldInputValue(
-                  event.currentTarget.value,
-                  { decimalPointIndex },
-                );
-                if (normalizedValue !== event.currentTarget.value) {
-                  setNativeInputValue(event.currentTarget, normalizedValue);
-                }
-                inputProps.onChange?.(event);
-              }}
-              onBlur={(event) => {
-                inputProps.onBlur?.(event);
-                if (required) {
-                  validate();
-                }
-                onBlur?.(event);
+                },
+                onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
+                  const input = event.currentTarget;
+                  const nativeEvent = event.nativeEvent as InputEvent;
+                  const decimalPointIndex =
+                    nativeEvent.data === "." && input.selectionStart != null ?
+                      input.selectionStart - 1
+                    : undefined;
+                  const normalizedValue = normalizeNumberFieldInputValue(
+                    input.value,
+                    { decimalPointIndex },
+                  );
+                  if (normalizedValue !== input.value) {
+                    setNativeInputValue(input, normalizedValue);
+                  }
+                  inputProps.onChange?.(event);
+                },
+                onBlur: (event: React.FocusEvent<HTMLInputElement>) => {
+                  inputProps.onBlur?.(event);
+                  if (required) {
+                    validate();
+                  }
+                  onBlur?.(event);
+                },
               }}
               sx={{
                 "@media (max-width: 679.95px)": {
                   height: "36px",
-                },
-              }}
-              slotProps={{
-                input: {
-                  ...inputProps,
                 },
               }}
               startAdornment={

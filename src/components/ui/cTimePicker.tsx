@@ -51,7 +51,7 @@ const CTimePicker = React.forwardRef<HTMLInputElement, CTimePickerProps>(
 
     const handleBlur = useCallback(() => {
       if (!dayjs(value).isValid()) {
-        onChange?.(null, { validationError: null });
+        onChange?.(null, { validationError: null, source: "field" });
       }
     }, [value, onChange]);
 
