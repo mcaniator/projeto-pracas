@@ -4,7 +4,12 @@ import CButton from "@/components/ui/cButton";
 import CChip from "@/components/ui/cChip";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CDialog from "@/components/ui/dialog/cDialog";
-import { IconClipboardData, IconTrash, IconUser } from "@tabler/icons-react";
+import {
+  IconArrowBackUp,
+  IconClipboardData,
+  IconTrash,
+  IconUser,
+} from "@tabler/icons-react";
 import type { Dayjs } from "dayjs";
 
 const BehavioralMapEvaluationDialog = ({
@@ -13,6 +18,8 @@ const BehavioralMapEvaluationDialog = ({
   username,
   startDate,
   onStartDateChange,
+  pendingSave,
+  onRevertDraft,
   onDelete,
   onClose,
 }: {
@@ -21,6 +28,8 @@ const BehavioralMapEvaluationDialog = ({
   username: string;
   startDate: Dayjs;
   onStartDateChange: (value: Dayjs) => void;
+  pendingSave: boolean;
+  onRevertDraft: () => void;
   onDelete?: () => void;
   onClose: () => void;
 }) => (
@@ -56,15 +65,29 @@ const BehavioralMapEvaluationDialog = ({
             if (value) onStartDateChange(value);
           }}
         />
-        <CButton
-          square
-          color="error"
-          tooltip="Excluir mapa comportamental"
-          disabled={!onDelete}
-          onClick={onDelete}
-        >
-          <IconTrash />
-        </CButton>
+        <div className="flex items-center gap-2">
+          <CButton
+            topLeftChipLabel="!"
+            enableTopLeftChip={pendingSave}
+            tooltip="Reverter alterações locais"
+            aria-label="Reverter alterações locais"
+            square
+            color="warning"
+            disabled={!pendingSave}
+            onClick={onRevertDraft}
+          >
+            <IconArrowBackUp />
+          </CButton>
+          <CButton
+            square
+            color="error"
+            tooltip="Excluir mapa comportamental"
+            disabled={!onDelete}
+            onClick={onDelete}
+          >
+            <IconTrash />
+          </CButton>
+        </div>
       </div>
     </div>
   </CDialog>

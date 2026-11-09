@@ -6,6 +6,7 @@ import type {
   UpdateBehavioralMapProtocolData,
 } from "@/lib/serverFunctions/mutations/behavioralMapProtocol";
 import type {
+  DeleteBehavioralMapData,
   SaveBehavioralMapData,
   SaveBehavioralMapResponse,
 } from "@/lib/serverFunctions/mutations/behavioralMapSubmission";
@@ -151,6 +152,14 @@ export const useBehavioralMapSave = (
     SaveBehavioralMapData
   >({
     url: "/api/admin/behavioralMaps/save",
+    callbacks: params?.callbacks,
+    options: { method: "POST" },
+  });
+};
+
+export const useDeleteBehavioralMap = (params?: UseFetchAPIParams<null>) => {
+  return useFetchAPI<null, Record<string, never>, DeleteBehavioralMapData>({
+    url: "/api/admin/behavioralMaps/delete",
     callbacks: params?.callbacks,
     options: { method: "POST" },
   });

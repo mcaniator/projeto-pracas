@@ -12,6 +12,78 @@ import { Prisma } from "@prisma/client";
 import { checkIfLoggedInUserHasAnyPermission } from "@serverOnly/checkPermission";
 import { z } from "zod";
 
+export const deleteBehavioralMapDataSchema = z.object({
+  behavioralMapId: z.coerce.number().int().positive(),
+});
+
+export type DeleteBehavioralMapData = z.infer<
+  typeof deleteBehavioralMapDataSchema
+>;
+
+export const deleteBehavioralMap = async (
+  request: APIRequestData<DeleteBehavioralMapData>,
+) => {
+  const { behavioralMapId } = request.data!;
+  try {
+    const behavioralMap = await prisma.behavioralMap.findUnique({
+      where: { id: behavioralMapId },
+      select: { userId: true, formSubmissionId: true },
+    });
+    if (!behavioralMap) {
+      return {
+        responseInfo: {
+          statusCode: 404,
+          message: "Mapa comportamental não encontrado!",
+        } as APIResponseInfo,
+        data: null,
+      };
+    }
+
+    const user = await getSessionUser();
+    if (behavioralMap.userId !== user?.id) {
+      try {
+        await checkIfLoggedInUserHasAnyPermission({
+          roles: ["TALLY_MANAGER"],
+        });
+      } catch {
+        return {
+          responseInfo: {
+            statusCode: 401,
+            message: "Sem permissão para excluir mapa comportamental!",
+          } as APIResponseInfo,
+          data: null,
+        };
+      }
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.behavioralMap.delete({ where: { id: behavioralMapId } });
+
+      if (behavioralMap.formSubmissionId) {
+        await tx.formSubmission.delete({
+          where: { id: behavioralMap.formSubmissionId },
+        });
+      }
+    });
+
+    return {
+      responseInfo: {
+        statusCode: 200,
+        message: "Mapa comportamental excluído!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  } catch {
+    return {
+      responseInfo: {
+        statusCode: 500,
+        message: "Erro ao excluir mapa comportamental!",
+      } as APIResponseInfo,
+      data: null,
+    };
+  }
+};
+
 const behavioralMapObservationSchema = z.object({
   localId: z.string().min(1),
   groupLocalIds: z
@@ -23,11 +95,14 @@ const behavioralMapObservationSchema = z.object({
   quantity: z.number().int().positive(),
   observedAt: z.coerce.date(),
   position: z.tuple([z.number().finite(), z.number().finite()]),
-  personCharacteristicIds: z
-    .array(z.number().int().positive())
+  characteristics: z
+    .array(z.object({ personCharacteristicId: z.number().int().positive() }))
     .min(1)
     .refine(
-      (ids) => new Set(ids).size === ids.length,
+      (characteristics) =>
+        new Set(
+          characteristics.map(({ personCharacteristicId }) => personCharacteristicId),
+        ).size === characteristics.length,
       "Uma observação não pode repetir características.",
     ),
 });
@@ -40,7 +115,13 @@ const behavioralMapGroupSchema = z.object({
 const behavioralMapLinkSchema = z.object({
   observationALocalId: z.string().min(1),
   observationBLocalId: z.string().min(1),
-  description: z.string().trim().min(1).max(2000),
+  description: z.string().trim().min(1),
+});
+
+const behavioralMapResponseGeometryLinkSchema = z.object({
+  observationALocalId: z.string().min(1),
+  responseGeometryLocalId: z.string().min(1),
+  description: z.string().trim().min(1),
 });
 
 export const saveBehavioralMapDataSchema = z
@@ -49,7 +130,8 @@ export const saveBehavioralMapDataSchema = z
     formSubmission: formSubmissionDataSchema.optional(),
     observations: z.array(behavioralMapObservationSchema),
     groups: z.array(behavioralMapGroupSchema),
-    links: z.array(behavioralMapLinkSchema),
+    observationLinks: z.array(behavioralMapLinkSchema),
+    responseGeometryLinks: z.array(behavioralMapResponseGeometryLinkSchema),
     startDate: z.coerce.date(),
     endDate: z.coerce.date().nullable(),
     isFinalized: z.boolean(),
@@ -99,17 +181,65 @@ export const saveBehavioralMapDataSchema = z
         }
       });
     });
-    data.links.forEach((link, index) => {
+    data.observationLinks.forEach((link, index) => {
       if (
         !localIds.has(link.observationALocalId) ||
         !localIds.has(link.observationBLocalId)
       ) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
-          path: ["links", index],
+          path: ["observationLinks", index],
           message: "A ligação referencia uma observação inexistente.",
         });
       }
+    });
+    const geometryLocalIds = new Set<string>();
+    data.formSubmission?.geometries.forEach(({ geometries }, questionIndex) => {
+      geometries.forEach(({ localId }, geometryIndex) => {
+        if (!localId) return;
+        if (geometryLocalIds.has(localId)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [
+              "formSubmission",
+              "geometries",
+              questionIndex,
+              "geometries",
+              geometryIndex,
+              "localId",
+            ],
+            message: "Identificador local de geometria repetido.",
+          });
+        }
+        geometryLocalIds.add(localId);
+      });
+    });
+    const geometryLinkPairs = new Set<string>();
+    data.responseGeometryLinks.forEach((link, index) => {
+      const path = ["responseGeometryLinks", index];
+      if (
+        !localIds.has(link.observationALocalId) ||
+        !geometryLocalIds.has(link.responseGeometryLocalId)
+      ) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path,
+          message:
+            "A ligação referencia uma observação ou geometria inexistente na submissão.",
+        });
+      }
+      const pair = JSON.stringify([
+        link.observationALocalId,
+        link.responseGeometryLocalId,
+      ]);
+      if (geometryLinkPairs.has(pair)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path,
+          message: "A observação já possui uma ligação com essa geometria.",
+        });
+      }
+      geometryLinkPairs.add(pair);
     });
   });
 
@@ -203,7 +333,7 @@ export const saveBehavioralMapPersonObservations = async ({
         ${observation.observedAt}
       )`,
     );
-    observation.personCharacteristicIds.forEach((personCharacteristicId) => {
+    observation.characteristics.forEach(({ personCharacteristicId }) => {
       characteristicValues.push(
         Prisma.sql`(${observationId}, ${personCharacteristicId})`,
       );
@@ -265,7 +395,7 @@ export const saveBehavioralMapPersonObservationLinks = async ({
 }: {
   tx: Prisma.TransactionClient;
   behavioralMapId: number;
-  links: SaveBehavioralMapData["links"];
+  links: SaveBehavioralMapData["observationLinks"];
   observationIdsByLocalId: Map<string, number>;
 }) => {
   await tx.$executeRaw`DELETE FROM "behavioral_map_person_observation_link" WHERE "behavioral_map_id" = ${behavioralMapId}`;
@@ -289,6 +419,62 @@ export const saveBehavioralMapPersonObservationLinks = async ({
       ("behavioral_map_id", "observation_a_id", "observation_b_id", "description")
     VALUES ${Prisma.join(values, ",")}
   `);
+};
+
+const reserveResponseGeometryIds = async (
+  tx: Prisma.TransactionClient,
+  links: SaveBehavioralMapData["responseGeometryLinks"],
+) => {
+  const localIds = [
+    ...new Set(links.map((link) => link.responseGeometryLocalId)),
+  ];
+  if (localIds.length === 0) return new Map<string, number>();
+
+  const ids = await tx.$queryRaw<{ localId: string; id: number }[]>`
+    SELECT input.local_id AS "localId",
+      nextval(pg_get_serial_sequence('response_geometry', 'id'))::integer AS id
+    FROM (VALUES ${Prisma.join(localIds.map((id) => Prisma.sql`(${id}::text)`))})
+      AS input(local_id)
+  `;
+  return new Map(ids.map(({ localId, id }) => [localId, id]));
+};
+
+const saveBehavioralMapResponseGeometryLinks = async ({
+  tx,
+  behavioralMapId,
+  links,
+  observationIdsByLocalId,
+  responseGeometryIdsByLocalId,
+}: {
+  tx: Prisma.TransactionClient;
+  behavioralMapId: number;
+  links: SaveBehavioralMapData["responseGeometryLinks"];
+  observationIdsByLocalId: ReadonlyMap<string, number>;
+  responseGeometryIdsByLocalId: ReadonlyMap<string, number>;
+}) => {
+  if (links.length === 0) return;
+  // The previous links cascade when the observations and geometries are replaced.
+  await tx.behavioralMapPersonObservationResponseGeometry.createMany({
+    data: links.map((link) => {
+      const personObservationId = observationIdsByLocalId.get(
+        link.observationALocalId,
+      );
+      const responseGeometryId = responseGeometryIdsByLocalId.get(
+        link.responseGeometryLocalId,
+      );
+      if (!personObservationId || !responseGeometryId) {
+        throw new Error(
+          "Uma ligação referencia uma observação ou geometria inexistente.",
+        );
+      }
+      return {
+        behavioralMapId,
+        personObservationId,
+        responseGeometryId,
+        description: link.description,
+      };
+    }),
+  });
 };
 
 export const saveBehavioralMap = async (
@@ -392,8 +578,9 @@ export const saveBehavioralMap = async (
 
     for (const observation of data.observations) {
       if (
-        observation.personCharacteristicIds.some(
-          (id) => !allowedCharacteristicIds.has(id),
+        observation.characteristics.some(
+          ({ personCharacteristicId }) =>
+            !allowedCharacteristicIds.has(personCharacteristicId),
         )
       ) {
         return {
@@ -406,10 +593,12 @@ export const saveBehavioralMap = async (
       }
 
       for (const group of protocolGroups) {
-        const selectedCount = observation.personCharacteristicIds.filter((id) =>
-          group.characteristics.some(
-            (characteristic) => characteristic.personCharacteristicId === id,
-          ),
+        const selectedCount = observation.characteristics.filter(
+          ({ personCharacteristicId }) =>
+            group.characteristics.some(
+              (characteristic) =>
+                characteristic.personCharacteristicId === personCharacteristicId,
+            ),
         ).length;
         if (
           !group.personCharacteristicGroup.isTagGroup &&
@@ -458,17 +647,29 @@ export const saveBehavioralMap = async (
       await saveBehavioralMapPersonObservationLinks({
         tx,
         behavioralMapId: data.behavioralMapId,
-        links: data.links,
+        links: data.observationLinks,
         observationIdsByLocalId,
       });
 
       if (behavioralMap.formSubmissionId && data.formSubmission) {
+        const responseGeometryIdsByLocalId = await reserveResponseGeometryIds(
+          tx,
+          data.responseGeometryLinks,
+        );
         const transactions = await getFormSubmissionUpdateTransactions({
           prismaClient: tx,
           formSubmissionId: behavioralMap.formSubmissionId,
           formSubmission: data.formSubmission,
+          responseGeometryIdsByLocalId,
         });
         for (const transaction of transactions) await transaction;
+        await saveBehavioralMapResponseGeometryLinks({
+          tx,
+          behavioralMapId: data.behavioralMapId,
+          links: data.responseGeometryLinks,
+          observationIdsByLocalId,
+          responseGeometryIdsByLocalId,
+        });
       }
 
       return map;

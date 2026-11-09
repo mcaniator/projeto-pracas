@@ -21,7 +21,8 @@ const BehavioralMapSaveDialog = ({
   behavioralMapId,
   formSubmission,
   observations,
-  links,
+  observationLinks,
+  responseGeometryLinks,
   groups,
   startDate,
   endDate,
@@ -35,12 +36,13 @@ const BehavioralMapSaveDialog = ({
   behavioralMapId: number;
   formSubmission?: FormSubmissionData;
   observations: SaveBehavioralMapData["observations"];
-  links: SaveBehavioralMapData["links"];
+  observationLinks: SaveBehavioralMapData["observationLinks"];
+  responseGeometryLinks: SaveBehavioralMapData["responseGeometryLinks"];
   groups: SaveBehavioralMapData["groups"];
   startDate: Dayjs;
   endDate: Dayjs | null;
   isFinalized: boolean;
-  onSaveSuccess: (data: SaveBehavioralMapResponse) => void;
+  onSaveSuccess: (data: SaveBehavioralMapResponse) => Promise<void>;
   onEndDateChange: (value: Dayjs | null) => void;
   onIsFinalizedChange: (value: boolean) => void;
   onClose: () => void;
@@ -49,18 +51,7 @@ const BehavioralMapSaveDialog = ({
   const { isConnected } = useNetwork();
   const { setLoadingOverlay } = useLoadingOverlay();
   const [showDatePickerError, setShowDatePickerError] = useState(false);
-  const [saveBehavioralMap] = useBehavioralMapSave({
-    callbacks: {
-      onSuccess: (response) => {
-        const data = response.data;
-        if (!data) return;
-
-        onSaveSuccess(data);
-        onClose();
-        if (data.savedAsFinalized) router.push("/admin/behavioralMaps");
-      },
-    },
-  });
+  const [saveBehavioralMap, isSaving] = useBehavioralMapSave();
 
   const save = async () => {
     if (isFinalized && !endDate) {
@@ -73,18 +64,25 @@ const BehavioralMapSaveDialog = ({
       message: "Salvando mapa comportamental...",
     });
     try {
-      await saveBehavioralMap({
+      const response = await saveBehavioralMap({
         data: {
           behavioralMapId,
           formSubmission,
           observations,
-          links,
+          observationLinks,
+          responseGeometryLinks,
           groups,
           startDate: startDate.toDate(),
           endDate: endDate?.toDate() ?? null,
           isFinalized,
         },
       });
+      const data = response.data;
+      if (!data) return;
+
+      await onSaveSuccess(data);
+      onClose();
+      if (data.savedAsFinalized) router.push("/admin/behavioralMaps");
     } finally {
       setLoadingOverlay({ show: false });
     }
@@ -105,7 +103,7 @@ const BehavioralMapSaveDialog = ({
       onClose={onClose}
       title="Salvar mapa comportamental"
       confirmChildren="Salvar"
-      confirmProps={{ disabled: !isConnected }}
+      confirmProps={{ disabled: !isConnected || isSaving }}
       onConfirm={() => void save()}
     >
       <div className="flex w-full flex-col gap-1">

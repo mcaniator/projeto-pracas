@@ -1,31 +1,56 @@
 "use client";
 
+import RevertTallyDraftDialog from "@/app/admin/tallys/details/revertTallyDraftDialog";
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
+import type { ResponseFormV2Handle } from "@/components/ui/responseForm/responseFormV2";
 import dayjs from "@/lib/dayjs";
+import type { SaveBehavioralMapResponse } from "@/lib/serverFunctions/mutations/behavioralMapSubmission";
 import type { FetchBehavioralMapDetailsResponse } from "@/lib/serverFunctions/queries/behavioralMap";
 import type {
   ResponseFormGeometry,
   SerializedFormValues,
 } from "@/lib/types/formSubmission/responseFormTypes";
 import { enqueueSnackbar } from "notistack";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
+import type { BehavioralMapDraftValues } from "./behavioralMapDraft";
 import BehavioralMapEvaluationDialog from "./behavioralMapEvaluationDialog";
 import BehavioralMapFormDialog from "./behavioralMapFormDialog";
 import BehavioralMapMap from "./behavioralMapMap";
+import BehavioralMapPersonsDialog from "./behavioralMapPersonsDialog";
 import BehavioralMapSaveDialog from "./behavioralMapSaveDialog";
+import ChooseBehavioralMapSourceDialog from "./chooseBehavioralMapSourceDialog";
+import DeleteBehavioralMapDialog from "./deleteBehavioralMapDialog";
 import BehavioralMapFooter, { BehavioralMapFooterState } from "./footer";
 import type {
   BehavioralMapGroup,
   BehavioralMapLink,
   BehavioralMapObservation,
+  BehavioralMapObservationLink,
   BehavioralMapPendingPosition,
+  BehavioralMapResponseGeometryLink,
 } from "./observationState";
+import useBehavioralMapDraft from "./useBehavioralMapDraft";
 
 type BehavioralMapDetails =
   FetchBehavioralMapDetailsResponse["behavioralMapDetails"];
 type ProtocolGroups =
   BehavioralMapDetails["behavioralMapSubmission"]["behavioralMapProtocolStructure"]["behavioralMapProtocolGroups"];
+
+const keepLinksToExistingGeometries = (
+  links: BehavioralMapResponseGeometryLink[],
+  geometries: ResponseFormGeometry[],
+) => {
+  const geometryIds = new Set(
+    geometries.flatMap(({ geometries }) =>
+      geometries.map(({ localId }) => localId),
+    ),
+  );
+  const remainingLinks = links.filter(
+    ({ responseGeometryLocalId }) => geometryIds.has(responseGeometryLocalId),
+  );
+  return remainingLinks.length === links.length ? links : remainingLinks;
+};
 
 const BehavioralMapClient = ({
   behavioralMapDetails,
@@ -38,6 +63,10 @@ const BehavioralMapClient = ({
       .behavioralMapProtocolGroups;
   const formSubmission = behavioralMapSubmission.formSubmission;
   const [isEvaluationDialogOpen, setIsEvaluationDialogOpen] = useState(false);
+  const [openRevertDraftDialog, setOpenRevertDraftDialog] = useState(false);
+  const [openDeleteBehavioralMapDialog, setOpenDeleteBehavioralMapDialog] =
+    useState(false);
+  const [isStatisticsDialogOpen, setIsStatisticsDialogOpen] = useState(false);
   const [endDate, setEndDate] = useState(() =>
     behavioralMapDetails.endDate ? dayjs(behavioralMapDetails.endDate) : null,
   );
@@ -74,25 +103,48 @@ const BehavioralMapClient = ({
             ] as [number, number],
             observedAt: observation.observedAt,
             quantity: observation.quantity,
-            personCharacteristicIds: observation.characteristics.map(
-              ({ personCharacteristicId }) => personCharacteristicId,
-            ),
+            characteristics: observation.characteristics,
           },
         ];
       }),
   );
 
-  const [links, setLinks] = useState<BehavioralMapLink[]>(
-    () =>
-      behavioralMapSubmission.personObservations.flatMap((observation) =>
-        observation.linksAsObservationA.map((link) => ({
+  const [observationLinks, setObservationLinks] = useState<
+    BehavioralMapObservationLink[]
+  >(() => {
+    const observationIds = new Set(observations.map(({ localId }) => localId));
+    return behavioralMapSubmission.personObservations.flatMap((observation) => {
+      if (!observation.position) return [];
+      return observation.linksAsObservationA
+        .filter((link) => observationIds.has(`saved-${link.observationBId}`))
+        .map((link) => ({
           localId: `saved-link-${link.id}`,
           observationALocalId: `saved-${observation.id}`,
           observationBLocalId: `saved-${link.observationBId}`,
           description: link.description,
-        })),
+        }));
+    });
+  });
+  const [responseGeometryLinks, setResponseGeometryLinks] = useState<
+    BehavioralMapResponseGeometryLink[]
+  >(() => {
+    const geometryIds = new Set(
+      formSubmission?.geometries.flatMap(({ geometries }) =>
+        geometries.map(({ localId }) => localId),
       ),
-  );
+    );
+    return behavioralMapSubmission.personObservations.flatMap((observation) => {
+      if (!observation.position) return [];
+      return observation.responseGeometryLinks
+        .filter((link) => geometryIds.has(String(link.responseGeometryId)))
+        .map((link) => ({
+          localId: `saved-geometry-link-${observation.id}-${link.responseGeometryId}`,
+          observationALocalId: `saved-${observation.id}`,
+          responseGeometryLocalId: String(link.responseGeometryId),
+          description: link.description,
+        }));
+    });
+  });
   const [groupLabel, setGroupLabel] = useState("");
   const [selectedGroupTargetLocalIds, setSelectedGroupTargetLocalIds] =
     useState<string[]>([]);
@@ -105,6 +157,8 @@ const BehavioralMapClient = ({
     selectedLinkTargetLocalIds,
     setSelectedLinkTargetLocalIds,
   ] = useState<string[]>([]);
+  const [selectedGeometryTargetLocalIds, setSelectedGeometryTargetLocalIds] =
+    useState<string[]>([]);
   const [isSelfLinkSelected, setIsSelfLinkSelected] =
     useState(false);
 
@@ -130,6 +184,64 @@ const BehavioralMapClient = ({
     () => formSubmission?.geometries ?? [],
   );
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
+  const responseFormRef = useRef<ResponseFormV2Handle>(null);
+
+  const draftValues = useMemo<BehavioralMapDraftValues>(
+    () => ({
+      isFinalized,
+      startDate: startDate.toDate(),
+      endDate: endDate?.toDate() ?? null,
+      responseFormValues: serializedFormValues,
+      geometries,
+      observations,
+      groups: behavioralMapGroups,
+      observationLinks,
+      responseGeometryLinks,
+    }),
+    [
+      behavioralMapGroups,
+      endDate,
+      geometries,
+      isFinalized,
+      observationLinks,
+      observations,
+      responseGeometryLinks,
+      serializedFormValues,
+      startDate,
+    ],
+  );
+  const restoreDraftValues = useCallback((values: BehavioralMapDraftValues) => {
+    responseFormRef.current?.reset({
+      responsesFormValues: values.responseFormValues,
+      geometries: values.geometries,
+    });
+    setIsFinalized(values.isFinalized);
+    setStartDate(dayjs(values.startDate));
+    setEndDate(values.endDate ? dayjs(values.endDate) : null);
+    setSerializedFormValues(values.responseFormValues);
+    setGeometries(values.geometries);
+    setObservations(values.observations);
+    setBehavioralMapGroups(values.groups);
+    setObservationLinks(values.observationLinks);
+    setResponseGeometryLinks(values.responseGeometryLinks);
+  }, []);
+  const {
+    isDraftLoaded,
+    draftUpdatedAt,
+    savedVersionUpdatedAt,
+    pendingDraftChoice,
+    applyDraft,
+    applySavedVersion,
+    scheduleDraftSave,
+    clearDraft,
+    markSaved,
+  } = useBehavioralMapDraft({
+    behavioralMapId: behavioralMapDetails.id,
+    ownerId: behavioralMapDetails.user.id,
+    savedUpdatedAt: behavioralMapDetails.updatedAt,
+    values: draftValues,
+    onRestore: restoreDraftValues,
+  });
 
   const handleMapClick = useCallback(
     (position: [number, number]) => {
@@ -162,7 +274,10 @@ const BehavioralMapClient = ({
   }, []);
 
   const handleSubmitObservation = useCallback(
-    (personCharacteristicIds: number[], quantity: number) => {
+    (
+      characteristics: BehavioralMapObservation["characteristics"],
+      quantity: number,
+    ) => {
       if (!pendingPosition || quantity < 1) return;
 
       const observation: BehavioralMapObservation = {
@@ -171,7 +286,7 @@ const BehavioralMapClient = ({
         position: pendingPosition.position,
         observedAt: pendingPosition.observedAt,
         quantity,
-        personCharacteristicIds,
+        characteristics,
       };
 
       setObservations((current) => [...current, observation]);
@@ -180,7 +295,10 @@ const BehavioralMapClient = ({
 
       const selectedCharacteristics = groups.flatMap((group) =>
         group.characteristics.filter(({ personCharacteristic }) =>
-          personCharacteristicIds.includes(personCharacteristic.id),
+          characteristics.some(
+            ({ personCharacteristicId }) =>
+              personCharacteristicId === personCharacteristic.id,
+          ),
         ),
       );
 
@@ -263,6 +381,7 @@ const BehavioralMapClient = ({
     setSelectedLinkSourceLocalId(null);
     setLinkDescription("");
     setSelectedLinkTargetLocalIds([]);
+    setSelectedGeometryTargetLocalIds([]);
     setIsSelfLinkSelected(false);
     setFooterState(BehavioralMapFooterState.ADDING_LINK);
   }, []);
@@ -270,43 +389,75 @@ const BehavioralMapClient = ({
   const handleCancelLink = useCallback(() => {
     setSelectedLinkSourceLocalId(null);
     setSelectedLinkTargetLocalIds([]);
+    setSelectedGeometryTargetLocalIds([]);
     setIsSelfLinkSelected(false);
     setFooterState(BehavioralMapFooterState.IDLE);
   }, []);
 
+  const handleFormGeometryClick = useCallback((localId: string) => {
+    setSelectedGeometryTargetLocalIds((current) =>
+      current.includes(localId) ?
+        current.filter((id) => id !== localId)
+      : [...current, localId],
+    );
+  }, []);
+
   const handleConfirmLink = useCallback(() => {
-    if (!selectedLinkSourceLocalId || !linkDescription.trim())
-      return;
+    const description = linkDescription.trim();
+    if (!selectedLinkSourceLocalId || !description) return;
     const destinationIds = [...selectedLinkTargetLocalIds];
-    if (isSelfLinkSelected)
-      destinationIds.push(selectedLinkSourceLocalId);
-    if (destinationIds.length === 0) return;
-    setLinks((current) => [
-      ...current,
-      ...destinationIds.map((observationBLocalId) => ({
+    if (isSelfLinkSelected) destinationIds.push(selectedLinkSourceLocalId);
+    if (
+      destinationIds.length === 0 &&
+      selectedGeometryTargetLocalIds.length === 0
+    )
+      return;
+    if (destinationIds.length > 0) {
+      const newLinks = destinationIds.map((observationBLocalId) => ({
         localId: `local-link-${crypto.randomUUID()}`,
         observationALocalId: selectedLinkSourceLocalId,
         observationBLocalId,
-        description: linkDescription.trim(),
-      })),
-    ]);
-    setSelectedLinkSourceLocalId(null);
-    setSelectedLinkTargetLocalIds([]);
-    setIsSelfLinkSelected(false);
-    setFooterState(BehavioralMapFooterState.IDLE);
+        description,
+      }));
+      setObservationLinks((current) => [...current, ...newLinks]);
+    }
+    if (selectedGeometryTargetLocalIds.length > 0) {
+      const geometryTargets = new Set(selectedGeometryTargetLocalIds);
+      const newLinks = selectedGeometryTargetLocalIds.map(
+        (responseGeometryLocalId) => ({
+          localId: `local-link-${crypto.randomUUID()}`,
+          observationALocalId: selectedLinkSourceLocalId,
+          responseGeometryLocalId,
+          description,
+        }),
+      );
+      setResponseGeometryLinks((current) => [
+        ...current.filter(
+          (link) =>
+            link.observationALocalId !== selectedLinkSourceLocalId ||
+            !geometryTargets.has(link.responseGeometryLocalId),
+        ),
+        ...newLinks,
+      ]);
+    }
+    handleCancelLink();
   }, [
+    handleCancelLink,
     linkDescription,
     isSelfLinkSelected,
     selectedLinkTargetLocalIds,
+    selectedGeometryTargetLocalIds,
     selectedLinkSourceLocalId,
   ]);
 
-  const selectedLink = useMemo(
+  const selectedLink = useMemo<BehavioralMapLink | null>(
     () =>
-      links.find(
+      observationLinks.find(({ localId }) => localId === selectedLinkLocalId) ??
+      responseGeometryLinks.find(
         ({ localId }) => localId === selectedLinkLocalId,
-      ) ?? null,
-    [links, selectedLinkLocalId],
+      ) ??
+      null,
+    [observationLinks, responseGeometryLinks, selectedLinkLocalId],
   );
 
   const selectedObservation = useMemo(
@@ -362,11 +513,12 @@ const BehavioralMapClient = ({
   );
 
   const handleGroupClick = useCallback((localId: string) => {
+    if (footerState === BehavioralMapFooterState.ADDING_LINK) return;
     setSelectedObservationLocalId(null);
     setSelectedLinkLocalId(null);
     setSelectedGroupLocalId(localId);
     setFooterState(BehavioralMapFooterState.EDITING_GROUP);
-  }, []);
+  }, [footerState]);
 
   const handleGroupLabelEdit = useCallback(
     (label: string) => {
@@ -407,24 +559,25 @@ const BehavioralMapClient = ({
   }, [selectedGroupLocalId]);
 
   const handleLinkClick = useCallback((localId: string) => {
+    if (footerState === BehavioralMapFooterState.ADDING_LINK) return;
     setSelectedObservationLocalId(null);
     setSelectedGroupLocalId(null);
     setSelectedLinkLocalId(localId);
     setFooterState(BehavioralMapFooterState.EDITING_LINK);
-  }, []);
+  }, [footerState]);
 
   const handleLinkDescriptionEdit = useCallback(
     (description: string) => {
-      if (!selectedLinkLocalId) return;
-      setLinks((current) =>
-        current.map((link) =>
-          link.localId === selectedLinkLocalId ?
-            { ...link, description }
-          : link,
-        ),
-      );
+      if (!selectedLink) return;
+      const updateDescription = <T extends BehavioralMapLink,>(link: T) =>
+        link.localId === selectedLink.localId ? { ...link, description } : link;
+      if (selectedLink.responseGeometryLocalId !== undefined) {
+        setResponseGeometryLinks((current) => current.map(updateDescription));
+      } else {
+        setObservationLinks((current) => current.map(updateDescription));
+      }
     },
-    [selectedLinkLocalId],
+    [selectedLink],
   );
 
   const handleBackFromLinkEdit = useCallback(() => {
@@ -433,13 +586,17 @@ const BehavioralMapClient = ({
   }, []);
 
   const handleDeleteLink = useCallback(() => {
-    if (!selectedLinkLocalId) return;
-    setLinks((current) =>
-      current.filter(({ localId }) => localId !== selectedLinkLocalId),
-    );
+    if (!selectedLink) return;
+    const keepLink = ({ localId }: BehavioralMapLink) =>
+      localId !== selectedLink.localId;
+    if (selectedLink.responseGeometryLocalId !== undefined) {
+      setResponseGeometryLinks((current) => current.filter(keepLink));
+    } else {
+      setObservationLinks((current) => current.filter(keepLink));
+    }
     setSelectedLinkLocalId(null);
     setFooterState(BehavioralMapFooterState.IDLE);
-  }, [selectedLinkLocalId]);
+  }, [selectedLink]);
 
   const handleOpenEvaluation = useCallback(
     () => setIsEvaluationDialogOpen(true),
@@ -454,6 +611,26 @@ const BehavioralMapClient = ({
     if (formSubmission) setIsFormDialogOpen(true);
   }, [formSubmission]);
 
+  const handleFormDraftChange = useCallback(
+    (
+      updatedSerializedFormValues: SerializedFormValues,
+      updatedGeometries: ResponseFormGeometry[],
+    ) => {
+      scheduleDraftSave({
+        ...draftValues,
+        responseFormValues: updatedSerializedFormValues,
+        geometries: updatedGeometries,
+        responseGeometryLinks: updatedGeometries === draftValues.geometries ?
+            draftValues.responseGeometryLinks
+          : keepLinksToExistingGeometries(
+              draftValues.responseGeometryLinks,
+              updatedGeometries,
+            ),
+      });
+    },
+    [draftValues, scheduleDraftSave],
+  );
+
   const handleFormDialogClose = useCallback(
     (
       updatedSerializedFormValues: SerializedFormValues,
@@ -461,18 +638,41 @@ const BehavioralMapClient = ({
     ) => {
       setSerializedFormValues(updatedSerializedFormValues);
       setGeometries(updatedGeometries);
+      setResponseGeometryLinks((current) =>
+        keepLinksToExistingGeometries(current, updatedGeometries),
+      );
       setIsFormDialogOpen(false);
     },
     [],
   );
+  const handleSaveSuccess = useCallback(
+    async ({ updatedAt, savedAsFinalized }: SaveBehavioralMapResponse) => {
+      await markSaved(updatedAt, {
+        ...draftValues,
+        isFinalized: savedAsFinalized,
+      });
+      setIsFinalized(savedAsFinalized);
+    },
+    [draftValues, markSaved],
+  );
+
+  const handleRevertDraft = async () => {
+    if (!(await applySavedVersion())) return;
+    setOpenRevertDraftDialog(false);
+    enqueueSnackbar("Revertido com sucesso!", { variant: "success" });
+  };
+
   return (
     <div className="flex h-full min-h-0 flex-col bg-white text-black">
       <BehavioralMapMap
         details={behavioralMapDetails}
+        formGeometries={formSubmission ? geometries : undefined}
         groups={groups}
         observations={observations}
-        links={links}
+        observationLinks={observationLinks}
+        responseGeometryLinks={responseGeometryLinks}
         selectedLinkTargetLocalIds={selectedLinkTargetLocalIds}
+        selectedGeometryTargetLocalIds={selectedGeometryTargetLocalIds}
         personGroups={behavioralMapGroups}
         selectedGroupTargetLocalIds={selectedGroupTargetLocalIds}
         selectedGroupLocalId={selectedGroupLocalId}
@@ -484,6 +684,12 @@ const BehavioralMapClient = ({
         }
         onMapClick={handleMapClick}
         onObservationClick={handleObservationClick}
+        onFormGeometryClick={
+          footerState === BehavioralMapFooterState.ADDING_LINK &&
+          selectedLinkSourceLocalId ?
+            handleFormGeometryClick
+          : undefined
+        }
         onLinkClick={handleLinkClick}
         onGroupClick={handleGroupClick}
       />
@@ -505,6 +711,7 @@ const BehavioralMapClient = ({
         hasLinkSource={selectedLinkSourceLocalId !== null}
         selectedLinkTargetCount={
           selectedLinkTargetLocalIds.length +
+          selectedGeometryTargetLocalIds.length +
           (isSelfLinkSelected ? 1 : 0)
         }
         isSelfLinkSelected={isSelfLinkSelected}
@@ -524,7 +731,14 @@ const BehavioralMapClient = ({
         onAddGroup={handleStartAddingGroup}
         onOpenForm={formSubmission ? handleOpenForm : undefined}
         onOpenEvaluation={handleOpenEvaluation}
+        onOpenStatistics={() => setIsStatisticsDialogOpen(true)}
         onOpenSave={handleOpenSave}
+      />
+      <BehavioralMapPersonsDialog
+        open={isStatisticsDialogOpen}
+        tallyProtocolStructure={{ tallyProtocolGroups: groups }}
+        personObservations={observations}
+        onClose={() => setIsStatisticsDialogOpen(false)}
       />
       <BehavioralMapEvaluationDialog
         open={isEvaluationDialogOpen}
@@ -534,16 +748,36 @@ const BehavioralMapClient = ({
         username={behavioralMapDetails.user.username}
         startDate={startDate}
         onStartDateChange={setStartDate}
+        pendingSave={draftUpdatedAt !== undefined}
+        onRevertDraft={() => setOpenRevertDraftDialog(true)}
+        onDelete={() => setOpenDeleteBehavioralMapDialog(true)}
         onClose={() => setIsEvaluationDialogOpen(false)}
       />
+      <RevertTallyDraftDialog
+        open={openRevertDraftDialog}
+        draftUpdatedAt={draftUpdatedAt}
+        savedUpdatedAt={savedVersionUpdatedAt}
+        onClose={() => setOpenRevertDraftDialog(false)}
+        onConfirm={() => void handleRevertDraft()}
+      />
+      <DeleteBehavioralMapDialog
+        behavioralMapId={behavioralMapDetails.id}
+        open={openDeleteBehavioralMapDialog}
+        onDeleteSuccess={async () => {
+          await clearDraft();
+        }}
+        onClose={() => setOpenDeleteBehavioralMapDialog(false)}
+      />
 
-      {formSubmission && (
+      {formSubmission && isDraftLoaded && !pendingDraftChoice && (
         <BehavioralMapFormDialog
           open={isFormDialogOpen}
+          responseFormRef={responseFormRef}
           formSubmission={formSubmission}
           locationPolygonGeoJson={behavioralMapDetails.location.st_asgeojson}
           serializedFormValues={serializedFormValues}
           geometries={geometries}
+          onDraftChange={handleFormDraftChange}
           onClose={handleFormDialogClose}
         />
       )}
@@ -557,18 +791,31 @@ const BehavioralMapClient = ({
           : undefined
         }
         observations={observations}
-        links={links.map(
-          ({ localId: _localId, ...link }) => link,
-        )}
+        observationLinks={observationLinks}
+        responseGeometryLinks={responseGeometryLinks}
         groups={behavioralMapGroups}
         startDate={startDate}
         endDate={endDate}
         isFinalized={isFinalized}
-        onSaveSuccess={(data) => setIsFinalized(data.savedAsFinalized)}
+        onSaveSuccess={handleSaveSuccess}
         onEndDateChange={setEndDate}
         onIsFinalizedChange={setIsFinalized}
         onClose={() => setIsSaveDialogOpen(false)}
       />
+      {pendingDraftChoice && (
+        <ChooseBehavioralMapSourceDialog
+          savedSource={{
+            username: behavioralMapDetails.user.username,
+            updatedAt: behavioralMapDetails.updatedAt,
+          }}
+          draftSource={{
+            username: pendingDraftChoice.username,
+            updatedAt: pendingDraftChoice.draftUpdatedAt,
+          }}
+          onChooseDraft={() => applyDraft(pendingDraftChoice)}
+          onChooseSaved={() => void applySavedVersion()}
+        />
+      )}
     </div>
   );
 };

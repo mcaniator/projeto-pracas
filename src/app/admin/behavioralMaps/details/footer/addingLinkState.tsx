@@ -30,10 +30,10 @@ const AddingLinkState = ({
         <h2 className="text-lg font-semibold">Adicionar ligação</h2>
         <p className="text-sm text-gray-600">
           {hasSource ?
-            "Origem selecionada. Agora escolha as observações que deseja ligar."
-          : "Clique primeiro na observação de origem e depois escolha as observações que deseja ligar."
+            "Origem selecionada. Agora escolha os destinos no mapa."
+          : "Clique primeiro na observação de origem e depois escolha os destinos no mapa."
           }
-          {selectedCount > 0 ? ` ${selectedCount} selecionada(s).` : ""}
+          {selectedCount > 0 ? ` Destinos selecionados: ${selectedCount}.` : ""}
         </p>
         <CTextField
           label="Descrição da ligação"

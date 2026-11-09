@@ -10,29 +10,41 @@ import Text from "ol/style/Text";
 export const createResponseGeometryFeature = (
   responseGeometry: ResponseGeometry,
 ): Feature | undefined => {
-  const { type, coordinates, description } = responseGeometry;
+  const { type, coordinates, description, localId } = responseGeometry;
+  let feature: Feature;
   if (type === "Point") {
-    return new Feature({
+    feature = new Feature({
       geometry: new Point(coordinates as number[]),
       description,
     });
-  }
-  if (type === "Polygon") {
-    return new Feature({
+  } else if (type === "Polygon") {
+    feature = new Feature({
       geometry: new Polygon(coordinates as number[][][]),
       description,
     });
+  } else {
+    return;
   }
+  feature.setId(localId);
+  return feature;
 };
 
 export const getResponseGeometryStyle = (
   feature: FeatureLike,
-  selected = false,
+  {
+    selected = false,
+    showLabel = true,
+    strokeColor,
+  }: {
+    selected?: boolean;
+    showLabel?: boolean;
+    strokeColor?: string;
+  } = {},
 ) => {
   const description = feature.get("description") as string | null | undefined;
   const isPoint = feature.getGeometry()?.getType() === "Point";
   const stroke = new Stroke({
-    color: selected ? "#3399cc" : "#7C4091",
+    color: strokeColor ?? (selected ? "#3399cc" : "#7C4091"),
     width: 3,
   });
   const fill = new Fill({ color: "#9B59B24D" });
@@ -42,7 +54,7 @@ export const getResponseGeometryStyle = (
     stroke,
     image: new CircleStyle({ radius: 8, fill, stroke }),
     text:
-      description ?
+      showLabel && description ?
         new Text({
           text: description,
           font: "600 12px sans-serif",

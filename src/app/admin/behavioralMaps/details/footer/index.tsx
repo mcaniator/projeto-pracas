@@ -5,6 +5,7 @@ import type { FetchBehavioralMapDetailsResponse } from "@/lib/serverFunctions/qu
 import type {
   BehavioralMapGroup,
   BehavioralMapLink,
+  BehavioralMapObservation,
 } from "../observationState";
 import AddingGroupState from "./addingGroupState";
 import AddingLinkState from "./addingLinkState";
@@ -52,19 +53,16 @@ const BehavioralMapFooter = ({
   onAddLink,
   onOpenForm,
   onOpenEvaluation,
+  onOpenStatistics,
   onOpenSave,
 }: {
   state: BehavioralMapFooterState;
   groups: ProtocolGroups;
   observedAt: Date;
-  selectedObservation: {
-    quantity: number;
-    observedAt: Date;
-    personCharacteristicIds: number[];
-  } | null;
+  selectedObservation: BehavioralMapObservation | null;
   onCancel: () => void;
   onSubmitObservation: (
-    personCharacteristicIds: number[],
+    characteristics: BehavioralMapObservation["characteristics"],
     quantity: number,
   ) => void;
   onCloseSelectedObservation: () => void;
@@ -93,13 +91,15 @@ const BehavioralMapFooter = ({
   onDeleteLink: () => void;
   onOpenForm?: () => void;
   onOpenEvaluation?: () => void;
+  onOpenStatistics: () => void;
   onOpenSave?: () => void;
 }) => (
-  <footer className="flex h-1/2 min-h-0 flex-col border-t border-gray-300">
+  <footer className="flex h-1/3 min-h-0 flex-col border-t border-gray-300">
     {state === BehavioralMapFooterState.IDLE ?
       <IdleState
         onOpenForm={onOpenForm}
         onOpenEvaluation={onOpenEvaluation}
+        onOpenStatistics={onOpenStatistics}
         onOpenSave={onOpenSave}
         onCreateGroup={onAddGroup}
         onCreateLink={onAddLink}
@@ -156,6 +156,7 @@ const BehavioralMapFooter = ({
     : <IdleState
         onOpenForm={onOpenForm}
         onOpenEvaluation={onOpenEvaluation}
+        onOpenStatistics={onOpenStatistics}
         onOpenSave={onOpenSave}
         onCreateGroup={onAddGroup}
         onCreateLink={onAddLink}

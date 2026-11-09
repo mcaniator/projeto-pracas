@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  fetchBehavioralMapDraft,
+  fetchBehavioralMapDraftIds,
+} from "@/app/admin/behavioralMaps/details/behavioralMapDraft";
 import PermissionGuard from "@/components/auth/permissionGuard";
 import { useNetwork } from "@/components/context/networkContext";
 import CAdminHeader from "@/components/ui/cAdminHeader";
@@ -34,12 +38,18 @@ export type BehavioralMapsFilterType =
   | "CITY_ID"
   | "FINALIZATION_STATUS";
 
+export type BehavioralMapWithSyncStatus =
+  FetchBehavioralMapsResponse["behavioralMaps"][number] & {
+    hasPendingSaveFromDraft: boolean;
+  };
+
 const BehavioralMapsClient = () => {
   const searchParams = useSearchParams();
   const [isMobileView, setIsMobileView] = useState(true);
-  const [behavioralMaps, setBehavioralMaps] = useState<
-    FetchBehavioralMapsResponse["behavioralMaps"]
-  >([]);
+  const unsavedBehavioralMapIdsPromiseRef =
+    useRef<Promise<Set<number>> | null>(null);
+  const [behavioralMaps, setBehavioralMaps] =
+    useState<BehavioralMapWithSyncStatus[]>([]);
   const [isLoadingMore, setIsLoadingMore] = useState(true);
   const [openCreation, setOpenCreation] = useState(false);
   const [openFiltersDialog, setOpenFiltersDialog] = useState(false);
@@ -81,6 +91,49 @@ const BehavioralMapsClient = () => {
     isLoadingMoreRef.current = false;
     setIsLoadingMore(false);
   }, []);
+
+  const getUnsavedBehavioralMapIds = useCallback(async () => {
+    // Drafts are fetched only when the page loads. They are not fetched again when the filters are changed.
+    if (!unsavedBehavioralMapIdsPromiseRef.current) {
+      unsavedBehavioralMapIdsPromiseRef.current = fetchBehavioralMapDraftIds();
+    }
+
+    return unsavedBehavioralMapIdsPromiseRef.current;
+  }, []);
+
+  const formatBehavioralMapsWithUnsavedFilling = useCallback(
+    async (behavioralMaps: FetchBehavioralMapsResponse["behavioralMaps"]) => {
+      const unsavedBehavioralMapIds = await getUnsavedBehavioralMapIds();
+      return behavioralMaps.map(async (behavioralMap) => {
+        if (unsavedBehavioralMapIds.has(behavioralMap.id)) {
+          //If the tally has unsynced filling, we need to fetch some metadata from draft and insert the local unsynced data into the tally
+          const localBehavioralMap = await fetchBehavioralMapDraft(
+            behavioralMap.id,
+          );
+          if (!localBehavioralMap) {
+            return {
+              ...behavioralMap,
+              hasPendingSaveFromDraft: false,
+            };
+          }
+
+          return {
+            ...behavioralMap,
+            startDate: localBehavioralMap.startDate,
+            endDate: localBehavioralMap.endDate,
+            isFinalized: localBehavioralMap.isFinalized,
+            hasPendingSaveFromDraft: true,
+          };
+        }
+
+        return {
+          ...behavioralMap,
+          hasPendingSaveFromDraft: false,
+        };
+      });
+    },
+    [getUnsavedBehavioralMapIds],
+  );
 
   const handleFilterChange = ({
     type,
@@ -238,21 +291,27 @@ const BehavioralMapsClient = () => {
         fetchedBehavioralMaps = response.data?.behavioralMaps ?? [];
         hasMore = response.data?.hasMore ?? false;
 
-        //TODO: Add draft processing
+        const formattedBehavioralMapsPromises =
+          await formatBehavioralMapsWithUnsavedFilling(fetchedBehavioralMaps);
+        const formattedBehavioralMaps = await Promise.all(
+          formattedBehavioralMapsPromises,
+        );
 
-        if (queryVersion !== lastQueryVersionRef.current) return;
+        if (queryVersion !== lastQueryVersionRef.current) {
+          return;
+        }
 
         setBehavioralMaps((currentBehavioralMaps) => {
           if (!append) {
-            return fetchedBehavioralMaps;
+            return formattedBehavioralMaps;
           }
 
           const currentBehavioralMapIds = new Set(
-            currentBehavioralMaps.map((tally) => tally.id),
+            currentBehavioralMaps.map((behavioralMap) => behavioralMap.id),
           );
           return [
             ...currentBehavioralMaps,
-            ...fetchedBehavioralMaps.filter(
+            ...formattedBehavioralMaps.filter(
               (behavioralMap) => !currentBehavioralMapIds.has(behavioralMap.id),
             ),
           ];
@@ -279,6 +338,7 @@ const BehavioralMapsClient = () => {
       intermediateUnitId,
       narrowUnitId,
       finalizationStatus,
+      formatBehavioralMapsWithUnsavedFilling,
     ],
   );
 

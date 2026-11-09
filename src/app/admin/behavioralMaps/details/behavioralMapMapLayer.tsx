@@ -22,10 +22,10 @@ import { useContext, useEffect, useMemo } from "react";
 import type {
   BehavioralMapGroup,
   BehavioralMapLink,
-} from "./observationState";
-import type {
   BehavioralMapObservation,
+  BehavioralMapObservationLink,
   BehavioralMapPendingPosition,
+  BehavioralMapResponseGeometryLink,
 } from "./observationState";
 
 type Details = FetchBehavioralMapDetailsResponse["behavioralMapDetails"];
@@ -106,10 +106,14 @@ const createGroupOutline = (points: MapPosition[]): MapPosition[] => {
 const BehavioralMapMapLayer = ({
   details,
   isGroupsVisible,
-  isLinksVisible,
+  areGroupLabelsVisible,
+  areObservationLinkLabelsVisible,
+  areResponseGeometryLinkLabelsVisible,
   isObservationsVisible,
   observations,
-  links,
+  observationLinks,
+  responseGeometryLinks,
+  formGeometryPositionsById,
   personGroups,
   selectedGroupTargetLocalIds,
   selectedLinkTargetLocalIds,
@@ -119,18 +123,23 @@ const BehavioralMapMapLayer = ({
   pendingPosition,
   onMapClick,
   onObservationClick,
+  onFormGeometryClick,
   onLinkClick,
   onGroupClick,
   selectedObservationLocalId,
 }: {
   details: Details;
   isGroupsVisible: boolean;
-  isLinksVisible: boolean;
+  areGroupLabelsVisible: boolean;
+  areObservationLinkLabelsVisible: boolean;
+  areResponseGeometryLinkLabelsVisible: boolean;
   isObservationsVisible: boolean;
   observations: BehavioralMapObservation[];
   personGroups: BehavioralMapGroup[];
   selectedGroupTargetLocalIds: string[];
-  links: BehavioralMapLink[];
+  observationLinks: BehavioralMapObservationLink[];
+  responseGeometryLinks: BehavioralMapResponseGeometryLink[];
+  formGeometryPositionsById: ReadonlyMap<string, MapPosition>;
   selectedLinkTargetLocalIds: string[];
   selectedLinkLocalId: string | null;
   selectedLinkSourceLocalId: string | null;
@@ -138,6 +147,7 @@ const BehavioralMapMapLayer = ({
   pendingPosition: BehavioralMapPendingPosition | null;
   onMapClick: (position: [number, number]) => void;
   onObservationClick: (localId: string) => void;
+  onFormGeometryClick?: (localId: string) => void;
   onLinkClick: (localId: string) => void;
   onGroupClick: (localId: string) => void;
   selectedObservationLocalId: string | null;
@@ -145,53 +155,66 @@ const BehavioralMapMapLayer = ({
   const map = useContext(MapContext);
   const groupSource = useMemo(() => new VectorSource<Feature<Geometry>>(), []);
   const groupLayer = useMemo(
-    () =>
-      new VectorLayer({
-        source: groupSource,
-        zIndex: 8,
-        style: (feature) =>
-          new Style({
-            fill: new Fill({
-              color:
-                feature.get("isSelectedGroup") ?
-                  "rgba(229, 57, 53, 0.16)"
-                : "rgba(76, 175, 80, 0.16)",
-            }),
-            stroke: new Stroke({
-              color: feature.get("isSelectedGroup") ? "#e53935" : "#2e7d32",
-              width: 2,
-            }),
-            text: new Text({
-              text: String(feature.get("label") ?? ""),
-              font: "600 12px sans-serif",
-              overflow: true,
-              padding: [2, 4, 2, 4],
-              backgroundFill: new Fill({ color: "rgba(255,255,255,0.9)" }),
-              fill: new Fill({
-                color: feature.get("isSelectedGroup") ? "#e53935" : "#1b5e20",
-              }),
-            }),
-          }),
-      }),
+    () => new VectorLayer({ source: groupSource, zIndex: 8 }),
     [groupSource],
   );
+  useEffect(() => {
+    groupLayer.setStyle(
+      (feature) =>
+        new Style({
+          fill: new Fill({
+            color:
+              feature.get("isSelectedGroup") ?
+                "rgba(229, 57, 53, 0.16)"
+              : "rgba(76, 175, 80, 0.16)",
+          }),
+          stroke: new Stroke({
+            color: feature.get("isSelectedGroup") ? "#e53935" : "#2e7d32",
+            width: 2,
+          }),
+          text:
+            areGroupLabelsVisible ?
+              new Text({
+                text: String(feature.get("label") ?? ""),
+                font: "600 12px sans-serif",
+                overflow: true,
+                padding: [2, 4, 2, 4],
+                backgroundFill: new Fill({ color: "rgba(255,255,255,0.9)" }),
+                fill: new Fill({
+                  color: feature.get("isSelectedGroup") ? "#e53935" : "#1b5e20",
+                }),
+              })
+            : undefined,
+        }),
+    );
+  }, [groupLayer, areGroupLabelsVisible]);
   const linkSource = useMemo(
     () => new VectorSource<Feature<Geometry>>(),
     [],
   );
   const linkLayer = useMemo(
-    () =>
-      new VectorLayer({
-        source: linkSource,
-        zIndex: 9,
-        style: (feature) =>
-          new Style({
-            stroke: new Stroke({
-              color:
-                feature.get("isSelectedLink") ? "#e53935" : "#8e24aa",
-              width: 2,
-            }),
-            text: new Text({
+    () => new VectorLayer({ source: linkSource, zIndex: 9 }),
+    [linkSource],
+  );
+  useEffect(() => {
+    linkLayer.setStyle((feature) => {
+      const isSelectedLink = feature.get("isSelectedLink");
+      const isGeometryLink = feature.get("isGeometryLink");
+      const isLinkLabelVisible =
+        isGeometryLink ?
+          areResponseGeometryLinkLabelsVisible
+        : areObservationLinkLabelsVisible;
+      return new Style({
+        stroke: new Stroke({
+          color:
+            isSelectedLink ? "#e53935"
+            : isGeometryLink ? "#e91e63"
+            : "#ef6c00",
+          width: 2,
+        }),
+        text:
+          isLinkLabelVisible ?
+            new Text({
               text: String(feature.get("description") ?? ""),
               font: "600 12px sans-serif",
               offsetY: feature.get("isSelfLink") ? -12 : -10,
@@ -199,13 +222,19 @@ const BehavioralMapMapLayer = ({
               backgroundFill: new Fill({ color: "rgba(255,255,255,0.9)" }),
               fill: new Fill({
                 color:
-                  feature.get("isSelectedLink") ? "#e53935" : "#6a1b9a",
+                  isSelectedLink ? "#e53935"
+                  : isGeometryLink ? "#ad1457"
+                  : "#a84300",
               }),
-            }),
-          }),
-      }),
-    [linkSource],
-  );
+            })
+          : undefined,
+      });
+    });
+  }, [
+    linkLayer,
+    areObservationLinkLabelsVisible,
+    areResponseGeometryLinkLabelsVisible,
+  ]);
   const observationSource = useMemo(
     () => new VectorSource<Feature<Point>>(),
     [],
@@ -306,10 +335,6 @@ const BehavioralMapMapLayer = ({
   }, [groupLayer, isGroupsVisible]);
 
   useEffect(() => {
-    linkLayer.setVisible(isLinksVisible);
-  }, [linkLayer, isLinksVisible]);
-
-  useEffect(() => {
     if (!map) return;
     map.addLayer(groupLayer);
     return () => {
@@ -356,12 +381,15 @@ const BehavioralMapMapLayer = ({
     const observationsById = new Map(
       observations.map((observation) => [observation.localId, observation]),
     );
-    const features = links.flatMap((link) => {
+    const createLinkFeatures = (link: BehavioralMapLink) => {
       const source = observationsById.get(link.observationALocalId);
-      const target = observationsById.get(link.observationBLocalId);
-      if (!source || !target) return [];
-      let coordinates: [number, number][] = [source.position, target.position];
-      if (source.localId === target.localId) {
+      const targetPosition = link.observationBLocalId !== undefined ?
+          observationsById.get(link.observationBLocalId)?.position
+        : formGeometryPositionsById.get(link.responseGeometryLocalId);
+      if (!source || !targetPosition) return [];
+      const isSelfLink = source.localId === link.observationBLocalId;
+      let coordinates: [number, number][] = [source.position, targetPosition];
+      if (isSelfLink) {
         const [x, y] = source.position;
         const radius = 0.000018;
         coordinates = Array.from({ length: 25 }, (_, index) => {
@@ -381,15 +409,21 @@ const BehavioralMapMapLayer = ({
         link.localId === selectedLinkLocalId,
       );
       feature.set("description", link.description);
-      feature.set("isSelfLink", source.localId === target.localId);
+      feature.set("isSelfLink", isSelfLink);
+      feature.set("isGeometryLink", link.responseGeometryLocalId !== undefined);
       return [feature];
-    });
+    };
     linkSource.clear(true);
-    linkSource.addFeatures(features);
+    linkSource.addFeatures([
+      ...observationLinks.flatMap(createLinkFeatures),
+      ...responseGeometryLinks.flatMap(createLinkFeatures),
+    ]);
   }, [
-    links,
+    formGeometryPositionsById,
     linkSource,
+    observationLinks,
     observations,
+    responseGeometryLinks,
     selectedLinkLocalId,
     selectedGroupLocalId,
   ]);
@@ -407,6 +441,11 @@ const BehavioralMapMapLayer = ({
   }, [map, observationLayer]);
 
   useEffect(() => {
+    const selectedLink =
+      observationLinks.find(({ localId }) => localId === selectedLinkLocalId) ??
+      responseGeometryLinks.find(
+        ({ localId }) => localId === selectedLinkLocalId,
+      );
     const features = observations.map((observation) => {
       const feature = new Feature<Point>({
         geometry: new Point(observation.position),
@@ -416,12 +455,9 @@ const BehavioralMapMapLayer = ({
         observationLocalId: observation.localId,
         quantity: observation.quantity,
         isSelected: observation.localId === selectedObservationLocalId,
-        isRelatedToSelectedLink: links.some(
-          (link) =>
-            link.localId === selectedLinkLocalId &&
-            (link.observationALocalId === observation.localId ||
-              link.observationBLocalId === observation.localId),
-        ),
+        isRelatedToSelectedLink:
+          selectedLink?.observationALocalId === observation.localId ||
+          selectedLink?.observationBLocalId === observation.localId,
         isLinkTarget: selectedLinkTargetLocalIds.includes(
           observation.localId,
         ),
@@ -457,7 +493,8 @@ const BehavioralMapMapLayer = ({
     selectedLinkSourceLocalId,
     selectedGroupLocalId,
     selectedLinkLocalId,
-    links,
+    observationLinks,
+    responseGeometryLinks,
   ]);
 
   useEffect(() => {
@@ -493,6 +530,18 @@ const BehavioralMapMapLayer = ({
 
     const targetElement = map.getTargetElement();
     const originalCursor = targetElement?.style.cursor ?? "";
+    const getFormGeometryAtPixel = (pixel: number[]) =>
+      map.forEachFeatureAtPixel(
+        pixel,
+        (feature) => {
+          const id = feature.getId();
+          return typeof id === "string" ? id : undefined;
+        },
+        {
+          layerFilter: (layer) => layer.get("isFormGeometryLayer") === true,
+          hitTolerance: 6,
+        },
+      );
     const listenerKey = map.on("singleclick", (event) => {
       const clickedFeature = map.forEachFeatureAtPixel(
         event.pixel,
@@ -507,6 +556,14 @@ const BehavioralMapMapLayer = ({
       if (typeof localId === "string") {
         onObservationClick(localId);
         return;
+      }
+
+      if (onFormGeometryClick) {
+        const geometryLocalId = getFormGeometryAtPixel(event.pixel);
+        if (geometryLocalId !== undefined) {
+          onFormGeometryClick(geometryLocalId);
+          return;
+        }
       }
 
       const linkLocalId = map.forEachFeatureAtPixel(
@@ -583,10 +640,12 @@ const BehavioralMapMapLayer = ({
           layerFilter: (layer) => layer === groupLayer,
         },
       );
+      const clickableGeometry =
+        onFormGeometryClick && getFormGeometryAtPixel(event.pixel);
       const currentTarget = map.getTargetElement();
       if (currentTarget) {
         currentTarget.style.cursor =
-          clickableObservation || clickableLink || clickableGroup ?
+          clickableObservation || clickableLink || clickableGroup || clickableGeometry ?
             "pointer"
           : originalCursor;
       }
@@ -604,6 +663,7 @@ const BehavioralMapMapLayer = ({
     groupLayer,
     onMapClick,
     onObservationClick,
+    onFormGeometryClick,
     onLinkClick,
     onGroupClick,
   ]);

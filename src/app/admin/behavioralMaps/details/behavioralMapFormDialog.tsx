@@ -3,6 +3,7 @@
 import CDialog from "@/components/ui/dialog/cDialog";
 import ResponseFormV2, {
   type ResponseFormGeometriesChange,
+  type ResponseFormV2Handle,
   type ResponseFormValuesChange,
 } from "@/components/ui/responseForm/responseFormV2";
 import type { GetFormSubmissionDataResult } from "@/lib/serverFunctions/queries/formSubmission";
@@ -10,21 +11,28 @@ import type {
   ResponseFormGeometry,
   SerializedFormValues,
 } from "@/lib/types/formSubmission/responseFormTypes";
-import { useCallback, useMemo, useRef } from "react";
+import { type Ref, useCallback, useEffect, useMemo, useRef } from "react";
 
 const BehavioralMapFormDialog = ({
   open,
+  responseFormRef,
   formSubmission,
   locationPolygonGeoJson,
   serializedFormValues,
   geometries,
+  onDraftChange,
   onClose,
 }: {
   open: boolean;
+  responseFormRef: Ref<ResponseFormV2Handle>;
   formSubmission: GetFormSubmissionDataResult;
   locationPolygonGeoJson: string | null;
   serializedFormValues: SerializedFormValues;
   geometries: ResponseFormGeometry[];
+  onDraftChange: (
+    serializedFormValues: SerializedFormValues,
+    geometries: ResponseFormGeometry[],
+  ) => void;
   onClose: (
     serializedFormValues: SerializedFormValues,
     geometries: ResponseFormGeometry[],
@@ -32,6 +40,19 @@ const BehavioralMapFormDialog = ({
 }) => {
   const serializedFormValuesRef = useRef(serializedFormValues);
   const geometriesRef = useRef(geometries);
+  const hasChangesRef = useRef(false);
+  const onDraftChangeRef = useRef(onDraftChange);
+  useEffect(() => {
+    onDraftChangeRef.current = onDraftChange;
+  }, [onDraftChange]);
+
+  const scheduleFormDraftSave = useCallback(() => {
+    hasChangesRef.current = true;
+    onDraftChangeRef.current(
+      { ...serializedFormValuesRef.current },
+      geometriesRef.current,
+    );
+  }, []);
 
   const formSubmissionData = useMemo(
     () => ({
@@ -43,20 +64,27 @@ const BehavioralMapFormDialog = ({
   );
 
   const handleValuesChange = useCallback(
-    ({ serializedValues }: ResponseFormValuesChange) => {
+    ({ serializedValues, source }: ResponseFormValuesChange) => {
       serializedFormValuesRef.current = serializedValues;
+      if (source === "user") scheduleFormDraftSave();
     },
-    [],
+    [scheduleFormDraftSave],
   );
   const handleGeometriesChange = useCallback(
-    ({ geometries: updatedGeometries }: ResponseFormGeometriesChange) => {
+    ({ geometries: updatedGeometries, source }: ResponseFormGeometriesChange) => {
       geometriesRef.current = updatedGeometries;
+      if (source === "user") scheduleFormDraftSave();
     },
-    [],
+    [scheduleFormDraftSave],
   );
   const handleClose = useCallback(() => {
-    onClose(serializedFormValuesRef.current, geometriesRef.current);
-  }, [onClose]);
+    if (hasChangesRef.current) {
+      onClose({ ...serializedFormValuesRef.current }, geometriesRef.current);
+      hasChangesRef.current = false;
+    } else {
+      onClose(serializedFormValues, geometries);
+    }
+  }, [geometries, onClose, serializedFormValues]);
 
   return (
     <CDialog
@@ -68,6 +96,7 @@ const BehavioralMapFormDialog = ({
       onClose={handleClose}
     >
       <ResponseFormV2
+        ref={responseFormRef}
         formSubmission={formSubmissionData}
         readOnly={false}
         locationPolygonGeoJson={locationPolygonGeoJson}

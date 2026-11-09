@@ -12,6 +12,7 @@ export const responseGeometryTypeSchema = z.enum([
 export type ResponseGeometryType = z.infer<typeof responseGeometryTypeSchema>;
 
 export const responseGeometrySchema = z.object({
+  localId: z.string().min(1).optional(),
   type: z.custom<Type>(),
   coordinates: z.custom<Coordinate | Coordinate[][]>(),
   description: z.string().nullish(),

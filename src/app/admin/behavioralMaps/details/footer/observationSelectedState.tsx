@@ -7,6 +7,8 @@ import type { FetchBehavioralMapDetailsResponse } from "@/lib/serverFunctions/qu
 import Chip from "@mui/material/Chip";
 import { IconArrowLeft } from "@tabler/icons-react";
 
+import type { BehavioralMapObservation } from "../observationState";
+
 type Details = FetchBehavioralMapDetailsResponse["behavioralMapDetails"];
 type ProtocolGroups =
   Details["behavioralMapSubmission"]["behavioralMapProtocolStructure"]["behavioralMapProtocolGroups"];
@@ -16,11 +18,7 @@ const ObservationSelectedState = ({
   groups,
   onClose,
 }: {
-  observation: {
-    quantity: number;
-    observedAt: Date;
-    personCharacteristicIds: number[];
-  };
+  observation: BehavioralMapObservation;
   groups: ProtocolGroups;
   onClose: () => void;
 }) => (
@@ -43,8 +41,9 @@ const ObservationSelectedState = ({
         {groups.map((group) => {
           const selectedCharacteristics = group.characteristics.filter(
             ({ personCharacteristic }) =>
-              observation.personCharacteristicIds.includes(
-                personCharacteristic.id,
+              observation.characteristics.some(
+                ({ personCharacteristicId }) =>
+                  personCharacteristicId === personCharacteristic.id,
               ),
           );
 

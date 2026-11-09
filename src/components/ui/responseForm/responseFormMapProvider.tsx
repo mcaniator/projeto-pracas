@@ -173,7 +173,10 @@ const MapProvider = forwardRef(
               "circle-fill-color": "#9B59B2",
             },
       });
-      draw.on("drawend", ({ feature }) => setDescriptionFeature(feature));
+      draw.on("drawend", ({ feature }) => {
+        feature.setId(crypto.randomUUID());
+        setDescriptionFeature(feature);
+      });
       return draw;
     }, [currentGeometryType]);
 
@@ -209,6 +212,7 @@ const MapProvider = forwardRef(
       initialGeometries?.forEach((geometry) => {
         const feature = createResponseGeometryFeature(geometry);
         if (feature) {
+          if (feature.getId() === undefined) feature.setId(crypto.randomUUID());
           vectorSource.current.addFeature(feature);
         }
       });
@@ -256,6 +260,7 @@ const MapProvider = forwardRef(
               | null
               | undefined;
             return {
+              localId: String(feature.getId()),
               type: geometry.getType(),
               coordinates: geometry.getCoordinates(),
               description: description?.trim() || null,
@@ -301,7 +306,8 @@ const MapProvider = forwardRef(
           condition: click,
           toggleCondition: never,
           hitTolerance: 10,
-          style: (feature) => getResponseGeometryStyle(feature, true),
+          style: (feature) =>
+            getResponseGeometryStyle(feature, { selected: true }),
         });
         selectInteraction.on("select", (event) => {
           const selected = event.selected[0] ?? null;

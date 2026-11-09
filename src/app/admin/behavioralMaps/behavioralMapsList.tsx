@@ -3,23 +3,24 @@
 import CButton from "@/components/ui/cButton";
 import CIconChip from "@/components/ui/cIconChip";
 import { dateTimeFormatter } from "@/lib/formatters/dateFormatters";
-import type { FetchBehavioralMapsResponse } from "@/lib/serverFunctions/queries/behavioralMap";
 import { Chip, CircularProgress, Divider } from "@mui/material";
 import {
   IconCalendar,
   IconClipboardList,
+  IconDeviceFloppy,
   IconExternalLink,
   IconUser,
 } from "@tabler/icons-react";
 import { Virtuoso } from "react-virtuoso";
 
-type BehavioralMapRow = FetchBehavioralMapsResponse["behavioralMaps"][number];
+import type { BehavioralMapWithSyncStatus } from "./behavioralMapsClient";
+
 const BehavioralMapsList = ({
   behavioralMaps,
   isLoadingMore,
   onNearScrollEnd,
 }: {
-  behavioralMaps: BehavioralMapRow[];
+  behavioralMaps: BehavioralMapWithSyncStatus[];
   isLoadingMore: boolean;
   onNearScrollEnd: () => void;
 }) => (
@@ -60,6 +61,18 @@ const BehavioralMapsList = ({
                 />
               </span>
               <Divider />
+              {map.hasPendingSaveFromDraft && (
+                <>
+                  <span className="flex items-center text-base sm:text-xl">
+                    <Chip
+                      icon={<IconDeviceFloppy />}
+                      label="Mapa comportamental não salvo!"
+                      color="error"
+                    />
+                  </span>
+                  <Divider />
+                </>
+              )}
               <span className="flex items-center text-base sm:text-xl">
                 <CIconChip icon={<IconClipboardList />} tooltip="Protocolo" />
                 {map.behavioralMapProtocol.name}

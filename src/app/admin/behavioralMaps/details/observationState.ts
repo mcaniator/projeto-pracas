@@ -6,15 +6,28 @@ export type BehavioralMapObservation = {
   position: BehavioralMapPosition;
   observedAt: Date;
   quantity: number;
-  personCharacteristicIds: number[];
+  characteristics: { personCharacteristicId: number }[];
 };
 
-export type BehavioralMapLink = {
+type BehavioralMapLinkBase = {
   localId: string;
   observationALocalId: string;
-  observationBLocalId: string;
   description: string;
 };
+
+export type BehavioralMapObservationLink = BehavioralMapLinkBase & {
+  observationBLocalId: string;
+  responseGeometryLocalId?: never;
+};
+
+export type BehavioralMapResponseGeometryLink = BehavioralMapLinkBase & {
+  observationBLocalId?: never;
+  responseGeometryLocalId: string;
+};
+
+export type BehavioralMapLink =
+  | BehavioralMapObservationLink
+  | BehavioralMapResponseGeometryLink;
 
 export type BehavioralMapPendingPosition = {
   position: BehavioralMapPosition;

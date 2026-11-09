@@ -9,6 +9,8 @@ import type { FetchBehavioralMapDetailsResponse } from "@/lib/serverFunctions/qu
 import { IconArrowLeft, IconArrowRight, IconCheck } from "@tabler/icons-react";
 import { useMemo, useState } from "react";
 
+import type { BehavioralMapObservation } from "../observationState";
+
 type Details = FetchBehavioralMapDetailsResponse["behavioralMapDetails"];
 type ProtocolGroups =
   Details["behavioralMapSubmission"]["behavioralMapProtocolStructure"]["behavioralMapProtocolGroups"];
@@ -23,37 +25,43 @@ const AddingObservationState = ({
   observedAt: Date;
   onCancel: () => void;
   onSubmitObservation: (
-    personCharacteristicIds: number[],
+    characteristics: BehavioralMapObservation["characteristics"],
     quantity: number,
   ) => void;
 }) => {
   const [groupIndex, setGroupIndex] = useState(0);
   const [selectedCharacteristicsByGroup, setSelectedCharacteristicsByGroup] =
-    useState<Record<number, number[]>>({});
+    useState<Record<number, BehavioralMapObservation["characteristics"]>>(
+      {},
+    );
   const [isQuantityStep, setIsQuantityStep] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const currentGroup = groups[groupIndex];
   const currentSelection =
     currentGroup ? (selectedCharacteristicsByGroup[currentGroup.id] ?? []) : [];
-  const selectedIds = useMemo(
+  const selectedCharacteristics = useMemo(
     () =>
       groups.flatMap((group) => selectedCharacteristicsByGroup[group.id] ?? []),
     [groups, selectedCharacteristicsByGroup],
   );
 
   const toggleCharacteristic = (
-    characteristicId: number,
+    personCharacteristicId: number,
     isSelected: boolean,
   ) => {
     if (!currentGroup) return;
 
     setSelectedCharacteristicsByGroup((current) => {
       const selected = current[currentGroup.id] ?? [];
+      const characteristic = { personCharacteristicId };
       const next =
         currentGroup.personCharacteristicGroup.isTagGroup ?
-          isSelected ? [...selected, characteristicId]
-          : selected.filter((id) => id !== characteristicId)
-        : [characteristicId];
+          isSelected ? [...selected, characteristic]
+          : selected.filter(
+              (item) =>
+                item.personCharacteristicId !== personCharacteristicId,
+            )
+        : [characteristic];
 
       return { ...current, [currentGroup.id]: next };
     });
@@ -122,7 +130,10 @@ const AddingObservationState = ({
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {currentGroup.characteristics.map(({ personCharacteristic }) => {
                 const characteristicId = personCharacteristic.id;
-                const isSelected = currentSelection.includes(characteristicId);
+                const isSelected = currentSelection.some(
+                  ({ personCharacteristicId }) =>
+                    personCharacteristicId === characteristicId,
+                );
                 const color = personCharacteristic.color;
 
                 return currentGroup.personCharacteristicGroup.isTagGroup ?
@@ -220,7 +231,9 @@ const AddingObservationState = ({
         {isQuantityStep ?
           <CButton
             disabled={quantity < 1}
-            onClick={() => onSubmitObservation(selectedIds, quantity)}
+            onClick={() =>
+              onSubmitObservation(selectedCharacteristics, quantity)
+            }
           >
             <IconCheck />
             Adicionar

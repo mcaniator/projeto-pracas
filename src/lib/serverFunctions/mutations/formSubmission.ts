@@ -70,6 +70,7 @@ export type getFormSubmissionUpdateTransactionsParams = {
   formSubmissionId: number;
   formSubmission: FormSubmissionData;
   prismaClient?: Prisma.TransactionClient;
+  responseGeometryIdsByLocalId?: ReadonlyMap<string, number>;
 };
 
 /**
@@ -87,6 +88,7 @@ export const getFormSubmissionUpdateTransactions = async ({
   formSubmissionId,
   formSubmission: { responses, geometries },
   prismaClient = prisma,
+  responseGeometryIdsByLocalId,
 }: getFormSubmissionUpdateTransactionsParams): Promise<
   Prisma.PrismaPromise<number | Prisma.BatchPayload>[]
 > => {
@@ -292,14 +294,18 @@ export const getFormSubmissionUpdateTransactions = async ({
       questionGeometries.map((geometry) => {
         const wkt = serializeResponseGeometryToWkt(geometry);
         const description = geometry.description?.trim() || null;
-        return Prisma.sql`(${formSubmissionId}, ${questionId}, ST_GeomFromText(${wkt}, 4326), ${description}, NOW())`;
+        const id =
+          geometry.localId &&
+          responseGeometryIdsByLocalId?.get(geometry.localId);
+        const idValue = id ? Prisma.sql`${id}` : Prisma.sql`DEFAULT`;
+        return Prisma.sql`(${idValue}, ${formSubmissionId}, ${questionId}, ST_GeomFromText(${wkt}, 4326), ${description}, NOW())`;
       }),
   );
   if (geometryRows.length > 0) {
     transactions.push(
       prismaClient.$executeRaw`
         INSERT INTO response_geometry
-          (form_submission_id, question_id, geometry, description, updated_at)
+          (id, form_submission_id, question_id, geometry, description, updated_at)
         VALUES ${Prisma.join(geometryRows)}
       `,
     );

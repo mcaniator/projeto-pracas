@@ -102,20 +102,29 @@ export const deserializeResponseGeometriesFromWkt = (
 
 export const groupResponseGeometriesByQuestion = (
   rows: readonly {
+    id?: number;
     questionId: number;
     geometry: string | null;
     description: string | null;
   }[],
 ): ResponseFormGeometry[] => {
   const byQuestion = new Map<number, ResponseFormGeometry>();
-  for (const { questionId, geometry, description } of rows) {
+  for (const { id, questionId, geometry, description } of rows) {
     let response = byQuestion.get(questionId);
     if (!response) {
       response = { questionId, geometries: [] };
       byQuestion.set(questionId, response);
     }
-    for (const parsedGeometry of deserializeResponseGeometriesFromWkt(geometry)) {
-      response.geometries.push({ ...parsedGeometry, description });
+    const parsedGeometries = deserializeResponseGeometriesFromWkt(geometry);
+    for (const parsedGeometry of parsedGeometries) {
+      response.geometries.push({
+        ...parsedGeometry,
+        description,
+        localId:
+          id !== undefined && parsedGeometries.length === 1 ?
+            String(id)
+          : undefined,
+      });
     }
   }
   return Array.from(byQuestion.values());

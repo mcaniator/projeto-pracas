@@ -2,6 +2,7 @@
 
 import CButton from "@/components/ui/cButton";
 import {
+  IconChartBar,
   IconClipboardCheck,
   IconDeviceFloppy,
   IconFileText,
@@ -12,12 +13,14 @@ import {
 const IdleState = ({
   onOpenForm,
   onOpenEvaluation,
+  onOpenStatistics,
   onOpenSave,
   onCreateGroup,
   onCreateLink,
 }: {
   onOpenForm?: () => void;
   onOpenEvaluation?: () => void;
+  onOpenStatistics: () => void;
   onOpenSave?: () => void;
   onCreateGroup?: () => void;
   onCreateLink?: () => void;
@@ -45,13 +48,13 @@ const IdleState = ({
       </CButton>
       <CButton sx={{ width: "100%" }} onClick={onCreateLink}>
         <IconLink />
-        Adicionar ligação
+        Criar lig.
       </CButton>
-      <CButton
-        sx={{ width: "100%" }}
-        className="col-span-2"
-        onClick={onOpenSave}
-      >
+      <CButton sx={{ width: "100%" }} onClick={onOpenStatistics}>
+        <IconChartBar />
+        Estatísticas
+      </CButton>
+      <CButton sx={{ width: "100%" }} onClick={onOpenSave}>
         <IconDeviceFloppy />
         Salvar
       </CButton>
