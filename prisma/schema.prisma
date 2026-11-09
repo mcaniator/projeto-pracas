@@ -315,14 +315,15 @@ model ResponseGeometry {
   formSubmissionId Int            @map("form_submission_id")
   formSubmission   FormSubmission @relation(fields: [formSubmissionId], references: [id], onDelete: Cascade)
 
-  geometry Unsupported("Geometry")?
+  geometry    Unsupported("Geometry")?
+  description String?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   behavioralMapPersonObservationLinks BehavioralMapPersonObservationResponseGeometry[]
 
-  @@unique([formSubmissionId, questionId], name: "formSubmissionId_questionId")
+  @@index([formSubmissionId, id])
   @@map("response_geometry")
 }
 
@@ -784,7 +785,7 @@ model BehavioralMap {
 
   groups                                 BehavioralMapGroup[]
   personObservations                     BehavioralMapPersonObservation[]
-  personObservationLinks          BehavioralMapPersonObservationLink[]
+  personObservationLinks                 BehavioralMapPersonObservationLink[]
   personObservationResponseGeometryLinks BehavioralMapPersonObservationResponseGeometry[]
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -819,11 +820,11 @@ model BehavioralMapPersonObservation {
   position        Unsupported("Geometry(Point, 4326)")?
   observedAt      DateTime                              @map("observed_at") @db.Timestamptz(0)
 
-  groupMemberships           BehavioralMapPersonObservationGroup[]
-  characteristics            BehavioralMapPersonObservationCharacteristic[]
-  responseGeometryLinks      BehavioralMapPersonObservationResponseGeometry[]
-  linksAsObservationA BehavioralMapPersonObservationLink[]      @relation("behavioral_map_link_observation_a")
-  linksAsObservationB BehavioralMapPersonObservationLink[]      @relation("behavioral_map_link_observation_b")
+  groupMemberships      BehavioralMapPersonObservationGroup[]
+  characteristics       BehavioralMapPersonObservationCharacteristic[]
+  responseGeometryLinks BehavioralMapPersonObservationResponseGeometry[]
+  linksAsObservationA   BehavioralMapPersonObservationLink[]             @relation("behavioral_map_link_observation_a")
+  linksAsObservationB   BehavioralMapPersonObservationLink[]             @relation("behavioral_map_link_observation_b")
 
   @@index([behavioralMapId])
   @@map("behavioral_map_person_observation")

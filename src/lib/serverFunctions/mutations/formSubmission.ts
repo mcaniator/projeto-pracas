@@ -7,7 +7,7 @@ import {
   responseFormGeometrySchema,
   serializedFormValuesSchema,
 } from "@/lib/types/formSubmission/responseFormTypes";
-import { serializeResponseGeometriesToWkt } from "@/lib/utils/responseGeometry";
+import { serializeResponseGeometryToWkt } from "@/lib/utils/responseGeometry";
 import {
   Prisma,
   QuestionResponseCharacterTypes,
@@ -88,7 +88,7 @@ export const getFormSubmissionUpdateTransactions = async ({
   formSubmission: { responses, geometries },
   prismaClient = prisma,
 }: getFormSubmissionUpdateTransactionsParams): Promise<
-  Prisma.PrismaPromise<number>[]
+  Prisma.PrismaPromise<number | Prisma.BatchPayload>[]
 > => {
   const userId = (await getSessionUser())?.id;
 
@@ -244,140 +244,65 @@ export const getFormSubmissionUpdateTransactions = async ({
       }
     });
 
-  const transactions: Prisma.PrismaPromise<number>[] = [];
-  const writtenResponsesSQLValues = writtenResponses.map(
-    (response) =>
-      Prisma.sql`(${response.value}, ${userId}, ${response.questionId}, ${formSubmissionId}, NOW())`,
+  const transactions: Prisma.PrismaPromise<number | Prisma.BatchPayload>[] = [
+    // Serialize replacements of the same submission, even when it has no responses.
+    prismaClient.$executeRaw`
+      SELECT id FROM form_submission
+      WHERE id = ${formSubmissionId}
+      FOR NO KEY UPDATE
+    `,
+    prismaClient.response.deleteMany({ where: { formSubmissionId } }),
+    prismaClient.responseOption.deleteMany({ where: { formSubmissionId } }),
+    prismaClient.$executeRaw`
+      DELETE FROM response_geometry WHERE form_submission_id = ${formSubmissionId}
+    `,
+  ];
+
+  const responseRows = [
+    ...writtenResponses.map(({ questionId, value }) => ({
+      questionId,
+      response: value === null ? null : String(value),
+    })),
+    ...booleanResponses.map(({ questionId, value }) => ({
+      questionId,
+      response: value ? BooleanResponseValue.TRUE : BooleanResponseValue.FALSE,
+    })),
+  ].map((row) => ({ ...row, formSubmissionId, userId }));
+  if (responseRows.length > 0) {
+    transactions.push(prismaClient.response.createMany({ data: responseRows }));
+  }
+
+  const responseOptionRows = optionsResponses.flatMap(({ questionId, value }) =>
+    value.map(({ value: optionId, override: overrideValue }) => ({
+      formSubmissionId,
+      questionId,
+      userId,
+      optionId,
+      overrideValue,
+    })),
   );
-  if (writtenResponsesSQLValues.length > 0) {
-    const writtenResponsesQuery = Prisma.sql`INSERT INTO "response" ("response", "user_id", "question_id", "form_submission_id", "updated_at")
-      VALUES ${Prisma.join(writtenResponsesSQLValues, `,`)}
-      ON CONFLICT ("form_submission_id", "question_id")
-      DO UPDATE SET "response" = EXCLUDED."response", "user_id" = EXCLUDED."user_id", "updated_at" = EXCLUDED."updated_at"`;
-
-    transactions.push(prismaClient.$executeRaw(writtenResponsesQuery));
-  }
-
-  const booleanResponsesSQLValues = booleanResponses.map(
-    (response) =>
-      Prisma.sql`(${response.value ? BooleanResponseValue.TRUE : BooleanResponseValue.FALSE}, ${userId}, ${response.questionId}, ${formSubmissionId}, NOW())`,
-  );
-
-  if (booleanResponsesSQLValues.length > 0) {
-    const booleanResponsesQuery = Prisma.sql`INSERT INTO "response" ("response", "user_id", "question_id", "form_submission_id", "updated_at")
-      VALUES ${Prisma.join(booleanResponsesSQLValues, `,`)}
-      ON CONFLICT ("form_submission_id", "question_id")
-      DO UPDATE SET "response" = EXCLUDED."response", "user_id" = EXCLUDED."user_id", "updated_at" = EXCLUDED."updated_at"`;
-    transactions.push(prismaClient.$executeRaw(booleanResponsesQuery));
-  }
-
-  const existingOptions = await prismaClient.responseOption.findMany({
-    where: { formSubmissionId },
-    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
-  });
-
-  // group responseOption by questionId
-  const responseOptionsByQuestion = existingOptions.reduce<
-    Record<number, typeof existingOptions>
-  >((acc, responseOption) => {
-    (acc[responseOption.questionId] ||= []).push(responseOption);
-    return acc;
-  }, {});
-
-  const responseOptionIds: number[] = [];
-  const optionCaseStatements: Prisma.Sql[] = [];
-  const overrideCaseStatements: Prisma.Sql[] = [];
-
-  for (const { questionId, value } of optionsResponses) {
-    const options = value;
-
-    //Creating CASE conditionals
-    //Each responseOption related to the form submission will be modified
-    //If there are more responseOption than options selected, the remaing responseOptions will have NULL atributed to optionId
-    const responseOptions = responseOptionsByQuestion[questionId] || [];
-    for (let index = 0; index < responseOptions.length; index++) {
-      const responseOption = responseOptions[index];
-      if (!responseOption) continue;
-      const id = responseOption.id;
-      const newOption =
-        index < options.length ? (options[index]?.value ?? null) : null;
-      const newOverride =
-        index < options.length ? (options[index]?.override ?? null) : null;
-      responseOptionIds.push(id);
-      optionCaseStatements.push(Prisma.sql`WHEN id = ${id} THEN ${newOption}`);
-      overrideCaseStatements.push(
-        Prisma.sql`WHEN id = ${id} THEN ${newOverride}`,
-      );
-    }
-  }
-
-  if (responseOptionIds.length > 0 && optionCaseStatements.length > 0) {
-    const responseOptionUpdate = Prisma.sql`
-      UPDATE response_option
-      SET option_id = CASE
-        ${Prisma.join(optionCaseStatements, "\n")}
-        ELSE option_id
-      END,
-      override_value = CASE
-        ${Prisma.join(overrideCaseStatements, "\n")}
-        ELSE override_value
-      END,
-      updated_at = NOW(),
-      user_id = ${userId}
-      WHERE id IN (${Prisma.join(responseOptionIds)});
-    `;
-
-    transactions.push(prismaClient.$executeRaw(responseOptionUpdate));
-  }
-
-  //For each question, in case more options were sent than the current number of reponseOption, an INSERT will be made
-  const insertValues: Prisma.Sql[] = [];
-  for (const { questionId, value } of optionsResponses) {
-    const options = value;
-    const existingResponseOptionCount = (
-      responseOptionsByQuestion[questionId] || []
-    ).length;
-
-    for (
-      let index = existingResponseOptionCount;
-      index < options.length;
-      index++
-    ) {
-      const option = options[index];
-      if (!option) continue;
-      insertValues.push(
-        Prisma.sql`(${userId}, ${formSubmissionId}, ${questionId}, ${option.value}, ${option.override}, NOW())`,
-      );
-    }
-  }
-  if (insertValues.length > 0) {
-    const responseOptionInsert = Prisma.sql`INSERT INTO "response_option" ("user_id", "form_submission_id", "question_id", "option_id", "override_value", "updated_at")
-      VALUES ${Prisma.join(insertValues, ",")}`;
-    transactions.push(prismaClient.$executeRaw(responseOptionInsert));
-  }
-
-  const responseGeometryValues = geometries.map((responseGeometry) => {
-    const { questionId, geometries: geometriesForQuestion } = responseGeometry;
-    const geometryCollectionWkt = serializeResponseGeometriesToWkt(
-      geometriesForQuestion,
+  if (responseOptionRows.length > 0) {
+    transactions.push(
+      prismaClient.responseOption.createMany({ data: responseOptionRows }),
     );
-    const geoText =
-      geometryCollectionWkt ?
-        Prisma.sql`ST_GeomFromText(${geometryCollectionWkt}, 4326)`
-      : Prisma.sql`NULL`;
-    return Prisma.sql`(${formSubmissionId}, ${questionId}, ${geoText}, NOW())`;
-  });
-  if (responseGeometryValues.length > 0) {
-    const responseGeometryQuery = Prisma.sql`
-      INSERT INTO response_geometry (form_submission_id, question_id, geometry, updated_at)
-      VALUES ${Prisma.join(responseGeometryValues, ",")}
-      ON CONFLICT (form_submission_id, question_id)
-      DO UPDATE SET
-        geometry = EXCLUDED.geometry,
-        updated_at = EXCLUDED.updated_at
-    `;
+  }
 
-    transactions.push(prismaClient.$executeRaw(responseGeometryQuery));
+  const geometryRows = geometries.flatMap(
+    ({ questionId, geometries: questionGeometries }) =>
+      questionGeometries.map((geometry) => {
+        const wkt = serializeResponseGeometryToWkt(geometry);
+        const description = geometry.description?.trim() || null;
+        return Prisma.sql`(${formSubmissionId}, ${questionId}, ST_GeomFromText(${wkt}, 4326), ${description}, NOW())`;
+      }),
+  );
+  if (geometryRows.length > 0) {
+    transactions.push(
+      prismaClient.$executeRaw`
+        INSERT INTO response_geometry
+          (form_submission_id, question_id, geometry, description, updated_at)
+        VALUES ${Prisma.join(geometryRows)}
+      `,
+    );
   }
 
   return transactions;

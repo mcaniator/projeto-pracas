@@ -19,20 +19,25 @@ const getFormSubmissionResponseGeometries = async ({
 }) => {
   const geometries = await prisma.$queryRaw<
     {
+      id: number;
       formSubmissionId: number;
       questionId: number;
       geometry: string | null;
+      description: string | null;
     }[]
   >`
     SELECT
       response_geometry.form_submission_id as "formSubmissionId",
       response_geometry.question_id as "questionId",
-      ST_AsText(response_geometry.geometry) as geometry
+      response_geometry.id as "id",
+      ST_AsText(response_geometry.geometry) as geometry,
+      response_geometry.description
     FROM response_geometry
     INNER JOIN question
       ON question.id = response_geometry.question_id
     WHERE response_geometry.form_submission_id = ${formSubmissionId}
       ${publicQuestionsOnly ? Prisma.sql`AND question.is_public = TRUE` : Prisma.empty}
+    ORDER BY response_geometry.id
   `;
 
   return geometries;

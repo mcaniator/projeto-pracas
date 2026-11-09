@@ -268,10 +268,14 @@ const a_v2_20260729220400_add_initial_tables = new SQLiteMigration({
         form_submission_id INTEGER NOT NULL REFERENCES form_submission(id) ON DELETE CASCADE ON UPDATE CASCADE,
         question_id INTEGER NOT NULL REFERENCES question(id),
         geometry TEXT,
+        description TEXT,
         created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        UNIQUE (form_submission_id, question_id)
+        updated_at TEXT NOT NULL
       )`,
+    },
+    {
+      statement: `CREATE INDEX response_geometry_form_submission_id_id_idx
+        ON response_geometry (form_submission_id, id)`,
     },
     {
       statement: `CREATE TABLE assessment_draft (
