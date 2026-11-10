@@ -16,7 +16,7 @@ export type TallyProtocolDraftCharacteristic = {
   personCharacteristic: {
     id: number;
     name: string;
-    iconKey: string | null;
+    iconKey: string;
     color: string;
   };
 };
@@ -79,32 +79,30 @@ export const reorderTallyProtocolDraftGroups = (
 export const buildTallyProtocolDraftGroups = (
   groups: FetchTallyProtocolStructureResponse["tallyProtocol"]["tallyProtocolGroups"],
 ): TallyProtocolDraftGroup[] =>
-  reorderTallyProtocolDraftGroups(
-    groups.map((group): TallyProtocolDraftGroup => {
-      const baseGroup = {
-        id: `person-characteristic-group-${group.personCharacteristicGroup.id}`,
-        tallyProtocolGroupId: group.id,
-        personCharacteristicGroupId: group.personCharacteristicGroup.id,
-        position: group.position,
-        personCharacteristicGroup: group.personCharacteristicGroup,
-        characteristics: group.characteristics.map((characteristic) => ({
-          id: `person-characteristic-${characteristic.personCharacteristic.id}`,
-          personCharacteristicId: characteristic.personCharacteristic.id,
-          position: characteristic.position,
-          personCharacteristic: characteristic.personCharacteristic,
-        })),
-      };
+  groups.map((group): TallyProtocolDraftGroup => {
+    const baseGroup = {
+      id: `person-characteristic-group-${group.personCharacteristicGroup.id}`,
+      tallyProtocolGroupId: group.id,
+      personCharacteristicGroupId: group.personCharacteristicGroup.id,
+      position: group.position,
+      personCharacteristicGroup: group.personCharacteristicGroup,
+      characteristics: group.characteristics.map((characteristic) => ({
+        id: `person-characteristic-${characteristic.personCharacteristic.id}`,
+        personCharacteristicId: characteristic.personCharacteristic.id,
+        position: characteristic.position,
+        personCharacteristic: characteristic.personCharacteristic,
+      })),
+    };
 
-      if (group.displayMode === tallyProtocolGroupDisplayModes.COMMON) {
-        return {
-          ...baseGroup,
-          displayMode: tallyProtocolGroupDisplayModes.COMMON,
-        };
-      }
-
+    if (group.displayMode === tallyProtocolGroupDisplayModes.COMMON) {
       return {
         ...baseGroup,
-        displayMode: group.displayMode,
+        displayMode: tallyProtocolGroupDisplayModes.COMMON,
       };
-    }),
-  );
+    }
+
+    return {
+      ...baseGroup,
+      displayMode: group.displayMode,
+    };
+  });

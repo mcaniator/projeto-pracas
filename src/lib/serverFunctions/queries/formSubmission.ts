@@ -8,7 +8,7 @@ import type {
   SubcategoryItem,
 } from "@/lib/types/forms/formStructure";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
-import { deserializeResponseGeometriesFromWkt } from "@/lib/utils/responseGeometry";
+import { groupResponseGeometriesByQuestion } from "@/lib/utils/responseGeometry";
 
 import { getFormStructure } from "./form";
 
@@ -221,10 +221,7 @@ export const getFormSubmissionData = async ({
       : {}),
     },
     responsesFormValues,
-    geometries: rawGeometries.map(({ questionId, geometry }) => ({
-      questionId,
-      geometries: deserializeResponseGeometriesFromWkt(geometry),
-    })),
+    geometries: groupResponseGeometriesByQuestion(rawGeometries),
   };
 };
 

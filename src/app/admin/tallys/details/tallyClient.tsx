@@ -399,9 +399,7 @@ const TallyClient = ({
 
   const personsCounter = (
     <PersonsCounter
-      tallyProtocolStructure={
-        tallySubmission.tallyProtocolStructure
-      }
+      groups={tallySubmission.tallyProtocolStructure.tallyProtocolGroups}
       personObservations={personObservations}
       readOnly={readOnly}
       onQuantityChange={(personCharacteristicIds, delta) => {

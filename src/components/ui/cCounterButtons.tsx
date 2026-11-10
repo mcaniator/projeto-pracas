@@ -2,12 +2,14 @@ import CButton from "@/components/ui/cButton";
 
 const CCounterButtons = ({
   count,
+  min = 0,
   readOnly = false,
   color,
   onIncrement,
   onDecrement,
 }: {
   count: number;
+  min?: number;
   readOnly?: boolean;
   color?: string;
   onIncrement: () => void;
@@ -34,10 +36,10 @@ const CCounterButtons = ({
         }}
         onClick={onIncrement}
       >
-        {`+ ${count}`}
+        {"+ " + count}
       </CButton>
       <CButton
-        disabled={readOnly || count === 0}
+        disabled={readOnly || count <= min}
         sx={{
           py: 0,
           width: "100%",

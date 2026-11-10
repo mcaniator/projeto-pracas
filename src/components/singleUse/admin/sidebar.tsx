@@ -13,6 +13,7 @@ import {
   IconTableExport,
   IconTree,
   IconUserCog,
+  IconUserPin,
   IconWifiOff,
   IconX,
 } from "@tabler/icons-react";
@@ -67,6 +68,12 @@ const Sidebar = () => {
       icon: <GrGroup size={34} />,
       name: "Contagens",
       path: "/admin/tallys",
+      show: checkIfRolesArrayContainsAny(user.roles, { roleGroups: ["TALLY"] }),
+    },
+    {
+      icon: <IconUserPin size={34} />,
+      name: "Mapas comportamentais",
+      path: "/admin/behavioralMaps",
       show: checkIfRolesArrayContainsAny(user.roles, { roleGroups: ["TALLY"] }),
     },
     {
@@ -127,7 +134,7 @@ const Sidebar = () => {
 
       <nav
         className={cn(
-          "fixed left-0 top-0 z-[51] flex h-full w-64 flex-col bg-main p-5 text-xl shadow-lg transition-transform duration-300",
+          "fixed left-0 top-0 z-[51] flex h-full w-80 flex-col bg-main p-5 text-xl shadow-lg transition-transform duration-300",
           isSidebarVisible ? "translate-x-0" : "-translate-x-full",
           titillium_web.className,
         )}

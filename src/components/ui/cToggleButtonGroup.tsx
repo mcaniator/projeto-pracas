@@ -10,7 +10,7 @@ type CToggleButtonGroupProps<T> = Omit<
   "onChange" | "exclusive"
 > & {
   options: T[];
-  value: number | string | null | undefined;
+  value: number | string | Array<number | string> | null | undefined;
   mapValues?: boolean;
   toggleButtonSx?: SxProps<Theme>;
   toggleButtonColor?: string;
@@ -19,6 +19,11 @@ type CToggleButtonGroupProps<T> = Omit<
   getLabel?: (option: T) => React.ReactNode;
   getValue?: (option: T) => string | number;
   getTooltip?: (option: T) => string;
+  multiple?: boolean;
+  onMultipleChange?: (
+    event: React.MouseEvent<HTMLElement>,
+    options: T[],
+  ) => void;
   onChange?: (event: React.MouseEvent<HTMLElement>, option: T) => void;
 };
 
@@ -33,6 +38,8 @@ function CToggleButtonGroup<T>({
   getValue,
   onChange,
   getTooltip,
+  multiple = false,
+  onMultipleChange,
   sx,
   ...rest
 }: CToggleButtonGroupProps<T>) {
@@ -114,9 +121,17 @@ function CToggleButtonGroup<T>({
     return (
       <ToggleButtonGroup
         sx={{ ...defaultSx, ...sx }}
-        exclusive
+        exclusive={!multiple}
         {...rest}
         onChange={(e, newValue) => {
+          if (multiple) {
+            if (!Array.isArray(newValue)) return;
+            const selected = options.filter((option) =>
+              newValue.includes(getValue(option)),
+            );
+            onMultipleChange?.(e, selected);
+            return;
+          }
           const selected = options.find((o) => getValue(o) === newValue);
           if (onChange && selected) onChange(e, selected);
         }}

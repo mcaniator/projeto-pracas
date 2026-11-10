@@ -38,29 +38,25 @@ const ResponseFormMapDialog = ({
     geometries: ResponseGeometry[],
   ) => void;
 }) => {
-  const [isInSelectMode, setIsInSelectMode] = useState(false);
+  const [hasSelectedGeometry, setHasSelectedGeometry] = useState(false);
 
   const mapProviderRef = useRef<{
     saveGeometries: () => void;
     removeSelectedFeature: () => void;
   } | null>(null);
 
-  const handleConcluir = () => {
-    if (mapProviderRef.current) {
-      mapProviderRef.current.saveGeometries();
-    }
+  const handleClose = () => {
+    setHasSelectedGeometry(false);
     onClose();
   };
 
-  const handleChangeIsInSelectMode = (val: boolean) => {
-    setIsInSelectMode(val);
+  const handleConcluir = () => {
+    if (!finalized) mapProviderRef.current?.saveGeometries();
+    handleClose();
   };
 
   const handleDeleteGeometry = () => {
-    if (mapProviderRef.current) {
-      mapProviderRef.current.removeSelectedFeature();
-    }
-    handleChangeIsInSelectMode(false);
+    mapProviderRef.current?.removeSelectedFeature();
   };
   return (
     <CDialog
@@ -69,12 +65,12 @@ const ResponseFormMapDialog = ({
       title={"Geometrias"}
       subtitle={questionName}
       open={openMapDialog}
-      onClose={onClose}
+      onClose={handleClose}
       onConfirm={handleConcluir}
       confirmChildren={finalized ? undefined : <IconCheck />}
       onCancel={handleDeleteGeometry}
       cancelSx={{ backgroundColor: "error.main" }}
-      cancelChildren={isInSelectMode ? <IconTrash /> : undefined}
+      cancelChildren={hasSelectedGeometry ? <IconTrash /> : undefined}
     >
       <div className="flex h-full flex-col">
         <ResponseFormMapProvider
@@ -83,7 +79,7 @@ const ResponseFormMapDialog = ({
           locationPolygonGeoJson={locationPolygonGeoJson}
           initialGeometries={initialGeometries}
           handleResponseGeometryChange={handleResponseGeometryChange}
-          handleChangeIsInSelectMode={handleChangeIsInSelectMode}
+          onGeometrySelectionChange={setHasSelectedGeometry}
           finalized={finalized}
           ref={mapProviderRef}
         />

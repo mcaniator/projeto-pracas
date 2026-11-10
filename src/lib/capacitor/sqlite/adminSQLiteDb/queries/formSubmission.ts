@@ -1,6 +1,6 @@
 import adminSQLiteDb from "@/lib/capacitor/sqlite/adminSQLiteDb/adminSQLiteDb";
 import type {
-  SQLiteBulkUpsertOperation,
+  SQLiteBulkInsertOperation,
   SQLiteTransactionOperation,
 } from "@/lib/capacitor/sqlite/sqlite";
 import dayjs from "@/lib/dayjs";
@@ -12,14 +12,13 @@ import type {
 } from "@/lib/serverFunctions/queries/formSubmission";
 import type {
   FormSubmissionOptionValueWithOverride,
-  ResponseFormGeometry,
   SerializedFormValues,
 } from "@/lib/types/formSubmission/responseFormTypes";
 import type { QuestionItem } from "@/lib/types/forms/formStructure";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
 import {
-  deserializeResponseGeometriesFromWkt,
-  serializeResponseGeometriesToWkt,
+  groupResponseGeometriesByQuestion,
+  serializeResponseGeometryToWkt,
 } from "@/lib/utils/responseGeometry";
 import {
   OptionTypes,
@@ -53,6 +52,7 @@ const responseGeometriesSchema = z.array(
   z.object({
     questionId: z.coerce.number(),
     geometry: z.string().nullable(),
+    description: z.string().nullable(),
   }),
 );
 
@@ -61,14 +61,6 @@ const responseQuestionSchema = z.array(
     id: z.coerce.number(),
     questionType: z.nativeEnum(QuestionTypes),
     characterType: z.nativeEnum(QuestionResponseCharacterTypes),
-  }),
-);
-
-const existingResponseOptionsSchema = z.array(
-  z.object({
-    id: z.coerce.number(),
-    questionId: z.coerce.number(),
-    createdAt: z.coerce.date(),
   }),
 );
 
@@ -127,23 +119,20 @@ const getAdminSQLiteFormSubmissionResponseGeometries = async ({
   const responseGeometriesValues = await adminSQLiteDb.query({
     statement: `
       SELECT
-        question_id AS questionId,
-        geometry
+        rg.question_id AS questionId,
+        rg.geometry,
+        rg.description
       FROM response_geometry rg
       INNER JOIN question q ON q.id = rg.question_id
       WHERE rg.form_submission_id = ?
         ${publicQuestionsOnly ? "AND q.is_public = 1" : ""}
+      ORDER BY rg.id
     `,
     values: [formSubmissionId],
   });
 
-  return responseGeometriesSchema.parse(responseGeometriesValues.values).map(
-    (responseGeometry): ResponseFormGeometry => ({
-      questionId: responseGeometry.questionId,
-      geometries: deserializeResponseGeometriesFromWkt(
-        responseGeometry.geometry,
-      ),
-    }),
+  return groupResponseGeometriesByQuestion(
+    responseGeometriesSchema.parse(responseGeometriesValues.values),
   );
 };
 
@@ -333,13 +322,35 @@ type GetAdminSQLiteFormSubmissionUpdateOperationsParams = {
   updatedAt: Date;
 };
 
+const prepareFormSubmissionInsertOperations = ({
+  table,
+  columns,
+  rows,
+}: SQLiteBulkInsertOperation): SQLiteTransactionOperation[] => {
+  // Keep each statement within the parameter limit of older SQLite versions.
+  const rowsPerStatement = Math.floor(999 / columns.length);
+  const rowPlaceholders = `(${columns.map(() => "?").join(", ")})`;
+  const operations: SQLiteTransactionOperation[] = [];
+
+  for (let start = 0; start < rows.length; start += rowsPerStatement) {
+    const batch = rows.slice(start, start + rowsPerStatement);
+    operations.push({
+      statement: `INSERT INTO ${table} (${columns.join(", ")})
+        VALUES ${batch.map(() => rowPlaceholders).join(", ")}`,
+      values: batch.flat(),
+    });
+  }
+
+  return operations;
+};
+
 const getAdminSQLiteFormSubmissionUpdateOperations = async ({
   formSubmissionId,
   formSubmission: { responses, geometries },
   userId,
   updatedAt,
 }: GetAdminSQLiteFormSubmissionUpdateOperationsParams): Promise<
-  SQLiteBulkUpsertOperation[]
+  SQLiteTransactionOperation[]
 > => {
   const formSubmissionValues = await adminSQLiteDb.query({
     statement: `
@@ -490,56 +501,65 @@ const getAdminSQLiteFormSubmissionUpdateOperations = async ({
       }
     });
 
-  const existingResponseOptionValues = await adminSQLiteDb.query({
-    statement: `
-      SELECT
-        id,
-        question_id AS questionId,
-        created_at AS createdAt
-      FROM response_option
-      WHERE form_submission_id = ?
-      ORDER BY created_at ASC, id ASC
-    `,
-    values: [formSubmissionId],
-  });
-  const existingResponseOptions = existingResponseOptionsSchema.parse(
-    existingResponseOptionValues.values,
-  );
-  const responseOptionsByQuestion = existingResponseOptions.reduce(
-    (result, responseOption) => {
-      const questionResponseOptions =
-        result.get(responseOption.questionId) ?? [];
-      questionResponseOptions.push(responseOption);
-      result.set(responseOption.questionId, questionResponseOptions);
-      return result;
-    },
-    new Map<number, typeof existingResponseOptions>(),
-  );
-
   const updatedAtISOString = updatedAt.toISOString();
-  const operations: SQLiteBulkUpsertOperation[] = [];
-  const characterResponseRows = [
-    ...writtenResponses.map((response) => ({
-      questionId: response.questionId,
-      value: response.value,
+  const responseRows = [
+    ...writtenResponses.map(({ questionId, value }) => ({
+      questionId,
+      response: value === null ? null : String(value),
     })),
-    ...booleanResponses.map((response) => ({
-      questionId: response.questionId,
-      value:
-        response.value ? BooleanResponseValue.TRUE : BooleanResponseValue.FALSE,
+    ...booleanResponses.map(({ questionId, value }) => ({
+      questionId,
+      response: value ? BooleanResponseValue.TRUE : BooleanResponseValue.FALSE,
     })),
-  ].map((response) => [
+  ].map(({ questionId, response }) => [
     userId,
     formSubmissionId,
-    response.questionId,
-    response.value,
+    questionId,
+    response,
     updatedAtISOString,
     updatedAtISOString,
   ]);
-  if (characterResponseRows.length > 0) {
-    operations.push({
+
+  const responseOptionRows = optionsResponses.flatMap(({ questionId, value }) =>
+    value.map(({ value: optionId, override }) => [
+      userId,
+      formSubmissionId,
+      questionId,
+      optionId,
+      override,
+      updatedAtISOString,
+      updatedAtISOString,
+    ]),
+  );
+
+  const geometryRows = geometries.flatMap(
+    ({ questionId, geometries: questionGeometries }) =>
+      questionGeometries.map((geometry) => [
+        formSubmissionId,
+        questionId,
+        serializeResponseGeometryToWkt(geometry),
+        geometry.description?.trim() || null,
+        updatedAtISOString,
+        updatedAtISOString,
+      ]),
+  );
+
+  return [
+    {
+      statement: "DELETE FROM response WHERE form_submission_id = ?",
+      values: [formSubmissionId],
+    },
+    {
+      statement: "DELETE FROM response_option WHERE form_submission_id = ?",
+      values: [formSubmissionId],
+    },
+    {
+      statement: "DELETE FROM response_geometry WHERE form_submission_id = ?",
+      values: [formSubmissionId],
+    },
+    ...prepareFormSubmissionInsertOperations({
       table: "response",
-      insertColumns: [
+      columns: [
         "user_id",
         "form_submission_id",
         "question_id",
@@ -547,50 +567,11 @@ const getAdminSQLiteFormSubmissionUpdateOperations = async ({
         "created_at",
         "updated_at",
       ],
-      updateColumns: ["user_id", "response", "updated_at"],
-      conflictColumns: ["form_submission_id", "question_id"],
-      rows: characterResponseRows,
-    });
-  }
-
-  const responseOptionRows: unknown[][] = [];
-  optionsResponses.forEach(({ questionId, value }) => {
-    const existingOptions = responseOptionsByQuestion.get(questionId) ?? [];
-    // Update every existing response option. Extra rows are kept with null values.
-    existingOptions.forEach((existingOption, index) => {
-      const selectedOption = value[index];
-      responseOptionRows.push([
-        existingOption.id,
-        userId,
-        formSubmissionId,
-        questionId,
-        selectedOption?.value ?? null,
-        selectedOption?.override ?? null,
-        existingOption.createdAt.toISOString(),
-        updatedAtISOString,
-      ]);
-    });
-    // Insert response options that do not have a corresponding stored row.
-    for (let index = existingOptions.length; index < value.length; index++) {
-      const selectedOption = value[index];
-      if (!selectedOption) continue;
-      responseOptionRows.push([
-        null,
-        userId,
-        formSubmissionId,
-        questionId,
-        selectedOption.value,
-        selectedOption.override,
-        updatedAtISOString,
-        updatedAtISOString,
-      ]);
-    }
-  });
-  if (responseOptionRows.length > 0) {
-    operations.push({
+      rows: responseRows,
+    }),
+    ...prepareFormSubmissionInsertOperations({
       table: "response_option",
-      insertColumns: [
-        "id",
+      columns: [
         "user_id",
         "form_submission_id",
         "question_id",
@@ -599,35 +580,21 @@ const getAdminSQLiteFormSubmissionUpdateOperations = async ({
         "created_at",
         "updated_at",
       ],
-      updateColumns: ["user_id", "option_id", "override_value", "updated_at"],
-      conflictColumns: ["id"],
       rows: responseOptionRows,
-    });
-  }
-
-  if (geometries.length > 0) {
-    operations.push({
+    }),
+    ...prepareFormSubmissionInsertOperations({
       table: "response_geometry",
-      insertColumns: [
+      columns: [
         "form_submission_id",
         "question_id",
         "geometry",
+        "description",
         "created_at",
         "updated_at",
       ],
-      updateColumns: ["geometry", "updated_at"],
-      conflictColumns: ["form_submission_id", "question_id"],
-      rows: geometries.map((responseGeometry) => [
-        formSubmissionId,
-        responseGeometry.questionId,
-        serializeResponseGeometriesToWkt(responseGeometry.geometries),
-        updatedAtISOString,
-        updatedAtISOString,
-      ]),
-    });
-  }
-
-  return operations;
+      rows: geometryRows,
+    }),
+  ];
 };
 
 export {

@@ -217,7 +217,7 @@ const _updateLocation = async (request: APIRequestData<UpdateLocationData>) => {
               formSubmission,
               prismaClient: prisma,
             });
-          await Promise.all(formSubmissionTransactions);
+          for (const transaction of formSubmissionTransactions) await transaction;
         }
         const featuresGeoJson = z
           .string()
@@ -358,7 +358,7 @@ const _createLocation = async (request: APIRequestData<CreateLocationData>) => {
               formSubmission,
               prismaClient: prisma,
             });
-          await Promise.all(formSubmissionTransactions);
+          for (const transaction of formSubmissionTransactions) await transaction;
         }
         // Após a criação da localização, adicionar os polígonos
         const featuresGeoJson = z
