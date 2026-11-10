@@ -142,12 +142,20 @@ export const fetchLocationExport = async (
     workbook.creator = "Projeto Praças";
 
     const headers = [
-      "Identificador",
-      "Nome da Praça",
+      "Identificador da praça",
+      "Nome da praça",
       "Nome popular",
       "Categoria",
       "Tipo",
-      "Endereço",
+      "Estado",
+      "Cidade",
+      "Rua 1",
+      "Rua 2",
+      "Rua 3",
+      "Rua 4",
+      "Região administrativa ampla",
+      "Região administrativa intermediária",
+      "Região administrativa estreita",
     ];
 
     const locationsByForm = new Map<
@@ -182,6 +190,8 @@ export const fetchLocationExport = async (
       worksheet.mergeCells(1, 1, 1, headers.length);
       worksheet.getCell(1, 1).value = "IDENTIFICAÇÃO PRAÇA";
       worksheet.addRow([]);
+      worksheet.mergeCells(2, 7, 2, headers.length);
+      worksheet.getCell(2, 7).value = "Endereço";
       worksheet.addRow(headers);
 
       let formCategories;
@@ -207,34 +217,29 @@ export const fetchLocationExport = async (
         });
       }
 
-      for (const location of formLocations) {
-        const streets = [
-          location.firstStreet,
-          location.secondStreet,
-          location.thirdStreet,
-          location.fourthStreet,
-        ].filter(Boolean);
-        const administrativeUnits = [
-          location.broadAdministrativeUnit?.name,
-          location.intermediateAdministrativeUnit?.name,
-          location.narrowAdministrativeUnit?.name,
-        ].filter(Boolean);
-        const address = [
-          streets.join(" / "),
-          ...administrativeUnits,
-          location.city.name,
-          location.city.state,
-        ]
-          .filter(Boolean)
-          .join(" - ");
+      worksheet.getRow(2).eachCell((cell) => {
+        if (cell.value === null || cell.value === undefined) return;
 
+        cell.font = { ...cell.font, bold: true };
+        cell.alignment = { ...cell.alignment, horizontal: "center" };
+      });
+
+      for (const location of formLocations) {
         worksheet.addRow([
           location.id,
           location.name,
           location.popularName,
           location.category?.name,
           location.type?.name,
-          address,
+          location.city.state,
+          location.city.name,
+          location.firstStreet,
+          location.secondStreet,
+          location.thirdStreet,
+          location.fourthStreet,
+          location.broadAdministrativeUnit?.name,
+          location.intermediateAdministrativeUnit?.name,
+          location.narrowAdministrativeUnit?.name,
         ]);
 
         if (formCategories && location.formSubmission) {
