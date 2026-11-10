@@ -177,7 +177,7 @@ export const insertFormHeaderInWorkSheet = ({
     if (categoryEndColumn < categoryStartColumn) return;
 
     const categoryCell = workSheet.getCell(1, categoryStartColumn);
-    categoryCell.value = category.name;
+    categoryCell.value = category.name.toUpperCase();
     if (categoryEndColumn > categoryStartColumn) {
       workSheet.mergeCells(1, categoryStartColumn, 1, categoryEndColumn);
     }

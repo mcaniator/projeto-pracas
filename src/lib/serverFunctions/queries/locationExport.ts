@@ -6,10 +6,12 @@ import {
   APIRequestParams,
   APIResponseInfo,
 } from "../../types/backendCalls/APIResponse";
+import type { CategoryItem } from "../../types/forms/formStructure";
 import {
   autoWidthWorksheetColumns,
   getWorksheetName,
 } from "../../utils/exceljs";
+import { FormItemUtils } from "../../utils/formTreeUtils";
 import { getFormStructure } from "./form";
 import {
   insertFormHeaderInWorkSheet,
@@ -21,6 +23,29 @@ const locationIdsFromQuery = z.preprocess(
     typeof value === "string" ? value.split(",").filter(Boolean) : value,
   z.array(z.coerce.number().int().positive()).min(1),
 );
+
+const getCategoryBoundaryColumns = ({
+  categories,
+  startColumn,
+}: {
+  categories: CategoryItem[];
+  startColumn: number;
+}) => {
+  let currentColumn = startColumn;
+
+  return categories.flatMap((category) => {
+    const categoryQuestionCount = category.categoryChildren.reduce(
+      (count, child) =>
+        count +
+        (FormItemUtils.isSubcategoryType(child) ? child.questions.length : 1),
+      0,
+    );
+    if (categoryQuestionCount === 0) return [];
+
+    currentColumn += categoryQuestionCount;
+    return [currentColumn - 1];
+  });
+};
 
 export const fetchLocationExportParamsSchema = z.object({
   locationsIds: locationIdsFromQuery,
@@ -151,7 +176,7 @@ export const fetchLocationExport = async (
       { formName, locations: formLocations },
     ] of locationsByForm) {
       const worksheetName =
-        formId === null ? "Dados cadastrais" : `${formName} (${formId})`;
+        formId === null ? "Dados cadastrais" : `${formName}`;
       const worksheet = workbook.addWorksheet(getWorksheetName(worksheetName));
 
       worksheet.mergeCells(1, 1, 1, headers.length);
@@ -160,6 +185,7 @@ export const fetchLocationExport = async (
       worksheet.addRow(headers);
 
       let formCategories;
+      let categoryBoundaryColumns = [headers.length];
       if (formId !== null) {
         formCategories = (
           await getFormStructure({
@@ -168,6 +194,13 @@ export const fetchLocationExport = async (
             includeCalculations: false,
           })
         ).categories;
+        categoryBoundaryColumns = [
+          ...categoryBoundaryColumns,
+          ...getCategoryBoundaryColumns({
+            categories: formCategories,
+            startColumn: headers.length + 1,
+          }),
+        ];
         insertFormHeaderInWorkSheet({
           categories: formCategories,
           workSheet: worksheet,
@@ -220,6 +253,18 @@ export const fetchLocationExport = async (
           from: { row: 3, column: 1 },
           to: { row: lastRow, column: worksheet.actualColumnCount },
         };
+      }
+
+      for (let rowNumber = 1; rowNumber <= lastRow; rowNumber += 1) {
+        categoryBoundaryColumns.forEach((column) => {
+          worksheet.getCell(rowNumber, column).border = {
+            ...worksheet.getCell(rowNumber, column).border,
+            right: {
+              style: "medium",
+              color: { argb: "000000" },
+            },
+          };
+        });
       }
 
       worksheet.getRow(1).font = {
