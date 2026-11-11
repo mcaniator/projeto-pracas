@@ -8,6 +8,7 @@ import type {
   FetchTallyUsersResponse,
 } from "@/lib/serverFunctions/queries/tally";
 import { Divider } from "@mui/material";
+import { BrazilianStates } from "@prisma/client";
 import { IconExternalLink } from "@tabler/icons-react";
 import { useRouter } from "next-nprogress-bar";
 import { useState } from "react";
@@ -64,7 +65,9 @@ const TallysFilter = ({
   selectedLocationId,
   defaultLocationId,
   disableDebounce = false,
+  clearableStateAndCitySelection,
   onNoCitiesFound,
+  onSelectedStateChange,
   handleFilterChange,
 }: {
   tallyProtocols: FetchTallyProtocolsResponse["tallyProtocols"];
@@ -73,7 +76,9 @@ const TallysFilter = ({
   selectedLocationId: number | undefined;
   defaultLocationId: number | undefined;
   disableDebounce?: boolean;
+  clearableStateAndCitySelection?: boolean;
   onNoCitiesFound?: () => void;
+  onSelectedStateChange?: (state: BrazilianStates | null) => void;
   handleFilterChange: (params: {
     type: TallysFilterType;
     newValue: string | number | Date | null;
@@ -85,7 +90,9 @@ const TallysFilter = ({
       <LocationSelector
         defaultLocationId={defaultLocationId}
         selectedLocationId={selectedLocationId}
+        clearableStateAndCitySelection={clearableStateAndCitySelection}
         onNoCitiesFound={onNoCitiesFound}
+        onSelectedStateChange={onSelectedStateChange}
         onSelectedLocationChange={(location) =>
           handleFilterChange({
             type: "LOCATION_ID",

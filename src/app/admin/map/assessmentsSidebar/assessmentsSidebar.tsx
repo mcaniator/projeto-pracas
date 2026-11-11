@@ -3,14 +3,9 @@
 import { LocationsMapClientFilter } from "@/app/admin/map/PolygonsAndClientContainer";
 import CImage from "@/components/ui/CImage";
 import CLinearProgress from "@/components/ui/CLinearProgress";
-import CAccordion from "@/components/ui/accordion/CAccordion";
-import CAccordionDetails from "@/components/ui/accordion/CAccordionDetails";
-import CAccordionSummary from "@/components/ui/accordion/CAccordionSummary";
 import CAutocomplete from "@/components/ui/cAutoComplete";
 import CButton from "@/components/ui/cButton";
 import CCheckbox from "@/components/ui/cCheckbox";
-import CSwitch from "@/components/ui/cSwtich";
-import CTextField from "@/components/ui/cTextField";
 import { useFetchMapAssessmentComparisonCategories } from "@/lib/serverFunctions/apiCalls/mapAssessmentComparison";
 import { FetchCitiesResponse } from "@/lib/serverFunctions/queries/city";
 import { FetchLocationCategoriesResponse } from "@/lib/serverFunctions/queries/locationCategory";
@@ -26,12 +21,12 @@ import { BrazilianStates } from "@prisma/client";
 import {
   IconAlertTriangle,
   IconChartBar,
-  IconFilter,
   IconTree,
 } from "@tabler/icons-react";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { Virtuoso } from "react-virtuoso";
 
+import LocationsMapFilters from "../sidebar/locationMapFilters";
 import AssessmentComparisonDialog from "./assessmentComparisonDialog";
 
 export type AssessmentsSidebarProps = {
@@ -107,31 +102,33 @@ const AssessmentsSidebar = ({
     return () => setLoadingCategories(false);
   }, [setLoadingCategories]);
 
-  const broadUnits = useMemo(() => {
-    return [
-      ...(selectedCity?.broadAdministrativeUnit ?? []),
-      { id: -1, name: "NENHUMA" },
-    ];
-  }, [selectedCity?.broadAdministrativeUnit]);
-  const intermediateUnits = useMemo(() => {
-    return [
-      ...(selectedCity?.intermediateAdministrativeUnit ?? []),
-      { id: -1, name: "NENHUMA" },
-    ];
-  }, [selectedCity?.intermediateAdministrativeUnit]);
-  const narrowUnits = useMemo(() => {
-    return [
-      ...(selectedCity?.narrowAdministrativeUnit ?? []),
-      { id: -1, name: "NENHUMA" },
-    ];
-  }, [selectedCity?.narrowAdministrativeUnit]);
+  {/*
+  // const broadUnits = useMemo(() => {
+  //   return [
+  //     ...(selectedCity?.broadAdministrativeUnit ?? []),
+  //     { id: -1, name: "NENHUMA" },
+  //   ];
+  // }, [selectedCity?.broadAdministrativeUnit]);
+  // const intermediateUnits = useMemo(() => {
+  //   return [
+  //     ...(selectedCity?.intermediateAdministrativeUnit ?? []),
+  //     { id: -1, name: "NENHUMA" },
+  //   ];
+  // }, [selectedCity?.intermediateAdministrativeUnit]);
+  // const narrowUnits = useMemo(() => {
+  //   return [
+  //     ...(selectedCity?.narrowAdministrativeUnit ?? []),
+  //     { id: -1, name: "NENHUMA" },
+  //   ];
+  // }, [selectedCity?.narrowAdministrativeUnit]);
 
-  const locationCategoriesOptions = useMemo(() => {
-    return [...locationCategories, { id: -1, name: "NENHUMA" }];
-  }, [locationCategories]);
-  const locationTypesOptions = useMemo(() => {
-    return [...locationTypes, { id: -1, name: "NENHUMA" }];
-  }, [locationTypes]);
+  // const locationCategoriesOptions = useMemo(() => {
+  //   return [...locationCategories, { id: -1, name: "NENHUMA" }];
+  // }, [locationCategories]);
+  // const locationTypesOptions = useMemo(() => {
+  //   return [...locationTypes, { id: -1, name: "NENHUMA" }];
+  // }, [locationTypes]);
+  */}
 
   const hasAnyResult = locations.some(
     (location) => location.hasAssessmentsForSelectedCategory,
@@ -160,7 +157,7 @@ const AssessmentsSidebar = ({
 
   return (
     <div className="flex h-full max-h-full flex-col gap-1 overflow-y-auto overflow-x-hidden">
-      <div className="flex">
+      {/* <div className="flex">
         <CAutocomplete
           className="w-32"
           label="Estado"
@@ -334,6 +331,29 @@ const AssessmentsSidebar = ({
         onChange={(event) => {
           setFilter((prev) => ({ ...prev, name: event.target.value }));
         }}
+      /> */}
+      <CAutocomplete
+        label="Categoria de avaliação"
+        loading={fetchingCategories}
+        options={categories}
+        value={selectedCategory}
+        isOptionEqualToValue={(option, value) => option.id === value.id}
+        getOptionLabel={(option) => option.name}
+        onChange={(_, value) => setSelectedCategory(value)}
+      />
+      <LocationsMapFilters
+        citiesOptions={citiesOptions}
+        filter={filter}
+        loadingCities={loadingCities}
+        locationCategories={locationCategories}
+        locationTypes={locationTypes}
+        selectedCity={selectedCity}
+        setCity={setCity}
+        setFilter={setFilter}
+        setState={setState}
+        state={state}
+        categoryLabel="Categoria da praça"
+        showOnlyPublic
       />
 
       {(loadingLocations || fetchingCategories) && (

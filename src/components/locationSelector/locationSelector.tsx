@@ -234,7 +234,7 @@ const LocationSelector = ({
     } else {
       setFilteredLocations(result);
     }
-  }, [filter, locations]);
+  }, [defaultLocationId, filter, locations, onSelectedLocationChange]);
 
   const loadDefaultLocation = useCallback(async () => {
     if (!defaultLocationId || hasLoadedDefaultLocation) return;
@@ -243,7 +243,7 @@ const LocationSelector = ({
         locationId: defaultLocationId,
       },
     });
-  }, []);
+  }, [_fetchDefaultLocation, defaultLocationId, hasLoadedDefaultLocation]);
 
   const loadLocations = useCallback(async () => {
     if (!selectedCity) {

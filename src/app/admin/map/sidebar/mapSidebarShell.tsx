@@ -5,18 +5,24 @@ import CDialog from "@/components/ui/dialog/cDialog";
 import CAutocomplete from "@components/ui/cAutoComplete";
 import { Divider } from "@mui/material";
 import { BrazilianStates } from "@prisma/client";
-import { IconChartBar, IconListDetails } from "@tabler/icons-react";
+import {
+  IconChartBar,
+  IconListDetails,
+  IconTableExport,
+} from "@tabler/icons-react";
 import { Dispatch, SetStateAction } from "react";
 
 import CButton from "../../../../components/ui/cButton";
 import AssessmentsSidebar, {
   AssessmentsSidebarProps,
 } from "../assessmentsSidebar/assessmentsSidebar";
+import ExportSidebar, { ExportSidebarProps } from "./exportSidebar";
 import Sidebar, { LocationsSidebar, LocationsSidebarProps } from "./sidebar";
 
 export const sidebarModes = {
   LOCATIONS: 0,
   ASSESSMENTS: 1,
+  EXPORT: 2,
 };
 
 export type SidebarMode = (typeof sidebarModes)[keyof typeof sidebarModes];
@@ -36,15 +42,24 @@ const sidebarModeOptions = [
     title: "Comparar praças",
     value: sidebarModes.ASSESSMENTS,
   },
+  {
+    label: <IconTableExport />,
+    mobileLabel: "Exportar",
+    tooltip: "Exportar dados cadastrais",
+    title: "Exportar dados cadastrais",
+    value: sidebarModes.EXPORT,
+  },
 ];
 
 const MapSidebarShell = ({
   assessmentsSidebarProps,
+  exportSidebarProps,
   mode,
   locationsSidebarProps,
   setMode,
 }: {
   assessmentsSidebarProps: AssessmentsSidebarProps;
+  exportSidebarProps: ExportSidebarProps;
   mode: SidebarMode;
   locationsSidebarProps: LocationsSidebarProps;
   setMode: Dispatch<SetStateAction<SidebarMode>>;
@@ -65,15 +80,18 @@ const MapSidebarShell = ({
   const content =
     mode === sidebarModes.LOCATIONS ?
       <LocationsSidebar {...locationsSidebarProps} />
-    : <AssessmentsSidebar {...assessmentsSidebarProps} />;
+    : mode === sidebarModes.ASSESSMENTS ?
+      <AssessmentsSidebar {...assessmentsSidebarProps} />
+    : <ExportSidebar {...exportSidebarProps} />;
 
   const selectedMode =
     sidebarModeOptions.find((option) => option.value === mode) ??
     sidebarModeOptions[0]!;
   const topLeftChipLabel =
-    mode === sidebarModes.LOCATIONS ?
-      locations.length
-    : assessmentsSidebarProps.locations.length;
+    mode === sidebarModes.LOCATIONS ? locations.length
+    : mode === sidebarModes.ASSESSMENTS ?
+      assessmentsSidebarProps.locations.length
+    : exportSidebarProps.selectedLocationIds.size;
 
   const modeToggle = (
     <CToggleButtonGroup

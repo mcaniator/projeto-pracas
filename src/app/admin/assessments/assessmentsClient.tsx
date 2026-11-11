@@ -470,7 +470,7 @@ const AssessmentsClient = () => {
         titleIcon={<IconListCheck />}
         title="Avaliações"
         append={
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             {isMobileView && !hasSQLiteAssessments && (
               <CButton
                 square={isMobileView}
