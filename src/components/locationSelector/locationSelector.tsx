@@ -53,6 +53,7 @@ const LocationSelector = ({
   ) => void;
 }) => {
   const hasMadeFirstChange = useRef(false);
+  const onSelectedLocationChangeRef = useRef(onSelectedLocationChange);
   const [hasLoadedDefaultLocation, setHasLoadedDefaultLocation] =
     useState(false);
   const [state, setState] = useState<BrazilianStates | null>(
@@ -74,6 +75,10 @@ const LocationSelector = ({
   const [citiesOptions, setCitiesOptions] = useState<
     FetchCitiesResponse["cities"] | null
   >(null);
+
+  useEffect(() => {
+    onSelectedLocationChangeRef.current = onSelectedLocationChange;
+  }, [onSelectedLocationChange]);
 
   const [filter, setFilter] = useState<
     Omit<LocationsMapClientFilter, "onlyPublic">
@@ -225,7 +230,7 @@ const LocationSelector = ({
       !defaultLocationId ||
       (defaultLocationId && hasMadeFirstChange.current)
     ) {
-      onSelectedLocationChange(null);
+      onSelectedLocationChangeRef.current(null);
     }
 
     if (filter.name) {
@@ -234,7 +239,7 @@ const LocationSelector = ({
     } else {
       setFilteredLocations(result);
     }
-  }, [defaultLocationId, filter, locations, onSelectedLocationChange]);
+  }, [defaultLocationId, filter, locations]);
 
   const loadDefaultLocation = useCallback(async () => {
     if (!defaultLocationId || hasLoadedDefaultLocation) return;
