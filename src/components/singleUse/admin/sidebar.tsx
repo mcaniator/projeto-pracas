@@ -10,7 +10,6 @@ import {
   IconListCheck,
   IconMapSearch,
   IconMenu2,
-  IconTableExport,
   IconTree,
   IconUserCog,
   IconUserPin,
@@ -83,12 +82,6 @@ const Sidebar = () => {
       show: checkIfRolesArrayContainsAny(user.roles, {
         roleGroups: ["PROTOCOL", "TALLY"],
       }),
-    },
-    {
-      icon: <IconTableExport size={34} />,
-      name: "Exportar",
-      path: "/admin/export",
-      show: isConnected,
     },
     {
       icon: <IconWifiOff size={34} />,
