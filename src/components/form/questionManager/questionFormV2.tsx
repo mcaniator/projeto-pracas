@@ -147,7 +147,7 @@ const QuestionFormV2 = ({
     } else if (currentSearchMethod === SEARCH_METHODS.NAME) {
       setCategoriesList([]);
     }
-  }, [currentSearchMethod]);
+  }, [currentSearchMethod, searchByCategoryAndSubcateogory, selectedCategoryAndSubcategoryId]);
 
   const handleOpenQuestionEdit = (question: QuestionPickerQuestionToEdit) => {
     setQuestionToEdit(question);
@@ -167,7 +167,7 @@ const QuestionFormV2 = ({
         subcategoryId: 0,
         verifySubcategoryNullness: false,
       });
-  }, [categories]);
+  }, [categories, selectedCategoryAndSubcategoryId.categoryId]);
 
   useEffect(() => {
     searchQuestions();
