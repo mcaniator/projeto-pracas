@@ -26,6 +26,7 @@ type CAutocompleteProps<
   value?: string | number | T | null;
   options: T[];
   appendIconButton?: React.ReactNode;
+  appendAction?: React.ReactNode;
   appendIconButtonSx?: IconButtonOwnProps["sx"];
   disableAppendIconButton?: boolean;
   appendIconButtonTooltip?: string;
@@ -52,6 +53,7 @@ function CAutocomplete<
     sx,
     value,
     appendIconButton,
+    appendAction,
     disableAppendIconButton,
     appendIconButtonTooltip,
     appendIconButtonSx,
@@ -126,6 +128,11 @@ function CAutocomplete<
                         </IconButton>
                       </Box>
                     </Tooltip>
+                  </InputAdornment>
+                )}
+                {appendAction && value && (
+                  <InputAdornment position="end">
+                    {appendAction}
                   </InputAdornment>
                 )}
               </>

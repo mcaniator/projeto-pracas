@@ -1,8 +1,9 @@
+import CMenu from "@/components/ui/menu/cMenu";
 import { FetchCategoriesWithSubcategoriesReponse } from "@/lib/serverFunctions/queries/category";
 import CAutocomplete from "@components/ui/cAutoComplete";
 import CButton from "@components/ui/cButton";
 import type { FormUse } from "@prisma/client";
-import { IconPencil, IconPlus } from "@tabler/icons-react";
+import { IconCopy, IconPencil, IconPlus } from "@tabler/icons-react";
 import { useEffect, useMemo, useState } from "react";
 
 import CategoryCreationDialog from "./categoryCreationDialog";
@@ -50,6 +51,12 @@ const FormItemManager = ({
     useState(false);
   const [openQuestionCreationDialog, setOpenQuestionCreationDialog] =
     useState(false);
+  const [cloneCategory, setCloneCategory] = useState<
+    { id: number; name: string; notes: string | null } | undefined
+  >();
+  const [cloneSubcategory, setCloneSubcategory] = useState<
+    { id: number; name: string; notes: string | null } | undefined
+  >();
   const subcategoriesOptions =
     categories.find(
       (cat) => cat.id === selectedCategoryAndSubcategoryId.categoryId,
@@ -138,6 +145,8 @@ const FormItemManager = ({
     setOpenCategoryDeletionDialog(false);
     setOpenSubcategoryCreationDialog(false);
     setOpenSubcategoryDeletionDialog(false);
+    setCloneCategory(undefined);
+    setCloneSubcategory(undefined);
   };
 
   useEffect(() => {
@@ -177,24 +186,40 @@ const FormItemManager = ({
             getOptionLabel={(option) => option.name}
             isOptionEqualToValue={(option, value) => option.id === value.id}
             disableClearable
-            disableAppendIconButton={
-              selectedCategoryAndSubcategoryInForm.selectedCategoryInForm
-            }
-            appendIconButtonTooltip={
-              selectedCategoryAndSubcategoryInForm.selectedCategoryInForm ?
-                "Para editar esta categoria, remova todas as suas questões do formulário"
+            appendAction={
+              selectedCategory ?
+                <CMenu
+                  options={[
+                    {
+                      label: (
+                        <div className="flex items-center gap-1">
+                          <IconPencil /> Editar
+                        </div>
+                      ),
+                      disabled:
+                        selectedCategoryAndSubcategoryInForm.selectedCategoryInForm,
+                      onClick: () => {
+                        setIsEdition(true);
+                        setCloneCategory(undefined);
+                        setOpenCategoryCreationDialog(true);
+                      },
+                    },
+                    {
+                      label: (
+                        <div className="flex items-center gap-1">
+                          <IconCopy /> Clonar
+                        </div>
+                      ),
+                      onClick: () => {
+                        setIsEdition(false);
+                        setCloneCategory(selectedCategory);
+                        setOpenCategoryCreationDialog(true);
+                      },
+                    },
+                  ]}
+                />
               : undefined
             }
-            appendIconButton={
-              selectedCategoryAndSubcategoryId.categoryId ?
-                <IconPencil />
-              : undefined
-            }
-            onAppendIconButtonClick={() => {
-              setIsEdition(true);
-              setOpenCategoryCreationDialog(true);
-            }}
-            appendIconButtonSx={{ color: "primary.main" }}
             onChange={(evt, val) => {
               setSelectedCategoryAndSubcategoryId({
                 categoryId: Number(val?.id),
@@ -226,27 +251,43 @@ const FormItemManager = ({
             getOptionLabel={(option) => option.name}
             isOptionEqualToValue={(option, value) => option.id === value.id}
             disableClearable
-            disableAppendIconButton={
-              selectedCategoryAndSubcategoryInForm.selectedSubcategoryInForm
-            }
-            appendIconButtonTooltip={
-              selectedCategoryAndSubcategoryInForm.selectedSubcategoryInForm ?
-                "Para editar esta subcategoria, remova todas as suas questões do formulário"
-              : undefined
-            }
-            appendIconButton={
+            appendAction={
               (
-                selectedCategoryAndSubcategoryId.subcategoryId &&
+                selectedSubcategory &&
                 selectedCategoryAndSubcategoryId.subcategoryId !== -1
               ) ?
-                <IconPencil />
+                <CMenu
+                  options={[
+                    {
+                      label: (
+                        <div className="flex items-center gap-1">
+                          <IconPencil /> Editar
+                        </div>
+                      ),
+                      disabled:
+                        selectedCategoryAndSubcategoryInForm.selectedSubcategoryInForm,
+                      onClick: () => {
+                        setIsEdition(true);
+                        setCloneSubcategory(undefined);
+                        setOpenSubcategoryCreationDialog(true);
+                      },
+                    },
+                    {
+                      label: (
+                        <div className="flex items-center gap-1">
+                          <IconCopy /> Clonar
+                        </div>
+                      ),
+                      onClick: () => {
+                        setIsEdition(false);
+                        setCloneSubcategory(selectedSubcategory);
+                        setOpenSubcategoryCreationDialog(true);
+                      },
+                    },
+                  ]}
+                />
               : undefined
             }
-            onAppendIconButtonClick={() => {
-              setIsEdition(true);
-              setOpenSubcategoryCreationDialog(true);
-            }}
-            appendIconButtonSx={{ color: "primary.main" }}
             onChange={(evt, val) => {
               setSelectedCategoryAndSubcategoryId({
                 ...selectedCategoryAndSubcategoryId,
@@ -278,10 +319,12 @@ const FormItemManager = ({
           formUse={formUse}
           open={openCategoryCreationDialog}
           categoryId={isEdition ? selectedCategory?.id : undefined}
+          cloneCategory={cloneCategory}
           categoryName={isEdition ? selectedCategory?.name : undefined}
           notes={isEdition ? (selectedCategory?.notes ?? undefined) : undefined}
           onClose={() => {
             setOpenCategoryCreationDialog(false);
+            setCloneCategory(undefined);
           }}
           openCategoryDeletionDialog={() => {
             setOpenCategoryCreationDialog(false);
@@ -297,6 +340,7 @@ const FormItemManager = ({
               categoryId={selectedCategoryAndSubcategoryId.categoryId}
               categoryName={selectedCategory?.name ?? "ERRO"}
               subcategoryId={isEdition ? selectedSubcategory?.id : undefined}
+              cloneSubcategory={cloneSubcategory}
               subcategoryName={
                 isEdition ? selectedSubcategory?.name : undefined
               }
@@ -312,6 +356,7 @@ const FormItemManager = ({
               }}
               onClose={() => {
                 setOpenSubcategoryCreationDialog(false);
+                setCloneSubcategory(undefined);
               }}
               reloadCategories={handleReloadCategories}
             />

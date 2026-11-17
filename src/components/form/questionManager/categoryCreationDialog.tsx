@@ -8,6 +8,7 @@ const CategoryCreationDialog = ({
   formUse,
   open,
   categoryId,
+  cloneCategory,
   categoryName,
   notes,
   onClose,
@@ -17,6 +18,7 @@ const CategoryCreationDialog = ({
   formUse: FormUse;
   open: boolean;
   categoryId?: number;
+  cloneCategory?: { id: number; name: string; notes: string | null };
   categoryName?: string;
   notes?: string;
   onClose: () => void;
@@ -42,18 +44,24 @@ const CategoryCreationDialog = ({
     <CDialog
       isForm
       onSubmit={handleSubmit}
-      title={categoryId ? "Editar categoria" : "Criar categoria"}
+      title={
+        cloneCategory ? "Clonar categoria"
+        : categoryId ?
+          "Editar categoria"
+        : "Criar categoria"
+      }
+      subtitle={cloneCategory?.name}
       open={open}
       onClose={onClose}
       onCancel={openCategoryDeletionDialog}
-      confirmChildren={categoryId ? <>Editar</> : <>Criar</>}
-      cancelChildren={categoryId ? <>Excluir</> : undefined}
+      confirmChildren={categoryId && !cloneCategory ? <>Editar</> : <>Criar</>}
+      cancelChildren={categoryId && !cloneCategory ? <>Excluir</> : undefined}
       cancelColor="error"
       confirmLoading={isPending}
     >
       <div className="flex flex-col">
         <input type="hidden" name="formUse" value={formUse} />
-        {categoryId && (
+        {categoryId && !cloneCategory && (
           <>
             <div>
               Atenção: editar esta categoria acarretará mudanças em todos os
@@ -71,7 +79,10 @@ const CategoryCreationDialog = ({
         <CTextField
           required
           resetOnFormSubmit
-          defaultValue={categoryName}
+          key={cloneCategory?.id ?? categoryId ?? "new-category"}
+          defaultValue={
+            cloneCategory ? `${cloneCategory.name} (cópia)` : categoryName
+          }
           id="name"
           name="name"
           label="Nome"
@@ -79,7 +90,8 @@ const CategoryCreationDialog = ({
         <CTextField
           multiline
           resetOnFormSubmit
-          defaultValue={notes}
+          key={`${cloneCategory?.id ?? categoryId ?? "new-category"}-notes`}
+          defaultValue={cloneCategory?.notes ?? notes}
           id="notes"
           name="notes"
           label="Observações"

@@ -9,6 +9,7 @@ const SubcategoryCreationDialog = ({
   categoryId,
   categoryName,
   subcategoryId,
+  cloneSubcategory,
   subcategoryName,
   notes,
   open,
@@ -20,6 +21,7 @@ const SubcategoryCreationDialog = ({
   categoryId: number;
   categoryName: string;
   subcategoryId?: number;
+  cloneSubcategory?: { id: number; name: string; notes: string | null };
   subcategoryName?: string;
   notes?: string;
   open: boolean;
@@ -44,14 +46,24 @@ const SubcategoryCreationDialog = ({
 
   return (
     <CDialog
-      title={subcategoryId ? "Editar subcategoria" : "Criar subcategoria"}
+      title={
+        cloneSubcategory ? "Clonar subcategoria"
+        : subcategoryId ?
+          "Editar subcategoria"
+        : "Criar subcategoria"
+      }
+      subtitle={cloneSubcategory?.name}
       open={open}
       onClose={onClose}
       isForm
       onSubmit={handleSubmit}
       onCancel={openSubcategoryDeletionDialog}
-      confirmChildren={subcategoryId ? <>Editar</> : <>Criar</>}
-      cancelChildren={subcategoryId ? <>Excluir</> : undefined}
+      confirmChildren={
+        subcategoryId && !cloneSubcategory ? <>Editar</> : <>Criar</>
+      }
+      cancelChildren={
+        subcategoryId && !cloneSubcategory ? <>Excluir</> : undefined
+      }
       cancelColor="error"
       confirmLoading={isPending}
     >
@@ -60,7 +72,7 @@ const SubcategoryCreationDialog = ({
         <h6 className="text-base font-semibold">
           Categoria pai: {categoryName}
         </h6>
-        {subcategoryId && (
+        {subcategoryId && !cloneSubcategory && (
           <>
             <div>
               Atenção: editar esta subcategoria acarretará mudanças em todos os
@@ -83,7 +95,12 @@ const SubcategoryCreationDialog = ({
         <CTextField
           required
           resetOnFormSubmit
-          defaultValue={subcategoryName}
+          key={cloneSubcategory?.id ?? subcategoryId ?? "new-subcategory"}
+          defaultValue={
+            cloneSubcategory ?
+              `${cloneSubcategory.name} (cópia)`
+            : subcategoryName
+          }
           id="subcategory-name"
           name="subcategory-name"
           label="Nome"
@@ -91,7 +108,8 @@ const SubcategoryCreationDialog = ({
         <CTextField
           resetOnFormSubmit
           multiline
-          defaultValue={notes}
+          key={`${cloneSubcategory?.id ?? subcategoryId ?? "new-subcategory"}-notes`}
+          defaultValue={cloneSubcategory?.notes ?? notes}
           id="notes"
           name="notes"
           label="Observações"
