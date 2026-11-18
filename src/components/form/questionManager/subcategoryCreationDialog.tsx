@@ -69,6 +69,13 @@ const SubcategoryCreationDialog = ({
     >
       <div className="flex flex-col gap-1">
         <input type="hidden" name="formUse" value={formUse} />
+        {cloneSubcategory && (
+          <input
+            type="hidden"
+            name="cloneSubcategoryId"
+            value={cloneSubcategory.id}
+          />
+        )}
         <h6 className="text-base font-semibold">
           Categoria pai: {categoryName}
         </h6>

@@ -544,6 +544,7 @@ const _subcategorySubmit = async (
       categoryId: formData.get("category-id"),
       notes: formData.get("notes"),
       subcategoryId: formData.get("subcategoryId"),
+      cloneSubcategoryId: formData.get("cloneSubcategoryId"),
     });
   } catch (e) {
     return {
@@ -556,6 +557,183 @@ const _subcategorySubmit = async (
   }
 
   try {
+    if (parse.cloneSubcategoryId) {
+      const sourceSubcategory = await prisma.subcategory.findUnique({
+        where: { id: parse.cloneSubcategoryId },
+        select: {
+          formUse: true,
+          categoryId: true,
+          optional: true,
+          active: true,
+          question: {
+            select: {
+              id: true,
+              formUse: true,
+              name: true,
+              iconKey: true,
+              notes: true,
+              isPublic: true,
+              allowResponseImages: true,
+              minValue: true,
+              maxValue: true,
+              questionType: true,
+              characterType: true,
+              optionType: true,
+              geometryTypes: true,
+              options: {
+                select: {
+                  text: true,
+                  isOverridable: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!sourceSubcategory) {
+        return {
+          responseInfo: {
+            statusCode: 404,
+            message: "Subcategoria não encontrada!",
+          } as APIResponseInfo,
+          data: null,
+        };
+      }
+
+      if (
+        sourceSubcategory.formUse !== parse.formUse ||
+        sourceSubcategory.categoryId !== parse.categoryId
+      ) {
+        return {
+          responseInfo: {
+            statusCode: 400,
+            message:
+              "A subcategoria selecionada não pertence a esta categoria e tipo de formulário!",
+          } as APIResponseInfo,
+          data: null,
+        };
+      }
+
+      await prisma.$transaction(async (tx) => {
+        const subcategory = await tx.subcategory.create({
+          data: {
+            formUse: parse.formUse,
+            name: parse.name,
+            categoryId: parse.categoryId,
+            notes: parse.notes ?? null,
+            optional: sourceSubcategory.optional,
+            active: sourceSubcategory.active,
+          },
+          select: { id: true },
+        });
+
+        const questionValues = sourceSubcategory.question.map((question) => {
+          const geometryTypes =
+            question.geometryTypes.length > 0 ?
+              Prisma.sql`ARRAY[${Prisma.join(
+                question.geometryTypes.map(
+                  (geometryType) =>
+                    Prisma.sql`${geometryType}::"QuestionGeometryTypes"`,
+                ),
+                ",",
+              )}]`
+            : Prisma.sql`ARRAY[]::"QuestionGeometryTypes"[]`;
+
+          return Prisma.sql`(
+            ${question.formUse}::"FORM_USE",
+            ${question.name},
+            ${question.iconKey},
+            ${question.notes},
+            ${question.isPublic},
+            ${question.allowResponseImages},
+            ${question.minValue},
+            ${question.maxValue},
+            ${question.questionType}::"question_types",
+            ${question.characterType}::"question_response_character_types",
+            ${question.optionType ? Prisma.sql`${question.optionType}::"option_types"` : Prisma.sql`NULL`},
+            ${geometryTypes},
+            ${parse.categoryId},
+            ${subcategory.id},
+            CURRENT_TIMESTAMP,
+            CURRENT_TIMESTAMP
+          )`;
+        });
+
+        if (questionValues.length === 0) return;
+
+        const createdQuestions = await tx.$queryRaw<
+          { id: number; name: string }[]
+        >(Prisma.sql`
+          INSERT INTO "question" (
+            "form_use",
+            "name",
+            "icon_key",
+            "notes",
+            "is_public",
+            "allow_response_images",
+            "min_value",
+            "max_value",
+            "question_type",
+            "character_type",
+            "option_type",
+            "geometry_types",
+            "category_id",
+            "subcategory_id",
+            "created_at",
+            "updated_at"
+          )
+          VALUES ${Prisma.join(questionValues, ",")}
+          RETURNING "id", "name"
+        `);
+
+        const questionIdsByName = new Map(
+          createdQuestions.map((question) => [question.name, question.id]),
+        );
+        const sourceQuestionIds = new Map<number, number>();
+
+        sourceSubcategory.question.forEach((question) => {
+          const newQuestionId = questionIdsByName.get(question.name);
+          if (!newQuestionId) {
+            throw new Error("Questão clonada não encontrada");
+          }
+          sourceQuestionIds.set(question.id, newQuestionId);
+        });
+
+        const optionValues = sourceSubcategory.question.flatMap((question) => {
+          const questionId = sourceQuestionIds.get(question.id);
+          if (!questionId) {
+            throw new Error("Questão das opções clonadas não encontrada");
+          }
+          return question.options.map(
+            (option) =>
+              Prisma.sql`(${option.text}, ${questionId}, ${option.isOverridable}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+          );
+        });
+
+        if (optionValues.length > 0) {
+          await tx.$executeRaw(Prisma.sql`
+            INSERT INTO "option" (
+              "text",
+              "question_id",
+              "is_overridable",
+              "created_at",
+              "updated_at"
+            )
+            VALUES ${Prisma.join(optionValues, ",")}
+          `);
+        }
+      });
+
+      return {
+        responseInfo: {
+          statusCode: 201,
+          message: `Subcategoria ${parse.name} clonada!`,
+        } as APIResponseInfo,
+        data: null,
+      };
+    }
+
     if (parse.subcategoryId) {
       const subcategory = await prisma.subcategory.update({
         where: { id: parse.subcategoryId },

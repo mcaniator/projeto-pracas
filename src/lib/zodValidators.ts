@@ -148,6 +148,10 @@ const subcategoryInfoToCreateSchema = z.object({
   categoryId: z.coerce.number().int().finite().nonnegative(),
   notes: z.string().trim().optional().nullish(),
   subcategoryId: z.coerce.number().int().finite().nonnegative().optional(),
+  cloneSubcategoryId: z.preprocess(
+    (value) => (value === null || value === "" ? undefined : value),
+    z.coerce.number().int().positive().optional(),
+  ),
 });
 
 const questionSchema = z.object({
