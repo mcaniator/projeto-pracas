@@ -34,8 +34,9 @@ const CategoryCreationDialog = ({
   });
   const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
+    const formData = new FormData(event.currentTarget);
     void categorySubmit({
-      data: new FormData(event.currentTarget),
+      data: formData,
       projectOptions: { loadingMessage: "Salvando categoria..." },
     });
   };
@@ -61,6 +62,13 @@ const CategoryCreationDialog = ({
     >
       <div className="flex flex-col">
         <input type="hidden" name="formUse" value={formUse} />
+        {cloneCategory && (
+          <input
+            type="hidden"
+            name="cloneCategoryId"
+            value={cloneCategory.id}
+          />
+        )}
         {categoryId && !cloneCategory && (
           <>
             <div>

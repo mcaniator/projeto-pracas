@@ -136,6 +136,10 @@ const categoryInfoToCreateSchema = z.object({
   name: z.string().trim().min(1).max(255),
   notes: z.string().trim().optional().nullish(),
   categoryId: z.coerce.number().int().finite().nonnegative().optional(),
+  cloneCategoryId: z.preprocess(
+    (value) => (value === null || value === "" ? undefined : value),
+    z.coerce.number().int().positive().optional(),
+  ),
 });
 
 const subcategoryInfoToCreateSchema = z.object({
@@ -420,9 +424,5 @@ const assessmentImportDataSchema = z.object({
   driveFolderUrl: z.string().nullable(),
 });
 
-
-export {
-  questionsOnFormsSchema,
-  assessmentImportDataSchema,
-};
+export { questionsOnFormsSchema, assessmentImportDataSchema };
 // #endregion

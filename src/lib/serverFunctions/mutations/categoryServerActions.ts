@@ -3,6 +3,7 @@ import {
   subcategoryInfoToCreateSchema,
 } from "@/lib/zodValidators";
 import { prisma } from "@lib/prisma";
+import { Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { z } from "zod";
 
@@ -23,6 +24,7 @@ const _categorySubmit = async (request: APIRequestData<CategorySubmitData>) => {
       name: formData.get("name"),
       notes: formData.get("notes"),
       categoryId: formData.get("categoryId"),
+      cloneCategoryId: formData.get("cloneCategoryId"),
     });
   } catch (e) {
     return {
@@ -35,6 +37,239 @@ const _categorySubmit = async (request: APIRequestData<CategorySubmitData>) => {
   }
 
   try {
+    if (parse.cloneCategoryId) {
+      const sourceCategory = await prisma.category.findUnique({
+        where: { id: parse.cloneCategoryId },
+        select: {
+          formUse: true,
+          optional: true,
+          active: true,
+          subcategory: {
+            select: {
+              id: true,
+              name: true,
+              optional: true,
+              active: true,
+              notes: true,
+            },
+          },
+          question: {
+            select: {
+              id: true,
+              formUse: true,
+              name: true,
+              iconKey: true,
+              notes: true,
+              isPublic: true,
+              allowResponseImages: true,
+              minValue: true,
+              maxValue: true,
+              questionType: true,
+              characterType: true,
+              optionType: true,
+              geometryTypes: true,
+              subcategoryId: true,
+              options: {
+                select: {
+                  text: true,
+                  isOverridable: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!sourceCategory) {
+        return {
+          responseInfo: {
+            statusCode: 404,
+            message: "Categoria não encontrada!",
+          } as APIResponseInfo,
+          data: null,
+        };
+      }
+
+      if (sourceCategory.formUse !== parse.formUse) {
+        return {
+          responseInfo: {
+            statusCode: 400,
+            message:
+              "A categoria selecionada não pertence a este tipo de formulário!",
+          } as APIResponseInfo,
+          data: null,
+        };
+      }
+
+      await prisma.$transaction(async (tx) => {
+        const category = await tx.category.create({
+          data: {
+            formUse: parse.formUse,
+            name: parse.name,
+            notes: parse.notes ?? null,
+            optional: sourceCategory.optional,
+            active: sourceCategory.active,
+          },
+          select: { id: true },
+        });
+
+        const subcategoryValues = sourceCategory.subcategory.map(
+          (subcategory) =>
+            Prisma.sql`(${parse.formUse}::"FORM_USE", ${subcategory.name}, ${subcategory.optional}, ${subcategory.active}, ${subcategory.notes}, ${category.id})`,
+        );
+        const subcategoryIds = new Map<number, number>();
+
+        if (subcategoryValues.length > 0) {
+          const createdSubcategories = await tx.$queryRaw<
+            { id: number; name: string }[]
+          >(Prisma.sql`
+            INSERT INTO "subcategory" (
+              "form_use",
+              "name",
+              "optional",
+              "active",
+              "notes",
+              "category_id"
+            )
+            VALUES ${Prisma.join(subcategoryValues, ",")}
+            RETURNING "id", "name"
+          `);
+
+          const subcategoryIdsByName = new Map(
+            createdSubcategories.map((subcategory) => [
+              subcategory.name,
+              subcategory.id,
+            ]),
+          );
+          sourceCategory.subcategory.forEach((subcategory) => {
+            const newSubcategoryId = subcategoryIdsByName.get(subcategory.name);
+            if (!newSubcategoryId) {
+              throw new Error("Subcategoria clonada não encontrada");
+            }
+            subcategoryIds.set(subcategory.id, newSubcategoryId);
+          });
+        }
+
+        const questionValues = sourceCategory.question.map((question) => {
+          const subcategoryId =
+            question.subcategoryId === null ?
+              null
+            : subcategoryIds.get(question.subcategoryId);
+          if (question.subcategoryId !== null && !subcategoryId) {
+            throw new Error("Subcategoria da questão clonada não encontrada");
+          }
+
+          const geometryTypes =
+            question.geometryTypes.length > 0 ?
+              Prisma.sql`ARRAY[${Prisma.join(
+                question.geometryTypes.map(
+                  (geometryType) =>
+                    Prisma.sql`${geometryType}::"QuestionGeometryTypes"`,
+                ),
+                ",",
+              )}]`
+            : Prisma.sql`ARRAY[]::"QuestionGeometryTypes"[]`;
+
+          return Prisma.sql`(
+            ${question.formUse}::"FORM_USE",
+            ${question.name},
+            ${question.iconKey},
+            ${question.notes},
+            ${question.isPublic},
+            ${question.allowResponseImages},
+            ${question.minValue},
+            ${question.maxValue},
+            ${question.questionType}::"question_types",
+            ${question.characterType}::"question_response_character_types",
+            ${question.optionType ? Prisma.sql`${question.optionType}::"option_types"` : Prisma.sql`NULL`},
+            ${geometryTypes},
+            ${category.id},
+            ${subcategoryId},
+            CURRENT_TIMESTAMP
+          )`;
+        });
+        const questionIds = new Map<number, number>();
+
+        if (questionValues.length > 0) {
+          const createdQuestions = await tx.$queryRaw<
+            { id: number; name: string; subcategory_id: number | null }[]
+          >(Prisma.sql`
+            INSERT INTO "question" (
+              "form_use",
+              "name",
+              "icon_key",
+              "notes",
+              "is_public",
+              "allow_response_images",
+              "min_value",
+              "max_value",
+              "question_type",
+              "character_type",
+              "option_type",
+              "geometry_types",
+              "category_id",
+              "subcategory_id",
+              "updated_at"
+            )
+            VALUES ${Prisma.join(questionValues, ",")}
+            RETURNING "id", "name", "subcategory_id"
+          `);
+
+          const questionIdsByLocationAndName = new Map(
+            createdQuestions.map((question) => [
+              `${question.subcategory_id ?? 0}:${question.name}`,
+              question.id,
+            ]),
+          );
+          sourceCategory.question.forEach((question) => {
+            const newSubcategoryId =
+              question.subcategoryId === null ?
+                null
+              : subcategoryIds.get(question.subcategoryId);
+            const newQuestionId = questionIdsByLocationAndName.get(
+              `${newSubcategoryId ?? 0}:${question.name}`,
+            );
+            if (!newQuestionId) {
+              throw new Error("Questão clonada não encontrada");
+            }
+            questionIds.set(question.id, newQuestionId);
+          });
+        }
+
+        const optionValues = sourceCategory.question.flatMap((question) => {
+          const questionId = questionIds.get(question.id);
+          if (!questionId) {
+            throw new Error("Questão das opções clonadas não encontrada");
+          }
+          return question.options.map(
+            (option) =>
+              Prisma.sql`(${option.text}, ${questionId}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ${option.isOverridable})`,
+          );
+        });
+
+        if (optionValues.length > 0) {
+          await tx.$executeRaw(Prisma.sql`
+            INSERT INTO "option" (
+              "text",
+              "question_id",
+              "created_at",
+              "updated_at",
+              "is_overridable"
+            )
+            VALUES ${Prisma.join(optionValues, ",")}
+          `);
+        }
+      });
+
+      return {
+        responseInfo: {
+          statusCode: 201,
+          message: `Categoria ${parse.name} clonada!`,
+        } as APIResponseInfo,
+        data: null,
+      };
+    }
+
     if (parse.categoryId) {
       const category = await prisma.category.update({
         where: { id: parse.categoryId },
