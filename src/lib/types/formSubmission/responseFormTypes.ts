@@ -27,6 +27,11 @@ export const responseFormGeometrySchema = z.object({
 
 export type ResponseFormGeometry = z.infer<typeof responseFormGeometrySchema>;
 
+export type HierarchyFormGeometry = {
+  key: string;
+  geometries: ResponseGeometry[];
+};
+
 export const responseFormImageSyncStatusSchema = z.enum(["SYNCED", "UNSYNCED"]);
 
 export type ResponseFormImageSyncStatus = z.infer<

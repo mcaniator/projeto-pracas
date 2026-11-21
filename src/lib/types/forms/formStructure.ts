@@ -19,6 +19,8 @@ export type SubcategoryItem = {
   name: string;
   notes: string | null;
   questions: QuestionItem[];
+  allowGeometryAssociation?: boolean;
+  geometryTypes?: QuestionGeometryTypes[];
 };
 
 export type QuestionItem = {
@@ -46,6 +48,8 @@ export type CategoryItem = {
   notes: string | null;
   position: number;
   categoryChildren: (QuestionItem | SubcategoryItem)[];
+  allowGeometryAssociation?: boolean;
+  geometryTypes?: QuestionGeometryTypes[];
 };
 
 export type FormStructure = {

@@ -32,6 +32,8 @@ type SubCategoryForQuestionPicker = {
   name: string;
   notes: string | null;
   question: QuestionForQuestionPicker[];
+  allowGeometryAssociation?: boolean;
+  geometryTypes?: QuestionGeometryTypes[];
 };
 
 type CategoryForQuestionPicker = {
@@ -40,6 +42,8 @@ type CategoryForQuestionPicker = {
   notes: string | null;
   question: QuestionForQuestionPicker[];
   subcategory: SubCategoryForQuestionPicker[];
+  allowGeometryAssociation?: boolean;
+  geometryTypes?: QuestionGeometryTypes[];
 };
 
 type QuestionPickerQuestionToAdd = QuestionForQuestionPicker & {

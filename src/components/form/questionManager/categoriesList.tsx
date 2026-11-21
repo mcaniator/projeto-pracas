@@ -1,4 +1,5 @@
 import CButton from "@/components/ui/cButton";
+import CIconChip from "@/components/ui/cIconChip";
 import CDynamicIcon from "@/components/ui/dynamicIcon/cDynamicIcon";
 import CQuestionDescriptionChips from "@/components/ui/question/cQuestionDescriptionChips";
 import CAccordion from "@components/ui/accordion/CAccordion";
@@ -20,6 +21,7 @@ import {
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
+import { IconMap } from "@tabler/icons-react";
 import { IconCirclePlus, IconPencil } from "@tabler/icons-react";
 
 const CategoriesListV2 = ({
@@ -104,6 +106,13 @@ const CategoriesListV2 = ({
               >
                 <div className="flex items-center gap-1 p-1">
                   {cat.name}
+                  {cat.allowGeometryAssociation && (
+                    <CIconChip
+                      icon={<IconMap size={18} />}
+                      tooltip="Permite associar geometria no preenchimento"
+                      size={28}
+                    />
+                  )}
                   <CNotesChip notes={cat.notes} name={cat.name} />
                 </div>
               </CAccordionSummary>
@@ -193,6 +202,13 @@ const SubcategoriesListV2 = ({
               <CAccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <div className="flex items-center gap-1 p-1">
                   {sub.name}
+                  {sub.allowGeometryAssociation && (
+                    <CIconChip
+                      icon={<IconMap size={18} />}
+                      tooltip="Permite associar geometria no preenchimento"
+                      size={28}
+                    />
+                  )}
                   <CNotesChip notes={sub.notes} name={sub.name} />
                 </div>
               </CAccordionSummary>

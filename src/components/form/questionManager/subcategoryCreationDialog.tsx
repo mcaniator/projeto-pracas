@@ -1,8 +1,10 @@
 import { useSubcategorySubmit } from "@/lib/serverFunctions/apiCalls/category";
+import CCheckboxGroup from "@components/ui/cCheckboxGroup";
+import CSwitch from "@components/ui/cSwtich";
 import CTextField from "@components/ui/cTextField";
 import CDialog from "@components/ui/dialog/cDialog";
-import type { FormUse } from "@prisma/client";
-import { FormEventHandler } from "react";
+import type { FormUse, QuestionGeometryTypes } from "@prisma/client";
+import { FormEventHandler, useState } from "react";
 
 const SubcategoryCreationDialog = ({
   formUse,
@@ -29,6 +31,9 @@ const SubcategoryCreationDialog = ({
   reloadCategories: () => void;
   openSubcategoryDeletionDialog: () => void;
 }) => {
+  const [allowGeometryAssociation, setAllowGeometryAssociation] =
+    useState(false);
+  const [geometryTypes, setGeometryTypes] = useState<string[]>([]);
   const [subcategorySubmit, isPending] = useSubcategorySubmit({
     callbacks: {
       onSuccess: () => {
@@ -66,6 +71,9 @@ const SubcategoryCreationDialog = ({
       }
       cancelColor="error"
       confirmLoading={isPending}
+      disableConfirmButton={
+        isPending || (allowGeometryAssociation && geometryTypes.length === 0)
+      }
     >
       <div className="flex flex-col gap-1">
         <input type="hidden" name="formUse" value={formUse} />
@@ -121,6 +129,34 @@ const SubcategoryCreationDialog = ({
           name="notes"
           label="Observações"
         />
+        <CSwitch
+          label="Permite associar geometrias no mapa"
+          name="allowGeometryAssociation"
+          id="allowGeometryAssociation"
+          checked={allowGeometryAssociation}
+          value={allowGeometryAssociation}
+          onChange={(event) => {
+            const checked = event.target.checked;
+            setAllowGeometryAssociation(checked);
+            if (!checked) setGeometryTypes([]);
+          }}
+        />
+        {allowGeometryAssociation && (
+          <CCheckboxGroup
+            label="Tipos de geometria aceitos"
+            name="geometryTypes"
+            value={geometryTypes}
+            options={[
+              { value: "POINT", label: "Pontos" },
+              { value: "POLYGON", label: "Polígonos" },
+            ]}
+            getOptionLabel={(option) => option.label}
+            getOptionValue={(option) => option.value}
+            onChange={(values) => {
+              setGeometryTypes(values as QuestionGeometryTypes[]);
+            }}
+          />
+        )}
       </div>
     </CDialog>
   );

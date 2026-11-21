@@ -5,6 +5,7 @@ import ControlledResponseQuestionField from "@/components/ui/responseForm/contro
 import FilledQuestionsCounter from "@/components/ui/responseForm/filledQuestionsCounter";
 import ResponseFormCategory from "@/components/ui/responseForm/responseFormCategory";
 import ResponseFormGeometryControls from "@/components/ui/responseForm/responseFormGeometryControls";
+import ResponseFormHierarchyGeometryControls from "@/components/ui/responseForm/responseFormHierarchyGeometryControls";
 import ResponseFormQuestionCard from "@/components/ui/responseForm/responseFormQuestionCard";
 import ResponseFormSubcategory from "@/components/ui/responseForm/responseFormSubcategory";
 import dayjs from "@/lib/dayjs";
@@ -20,6 +21,7 @@ import type {
 } from "@/lib/serverFunctions/queries/formSubmission";
 import type {
   FormValues,
+  HierarchyFormGeometry,
   ResponseFormGeometry,
   ResponseGeometry,
   SerializedFormValues,
@@ -232,6 +234,9 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     const [geometries, setGeometries] = useState<ResponseFormGeometry[]>(
       () => formSubmission.geometries,
     );
+    const [hierarchyGeometries, setHierarchyGeometries] = useState<
+      HierarchyFormGeometry[]
+    >([]);
     const [expandedCategoryIds, setExpandedCategoryIds] = useState(
       () => new Set(categories.map((category) => category.categoryId)),
     );
@@ -281,6 +286,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
       (data: ResponseFormResetData) => {
         resetSerializedValues(data.responsesFormValues);
         setGeometries(data.geometries);
+        setHierarchyGeometries([]);
         onGeometriesChange?.({
           geometries: data.geometries,
           source: "reset",
@@ -380,6 +386,20 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         source: "user",
       });
     };
+    const handleHierarchyGeometryChange = (
+      targetKey: string,
+      targetGeometries: ResponseGeometry[],
+    ) => {
+      setHierarchyGeometries((current) =>
+        current.some((item) => item.key === targetKey) ?
+          current.map((item) =>
+            item.key === targetKey ?
+              { key: targetKey, geometries: targetGeometries }
+            : item,
+          )
+        : [...current, { key: targetKey, geometries: targetGeometries }],
+      );
+    };
     return (
       <form
         onSubmit={(event) => {
@@ -428,6 +448,8 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
                   geometries={geometries}
                   questionsForMention={questionsForMention}
                   readOnly={readOnly}
+                  hierarchyGeometries={hierarchyGeometries}
+                  onHierarchyGeometryChange={handleHierarchyGeometryChange}
                   expanded={expandedCategoryIds.has(category.categoryId)}
                   onExpandedChange={handleCategoryExpandedChange}
                   expandedSubcategoryIds={expandedSubcategoryIds}
@@ -469,6 +491,11 @@ type CalculationByQuestionId = Map<number, FormSubmissionCalculations[number]>;
 type SharedQuestionProps = {
   calculationByQuestionId: CalculationByQuestionId;
   geometries: ResponseFormGeometry[];
+  hierarchyGeometries?: HierarchyFormGeometry[];
+  onHierarchyGeometryChange?: (
+    targetKey: string,
+    geometries: ResponseGeometry[],
+  ) => void;
   questionsForMention: SimpleMention[];
   locationPolygonGeoJson: string | null;
   onResponseGeometryChange: (params: ResponseFormGeometry) => void;
@@ -481,6 +508,8 @@ const Category = ({
   category,
   calculationByQuestionId,
   geometries,
+  hierarchyGeometries,
+  onHierarchyGeometryChange,
   questionsForMention,
   locationPolygonGeoJson,
   onResponseGeometryChange,
@@ -504,6 +533,21 @@ const Category = ({
   <ResponseFormCategory
     category={category}
     expanded={expanded}
+    actions={
+      category.allowGeometryAssociation ?
+        <div className="flex items-center">
+          <ResponseFormHierarchyGeometryControls
+            targetKey={`category-${category.categoryId}`}
+            targetName={category.name}
+            geometries={hierarchyGeometries ?? []}
+            locationPolygonGeoJson={locationPolygonGeoJson}
+            finalized={readOnly}
+            geometryTypes={category.geometryTypes}
+            onGeometriesChange={onHierarchyGeometryChange ?? (() => undefined)}
+          />
+        </div>
+      : undefined
+    }
     onExpandedChange={(nextExpanded) =>
       onExpandedChange(category.categoryId, nextExpanded)
     }
@@ -516,6 +560,8 @@ const Category = ({
             {...{
               calculationByQuestionId,
               geometries,
+              hierarchyGeometries,
+              onHierarchyGeometryChange,
               questionsForMention,
               locationPolygonGeoJson,
               onResponseGeometryChange,
@@ -559,6 +605,23 @@ const Subcategory = ({
   <ResponseFormSubcategory
     subcategory={subcategory}
     expanded={expanded}
+    actions={
+      subcategory.allowGeometryAssociation ?
+        <div className="flex items-center">
+          <ResponseFormHierarchyGeometryControls
+            targetKey={`subcategory-${subcategory.subcategoryId}`}
+            targetName={subcategory.name}
+            geometries={sharedProps.hierarchyGeometries ?? []}
+            locationPolygonGeoJson={sharedProps.locationPolygonGeoJson}
+            finalized={sharedProps.readOnly}
+            geometryTypes={subcategory.geometryTypes}
+            onGeometriesChange={
+              sharedProps.onHierarchyGeometryChange ?? (() => undefined)
+            }
+          />
+        </div>
+      : undefined
+    }
     onExpandedChange={(nextExpanded) =>
       onExpandedChange(subcategory.subcategoryId, nextExpanded)
     }

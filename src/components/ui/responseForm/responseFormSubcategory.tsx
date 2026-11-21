@@ -10,11 +10,13 @@ const ResponseFormSubcategory = ({
   subcategory,
   expanded,
   onExpandedChange,
+  actions,
   children,
 }: {
   subcategory: Pick<FormSubmissionSubcategoryItem, "name" | "notes">;
   expanded?: boolean;
   onExpandedChange?: (expanded: boolean) => void;
+  actions?: ReactNode;
   children: ReactNode;
 }) => {
   return (
@@ -42,7 +44,10 @@ const ResponseFormSubcategory = ({
           </div>
         </CAccordionSummary>
         <CAccordionDetails>
-          <div className="flex flex-col gap-3">{children}</div>
+          <div className="flex flex-col gap-3">
+            {actions}
+            {children}
+          </div>
         </CAccordionDetails>
       </CAccordion>
     </Box>
