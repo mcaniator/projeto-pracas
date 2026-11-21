@@ -1,5 +1,4 @@
 import CCalculationChip from "@/components/ui/question/cCalculationChip";
-import CNotesChip from "@/components/ui/question/cNotesChip";
 import CQuestionAllowResponseImagesChip from "@/components/ui/question/cQuestionAllowResponseImagesChip";
 import CQuestionCharacterTypeChip from "@/components/ui/question/cQuestionCharacterChip";
 import CQuestionGeometryChip from "@/components/ui/question/cQuestionGeometryChip";
@@ -31,7 +30,6 @@ const ResponseFormQuestionDescriptors = ({
       <CQuestionAllowResponseImagesChip
         allowResponseImages={question.allowResponseImages}
       />
-      <CNotesChip notes={question.notes} name={question.name} />
       <CCalculationChip
         name={question.name}
         expression={calculationExpression}

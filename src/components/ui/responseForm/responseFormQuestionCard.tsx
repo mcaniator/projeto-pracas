@@ -33,6 +33,9 @@ const ResponseFormQuestionCard = ({
         <CDynamicIcon iconKey={question.iconKey} />
         {question.name}
       </div>
+      {question.notes && (
+        <p className="text-sm text-gray-700 text-justify px-1">{question.notes}</p>
+      )}
       {children}
       <div className="mt-1 flex flex-wrap items-start justify-start gap-2">
         {questionControls}
