@@ -243,6 +243,9 @@ model Category {
   notes    String?    @db.Text
   question Question[]
 
+  allowGeometryAssociation Boolean                 @default(false) @map("allow_geometry_association")
+  geometryTypes            QuestionGeometryTypes[] @default([]) @map("geometry_types")
+
   subcategory Subcategory[]
   formItems   FormItem[]
   createdAt   DateTime      @default(now()) @map("created_at")
@@ -262,6 +265,9 @@ model Subcategory {
   notes     String?    @db.Text
   question  Question[]
   formItems FormItem[]
+
+  allowGeometryAssociation Boolean                 @default(false) @map("allow_geometry_association")
+  geometryTypes            QuestionGeometryTypes[] @default([]) @map("geometry_types")
 
   categoryId Int      @map("category_id")
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -446,13 +452,29 @@ model FormItem {
   subcategoryId Int? @map("subcategory_id")
   questionId    Int? @map("question_id")
 
-  category    Category     @relation(fields: [categoryId], references: [id])
-  subcategory Subcategory? @relation(fields: [subcategoryId], references: [id])
-  question    Question?    @relation(fields: [questionId], references: [id])
-  form        Form         @relation(fields: [formId], references: [id])
+  category           Category           @relation(fields: [categoryId], references: [id])
+  subcategory        Subcategory?       @relation(fields: [subcategoryId], references: [id])
+  question           Question?          @relation(fields: [questionId], references: [id])
+  form               Form               @relation(fields: [formId], references: [id])
+  formItemGeometries FormItemGeometry[]
 
   @@unique([formId, categoryId, subcategoryId, questionId])
   @@map("form_item")
+}
+
+model FormItemGeometry {
+  id         Int      @id @default(autoincrement())
+  formItemId Int      @map("form_item_id")
+  formItem   FormItem @relation(fields: [formItemId], references: [id], onDelete: Cascade)
+
+  geometry    Unsupported("Geometry")?
+  description String?
+  active      Boolean                  @default(true)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("form_item_geometry")
 }
 
 // #endregion
