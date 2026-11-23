@@ -2,7 +2,7 @@ import CMenu from "@/components/ui/menu/cMenu";
 import { FetchCategoriesWithSubcategoriesReponse } from "@/lib/serverFunctions/queries/category";
 import CAutocomplete from "@components/ui/cAutoComplete";
 import CButton from "@components/ui/cButton";
-import type { FormUse } from "@prisma/client";
+import type { FormUse, QuestionGeometryTypes } from "@prisma/client";
 import { IconCopy, IconPencil, IconPlus } from "@tabler/icons-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -52,10 +52,24 @@ const FormItemManager = ({
   const [openQuestionCreationDialog, setOpenQuestionCreationDialog] =
     useState(false);
   const [cloneCategory, setCloneCategory] = useState<
-    { id: number; name: string; notes: string | null } | undefined
+    | {
+        id: number;
+        name: string;
+        notes: string | null;
+        allowGeometryAssociation?: boolean;
+        geometryTypes?: QuestionGeometryTypes[];
+      }
+    | undefined
   >();
   const [cloneSubcategory, setCloneSubcategory] = useState<
-    { id: number; name: string; notes: string | null } | undefined
+    | {
+        id: number;
+        name: string;
+        notes: string | null;
+        allowGeometryAssociation?: boolean;
+        geometryTypes?: QuestionGeometryTypes[];
+      }
+    | undefined
   >();
   const subcategoriesOptions =
     categories.find(
@@ -73,10 +87,14 @@ const FormItemManager = ({
           id: number;
           name: string;
           notes: string | null;
+          allowGeometryAssociation?: boolean;
+          geometryTypes?: QuestionGeometryTypes[];
         }[];
         id: number;
         name: string;
         notes: string | null;
+        allowGeometryAssociation?: boolean;
+        geometryTypes?: QuestionGeometryTypes[];
       }
     | undefined
   >(
@@ -90,6 +108,8 @@ const FormItemManager = ({
         id: number;
         name: string;
         notes: string | null;
+        allowGeometryAssociation?: boolean;
+        geometryTypes?: QuestionGeometryTypes[];
       }
     | undefined
   >(
@@ -322,6 +342,12 @@ const FormItemManager = ({
           cloneCategory={cloneCategory}
           categoryName={isEdition ? selectedCategory?.name : undefined}
           notes={isEdition ? (selectedCategory?.notes ?? undefined) : undefined}
+          allowGeometryAssociation={
+            isEdition ? selectedCategory?.allowGeometryAssociation : false
+          }
+          geometryTypes={
+            isEdition ? selectedCategory?.geometryTypes : undefined
+          }
           onClose={() => {
             setOpenCategoryCreationDialog(false);
             setCloneCategory(undefined);
@@ -348,6 +374,14 @@ const FormItemManager = ({
                 isEdition ?
                   (selectedSubcategory?.notes ?? undefined)
                 : undefined
+              }
+              allowGeometryAssociation={
+                isEdition ?
+                  selectedSubcategory?.allowGeometryAssociation
+                : false
+              }
+              geometryTypes={
+                isEdition ? selectedSubcategory?.geometryTypes : undefined
               }
               open={openSubcategoryCreationDialog}
               openSubcategoryDeletionDialog={() => {

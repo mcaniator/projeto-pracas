@@ -4,7 +4,7 @@ import CSwitch from "@components/ui/cSwtich";
 import CTextField from "@components/ui/cTextField";
 import CDialog from "@components/ui/dialog/cDialog";
 import type { FormUse, QuestionGeometryTypes } from "@prisma/client";
-import { FormEventHandler, useState } from "react";
+import { FormEventHandler, useEffect, useState } from "react";
 
 const CategoryCreationDialog = ({
   formUse,
@@ -13,6 +13,8 @@ const CategoryCreationDialog = ({
   cloneCategory,
   categoryName,
   notes,
+  allowGeometryAssociation: allowGeometryAssociationProp,
+  geometryTypes: geometryTypesProp,
   onClose,
   reloadCategories,
   openCategoryDeletionDialog,
@@ -20,16 +22,37 @@ const CategoryCreationDialog = ({
   formUse: FormUse;
   open: boolean;
   categoryId?: number;
-  cloneCategory?: { id: number; name: string; notes: string | null };
+  cloneCategory?: {
+    id: number;
+    name: string;
+    notes: string | null;
+    allowGeometryAssociation?: boolean;
+    geometryTypes?: QuestionGeometryTypes[];
+  };
   categoryName?: string;
   notes?: string;
+  allowGeometryAssociation?: boolean;
+  geometryTypes?: QuestionGeometryTypes[];
   onClose: () => void;
   reloadCategories: () => void;
   openCategoryDeletionDialog: () => void;
 }) => {
-  const [allowGeometryAssociation, setAllowGeometryAssociation] =
-    useState(false);
-  const [geometryTypes, setGeometryTypes] = useState<string[]>([]);
+  const [allowGeometryAssociation, setAllowGeometryAssociation] = useState(
+    cloneCategory?.allowGeometryAssociation ??
+      allowGeometryAssociationProp ??
+      false,
+  );
+  const [geometryTypes, setGeometryTypes] = useState<string[]>(
+    cloneCategory?.geometryTypes ?? geometryTypesProp ?? [],
+  );
+  useEffect(() => {
+    setAllowGeometryAssociation(
+      cloneCategory?.allowGeometryAssociation ??
+        allowGeometryAssociationProp ??
+        false,
+    );
+    setGeometryTypes(cloneCategory?.geometryTypes ?? geometryTypesProp ?? []);
+  }, [cloneCategory, allowGeometryAssociationProp, geometryTypesProp]);
   const [categorySubmit, isPending] = useCategorySubmit({
     callbacks: {
       onSuccess: () => {
@@ -40,6 +63,11 @@ const CategoryCreationDialog = ({
   const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
+    formData.set("allowGeometryAssociation", String(allowGeometryAssociation));
+    formData.delete("geometryTypes");
+    geometryTypes.forEach((geometryType) => {
+      formData.append("geometryTypes", geometryType);
+    });
     void categorySubmit({
       data: formData,
       projectOptions: { loadingMessage: "Salvando categoria..." },

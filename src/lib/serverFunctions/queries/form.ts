@@ -85,8 +85,7 @@ export const fetchForms = async (
         _count: {
           select: {
             assessment: params.formUse === FormUse.ASSESSMENT,
-            tallyProtocols:
-              params.formUse === FormUse.TALLY_AND_BEHAVIORAL_MAP,
+            tallyProtocols: params.formUse === FormUse.TALLY_AND_BEHAVIORAL_MAP,
             formSubmissions: true,
           },
         },
@@ -106,7 +105,7 @@ export const fetchForms = async (
         params.formUse === FormUse.ASSESSMENT ? (_count.assessment ?? 0)
         : params.formUse === FormUse.TALLY_AND_BEHAVIORAL_MAP ?
           (_count.tallyProtocols ?? 0)
-        : (_count.tallyProtocols ?? 0)
+        : (_count.tallyProtocols ?? 0),
     }));
 
     return {
@@ -155,6 +154,8 @@ const getFormStructure = async ({
               select: {
                 name: true,
                 notes: true,
+                allowGeometryAssociation: true,
+                geometryTypes: true,
               },
             },
             subcategory: {
@@ -162,6 +163,8 @@ const getFormStructure = async ({
                 name: true,
                 notes: true,
                 categoryId: true,
+                allowGeometryAssociation: true,
+                geometryTypes: true,
               },
             },
             question: {
@@ -195,6 +198,8 @@ const getFormStructure = async ({
                 subcategory: {
                   select: {
                     name: true,
+                    allowGeometryAssociation: true,
+                    geometryTypes: true,
                   },
                 },
               },
@@ -229,6 +234,8 @@ const getFormStructure = async ({
             notes: item.category.notes,
             position: item.position,
             categoryChildren: [],
+            allowGeometryAssociation: item.category.allowGeometryAssociation,
+            geometryTypes: item.category.geometryTypes,
           });
         }
         continue;
@@ -260,6 +267,8 @@ const getFormStructure = async ({
             name: dbSubcategory.name,
             notes: dbSubcategory.notes,
             questions: [],
+            allowGeometryAssociation: dbSubcategory.allowGeometryAssociation,
+            geometryTypes: dbSubcategory.geometryTypes,
           };
           category.categoryChildren.push(subcategory);
         }

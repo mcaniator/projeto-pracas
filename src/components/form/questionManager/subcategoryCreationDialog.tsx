@@ -4,7 +4,7 @@ import CSwitch from "@components/ui/cSwtich";
 import CTextField from "@components/ui/cTextField";
 import CDialog from "@components/ui/dialog/cDialog";
 import type { FormUse, QuestionGeometryTypes } from "@prisma/client";
-import { FormEventHandler, useState } from "react";
+import { FormEventHandler, useEffect, useState } from "react";
 
 const SubcategoryCreationDialog = ({
   formUse,
@@ -14,6 +14,8 @@ const SubcategoryCreationDialog = ({
   cloneSubcategory,
   subcategoryName,
   notes,
+  allowGeometryAssociation: allowGeometryAssociationProp,
+  geometryTypes: geometryTypesProp,
   open,
   onClose,
   reloadCategories,
@@ -23,17 +25,40 @@ const SubcategoryCreationDialog = ({
   categoryId: number;
   categoryName: string;
   subcategoryId?: number;
-  cloneSubcategory?: { id: number; name: string; notes: string | null };
+  cloneSubcategory?: {
+    id: number;
+    name: string;
+    notes: string | null;
+    allowGeometryAssociation?: boolean;
+    geometryTypes?: QuestionGeometryTypes[];
+  };
   subcategoryName?: string;
   notes?: string;
+  allowGeometryAssociation?: boolean;
+  geometryTypes?: QuestionGeometryTypes[];
   open: boolean;
   onClose: () => void;
   reloadCategories: () => void;
   openSubcategoryDeletionDialog: () => void;
 }) => {
-  const [allowGeometryAssociation, setAllowGeometryAssociation] =
-    useState(false);
-  const [geometryTypes, setGeometryTypes] = useState<string[]>([]);
+  const [allowGeometryAssociation, setAllowGeometryAssociation] = useState(
+    cloneSubcategory?.allowGeometryAssociation ??
+      allowGeometryAssociationProp ??
+      false,
+  );
+  const [geometryTypes, setGeometryTypes] = useState<string[]>(
+    cloneSubcategory?.geometryTypes ?? geometryTypesProp ?? [],
+  );
+  useEffect(() => {
+    setAllowGeometryAssociation(
+      cloneSubcategory?.allowGeometryAssociation ??
+        allowGeometryAssociationProp ??
+        false,
+    );
+    setGeometryTypes(
+      cloneSubcategory?.geometryTypes ?? geometryTypesProp ?? [],
+    );
+  }, [cloneSubcategory, allowGeometryAssociationProp, geometryTypesProp]);
   const [subcategorySubmit, isPending] = useSubcategorySubmit({
     callbacks: {
       onSuccess: () => {
@@ -43,8 +68,14 @@ const SubcategoryCreationDialog = ({
   });
   const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    formData.set("allowGeometryAssociation", String(allowGeometryAssociation));
+    formData.delete("geometryTypes");
+    geometryTypes.forEach((geometryType) => {
+      formData.append("geometryTypes", geometryType);
+    });
     void subcategorySubmit({
-      data: new FormData(event.currentTarget),
+      data: formData,
       projectOptions: { loadingMessage: "Salvando subcategoria..." },
     });
   };

@@ -135,6 +135,14 @@ const categoryInfoToCreateSchema = z.object({
   formUse: z.nativeEnum(FormUse),
   name: z.string().trim().min(1).max(255),
   notes: z.string().trim().optional().nullish(),
+  allowGeometryAssociation: z.preprocess(
+    (value) => (value === null || value === "" ? false : value),
+    booleanFromString,
+  ),
+  geometryTypes: z
+    .array(z.nativeEnum(QuestionGeometryTypes))
+    .optional()
+    .default([]),
   categoryId: z.coerce.number().int().finite().nonnegative().optional(),
   cloneCategoryId: z.preprocess(
     (value) => (value === null || value === "" ? undefined : value),
@@ -147,6 +155,14 @@ const subcategoryInfoToCreateSchema = z.object({
   name: z.string().trim().min(1).max(255),
   categoryId: z.coerce.number().int().finite().nonnegative(),
   notes: z.string().trim().optional().nullish(),
+  allowGeometryAssociation: z.preprocess(
+    (value) => (value === null || value === "" ? false : value),
+    booleanFromString,
+  ),
+  geometryTypes: z
+    .array(z.nativeEnum(QuestionGeometryTypes))
+    .optional()
+    .default([]),
   subcategoryId: z.coerce.number().int().finite().nonnegative().optional(),
   cloneSubcategoryId: z.preprocess(
     (value) => (value === null || value === "" ? undefined : value),

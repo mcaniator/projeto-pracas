@@ -22,6 +22,8 @@ const buildQuestionsByCategoryQuery = ({
     c.id,
     c.name,
     c.notes,
+    c."allow_geometry_association" AS "allowGeometryAssociation",
+    COALESCE(array_to_json(c."geometry_types"), '[]'::json) AS "geometryTypes",
 
     COALESCE(
       (
@@ -71,6 +73,8 @@ const buildQuestionsByCategoryQuery = ({
             'id', s.id,
             'name', s.name,
             'notes', s.notes,
+            'allowGeometryAssociation', s."allow_geometry_association",
+            'geometryTypes', COALESCE(array_to_json(s."geometry_types"), '[]'::json),
             'question', COALESCE(
               (
                 SELECT json_agg(

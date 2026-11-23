@@ -31,6 +31,8 @@ const getCategoriesWithSubcategories = async (
         id: true,
         name: true,
         notes: true,
+        allowGeometryAssociation: true,
+        geometryTypes: true,
         subcategory: {
           where: {
             formUse,
@@ -39,6 +41,8 @@ const getCategoriesWithSubcategories = async (
             id: true,
             name: true,
             notes: true,
+            allowGeometryAssociation: true,
+            geometryTypes: true,
           },
           orderBy: {
             name: "asc",

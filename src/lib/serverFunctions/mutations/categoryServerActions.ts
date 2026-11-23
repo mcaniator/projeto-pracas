@@ -23,6 +23,8 @@ const _categorySubmit = async (request: APIRequestData<CategorySubmitData>) => {
       formUse: formData.get("formUse"),
       name: formData.get("name"),
       notes: formData.get("notes"),
+      allowGeometryAssociation: formData.get("allowGeometryAssociation"),
+      geometryTypes: formData.getAll("geometryTypes"),
       categoryId: formData.get("categoryId"),
       cloneCategoryId: formData.get("cloneCategoryId"),
     });
@@ -44,6 +46,8 @@ const _categorySubmit = async (request: APIRequestData<CategorySubmitData>) => {
           formUse: true,
           optional: true,
           active: true,
+          allowGeometryAssociation: true,
+          geometryTypes: true,
           subcategory: {
             select: {
               id: true,
@@ -51,6 +55,8 @@ const _categorySubmit = async (request: APIRequestData<CategorySubmitData>) => {
               optional: true,
               active: true,
               notes: true,
+              allowGeometryAssociation: true,
+              geometryTypes: true,
             },
           },
           question: {
@@ -109,13 +115,25 @@ const _categorySubmit = async (request: APIRequestData<CategorySubmitData>) => {
             notes: parse.notes ?? null,
             optional: sourceCategory.optional,
             active: sourceCategory.active,
+            allowGeometryAssociation: parse.allowGeometryAssociation,
+            geometryTypes: parse.geometryTypes,
           },
           select: { id: true },
         });
 
         const subcategoryValues = sourceCategory.subcategory.map(
           (subcategory) =>
-            Prisma.sql`(${parse.formUse}::"FORM_USE", ${subcategory.name}, ${subcategory.optional}, ${subcategory.active}, ${subcategory.notes}, ${category.id})`,
+            Prisma.sql`(${parse.formUse}::"FORM_USE", ${subcategory.name}, ${subcategory.optional}, ${subcategory.active}, ${subcategory.notes}, ${subcategory.allowGeometryAssociation}, ${
+              subcategory.geometryTypes.length > 0 ?
+                Prisma.sql`ARRAY[${Prisma.join(
+                  subcategory.geometryTypes.map(
+                    (geometryType) =>
+                      Prisma.sql`${geometryType}::"QuestionGeometryTypes"`,
+                  ),
+                  ",",
+                )}]`
+              : Prisma.sql`ARRAY[]::"QuestionGeometryTypes"[]`
+            }, ${category.id})`,
         );
         const subcategoryIds = new Map<number, number>();
 
@@ -129,6 +147,8 @@ const _categorySubmit = async (request: APIRequestData<CategorySubmitData>) => {
               "optional",
               "active",
               "notes",
+              "allow_geometry_association",
+              "geometry_types",
               "category_id"
             )
             VALUES ${Prisma.join(subcategoryValues, ",")}
@@ -273,7 +293,12 @@ const _categorySubmit = async (request: APIRequestData<CategorySubmitData>) => {
     if (parse.categoryId) {
       const category = await prisma.category.update({
         where: { id: parse.categoryId },
-        data: { name: parse.name, notes: parse.notes },
+        data: {
+          name: parse.name,
+          notes: parse.notes,
+          allowGeometryAssociation: parse.allowGeometryAssociation,
+          geometryTypes: parse.geometryTypes,
+        },
       });
       return {
         responseInfo: {
@@ -288,6 +313,8 @@ const _categorySubmit = async (request: APIRequestData<CategorySubmitData>) => {
         formUse: parse.formUse,
         name: parse.name,
         notes: parse.notes,
+        allowGeometryAssociation: parse.allowGeometryAssociation,
+        geometryTypes: parse.geometryTypes,
       },
     });
     return {
@@ -543,6 +570,8 @@ const _subcategorySubmit = async (
       name: formData.get("subcategory-name"),
       categoryId: formData.get("category-id"),
       notes: formData.get("notes"),
+      allowGeometryAssociation: formData.get("allowGeometryAssociation"),
+      geometryTypes: formData.getAll("geometryTypes"),
       subcategoryId: formData.get("subcategoryId"),
       cloneSubcategoryId: formData.get("cloneSubcategoryId"),
     });
@@ -565,6 +594,8 @@ const _subcategorySubmit = async (
           categoryId: true,
           optional: true,
           active: true,
+          allowGeometryAssociation: true,
+          geometryTypes: true,
           question: {
             select: {
               id: true,
@@ -624,6 +655,8 @@ const _subcategorySubmit = async (
             notes: parse.notes ?? null,
             optional: sourceSubcategory.optional,
             active: sourceSubcategory.active,
+            allowGeometryAssociation: parse.allowGeometryAssociation,
+            geometryTypes: parse.geometryTypes,
           },
           select: { id: true },
         });
@@ -737,7 +770,12 @@ const _subcategorySubmit = async (
     if (parse.subcategoryId) {
       const subcategory = await prisma.subcategory.update({
         where: { id: parse.subcategoryId },
-        data: { name: parse.name, notes: parse.notes ?? null },
+        data: {
+          name: parse.name,
+          notes: parse.notes ?? null,
+          allowGeometryAssociation: parse.allowGeometryAssociation,
+          geometryTypes: parse.geometryTypes,
+        },
       });
       return {
         responseInfo: {
@@ -753,6 +791,8 @@ const _subcategorySubmit = async (
         name: parse.name,
         categoryId: parse.categoryId,
         notes: parse.notes ?? null,
+        allowGeometryAssociation: parse.allowGeometryAssociation,
+        geometryTypes: parse.geometryTypes,
       },
     });
 
