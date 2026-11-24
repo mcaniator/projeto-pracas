@@ -14,6 +14,7 @@ export type CalculationParams = {
 };
 
 export type SubcategoryItem = {
+  formItemId: number;
   position: number;
   subcategoryId: number;
   name: string;
@@ -43,6 +44,7 @@ export type QuestionItem = {
 };
 
 export type CategoryItem = {
+  formItemId: number;
   categoryId: number;
   name: string;
   notes: string | null;

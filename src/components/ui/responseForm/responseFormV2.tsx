@@ -4,8 +4,8 @@ import CalculationSynchronizer from "@/components/ui/responseForm/calculationSyn
 import ControlledResponseQuestionField from "@/components/ui/responseForm/controlledResponseQuestionField";
 import FilledQuestionsCounter from "@/components/ui/responseForm/filledQuestionsCounter";
 import ResponseFormCategory from "@/components/ui/responseForm/responseFormCategory";
+import ResponseFormFormItemGeometryControls from "@/components/ui/responseForm/responseFormFormItemGeometryControls";
 import ResponseFormGeometryControls from "@/components/ui/responseForm/responseFormGeometryControls";
-import ResponseFormHierarchyGeometryControls from "@/components/ui/responseForm/responseFormHierarchyGeometryControls";
 import ResponseFormQuestionCard from "@/components/ui/responseForm/responseFormQuestionCard";
 import ResponseFormSubcategory from "@/components/ui/responseForm/responseFormSubcategory";
 import dayjs from "@/lib/dayjs";
@@ -20,8 +20,8 @@ import type {
   GetFormSubmissionDataResult,
 } from "@/lib/serverFunctions/queries/formSubmission";
 import type {
+  FormItemGeometry,
   FormValues,
-  HierarchyFormGeometry,
   ResponseFormGeometry,
   ResponseGeometry,
   SerializedFormValues,
@@ -56,10 +56,17 @@ export type ResponseFormGeometriesChange = {
   source: ResponseFormChangeSource;
 };
 
+export type ResponseFormFormItemGeometriesChange = {
+  formItemGeometries: FormItemGeometry[];
+  source: ResponseFormChangeSource;
+};
+
 export type ResponseFormResetData = Pick<
   GetFormSubmissionDataResult,
   "responsesFormValues" | "geometries"
->;
+> & {
+  formItemGeometries?: FormItemGeometry[];
+};
 
 export type ResponseFormV2Handle = {
   reset: (data: ResponseFormResetData) => void;
@@ -75,6 +82,9 @@ type ResponseFormV2Props = {
   locationPolygonGeoJson?: string | null;
   onValuesChange?: (change: ResponseFormValuesChange) => void;
   onGeometriesChange?: (change: ResponseFormGeometriesChange) => void;
+  onFormItemGeometriesChange?: (
+    change: ResponseFormFormItemGeometriesChange,
+  ) => void;
   onSubmit?: (values: FormValues) => void;
 };
 
@@ -142,6 +152,7 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
       locationPolygonGeoJson = null,
       onValuesChange,
       onGeometriesChange,
+      onFormItemGeometriesChange,
       onSubmit,
     },
     ref,
@@ -234,9 +245,9 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
     const [geometries, setGeometries] = useState<ResponseFormGeometry[]>(
       () => formSubmission.geometries,
     );
-    const [hierarchyGeometries, setHierarchyGeometries] = useState<
-      HierarchyFormGeometry[]
-    >([]);
+    const [formItemGeometries, setFormItemGeometries] = useState<
+      FormItemGeometry[]
+    >(() => formSubmission.formItemGeometries ?? []);
     const [expandedCategoryIds, setExpandedCategoryIds] = useState(
       () => new Set(categories.map((category) => category.categoryId)),
     );
@@ -286,13 +297,17 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
       (data: ResponseFormResetData) => {
         resetSerializedValues(data.responsesFormValues);
         setGeometries(data.geometries);
-        setHierarchyGeometries([]);
+        setFormItemGeometries(data.formItemGeometries ?? []);
         onGeometriesChange?.({
           geometries: data.geometries,
           source: "reset",
         });
+        onFormItemGeometriesChange?.({
+          formItemGeometries: data.formItemGeometries ?? [],
+          source: "reset",
+        });
       },
-      [onGeometriesChange, resetSerializedValues],
+      [onGeometriesChange, onFormItemGeometriesChange, resetSerializedValues],
     );
 
     useImperativeHandle(
@@ -386,19 +401,29 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
         source: "user",
       });
     };
-    const handleHierarchyGeometryChange = (
-      targetKey: string,
+    const handleFormItemGeometryChange = (
+      formItemId: number,
+      itemType: "CATEGORY" | "SUBCATEGORY",
       targetGeometries: ResponseGeometry[],
     ) => {
-      setHierarchyGeometries((current) =>
-        current.some((item) => item.key === targetKey) ?
-          current.map((item) =>
-            item.key === targetKey ?
-              { key: targetKey, geometries: targetGeometries }
-            : item,
-          )
-        : [...current, { key: targetKey, geometries: targetGeometries }],
-      );
+      setFormItemGeometries((current) => {
+        const next =
+          current.some((item) => item.formItemId === formItemId) ?
+            current.map((item) =>
+              item.formItemId === formItemId ?
+                { formItemId, itemType, geometries: targetGeometries }
+              : item,
+            )
+          : [
+              ...current,
+              { formItemId, itemType, geometries: targetGeometries },
+            ];
+        onFormItemGeometriesChange?.({
+          formItemGeometries: next,
+          source: "user",
+        });
+        return next;
+      });
     };
     return (
       <form
@@ -448,8 +473,8 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
                   geometries={geometries}
                   questionsForMention={questionsForMention}
                   readOnly={readOnly}
-                  hierarchyGeometries={hierarchyGeometries}
-                  onHierarchyGeometryChange={handleHierarchyGeometryChange}
+                  formItemGeometries={formItemGeometries}
+                  onFormItemGeometryChange={handleFormItemGeometryChange}
                   expanded={expandedCategoryIds.has(category.categoryId)}
                   onExpandedChange={handleCategoryExpandedChange}
                   expandedSubcategoryIds={expandedSubcategoryIds}
@@ -491,9 +516,10 @@ type CalculationByQuestionId = Map<number, FormSubmissionCalculations[number]>;
 type SharedQuestionProps = {
   calculationByQuestionId: CalculationByQuestionId;
   geometries: ResponseFormGeometry[];
-  hierarchyGeometries?: HierarchyFormGeometry[];
-  onHierarchyGeometryChange?: (
-    targetKey: string,
+  formItemGeometries?: FormItemGeometry[];
+  onFormItemGeometryChange?: (
+    formItemId: number,
+    itemType: "CATEGORY" | "SUBCATEGORY",
     geometries: ResponseGeometry[],
   ) => void;
   questionsForMention: SimpleMention[];
@@ -508,8 +534,8 @@ const Category = ({
   category,
   calculationByQuestionId,
   geometries,
-  hierarchyGeometries,
-  onHierarchyGeometryChange,
+  formItemGeometries,
+  onFormItemGeometryChange,
   questionsForMention,
   locationPolygonGeoJson,
   onResponseGeometryChange,
@@ -536,14 +562,15 @@ const Category = ({
     actions={
       category.allowGeometryAssociation ?
         <div className="flex items-center">
-          <ResponseFormHierarchyGeometryControls
-            targetKey={`category-${category.categoryId}`}
+          <ResponseFormFormItemGeometryControls
+            formItemId={category.formItemId}
+            itemType="CATEGORY"
             targetName={category.name}
-            geometries={hierarchyGeometries ?? []}
+            geometries={formItemGeometries ?? []}
             locationPolygonGeoJson={locationPolygonGeoJson}
             finalized={readOnly}
             geometryTypes={category.geometryTypes}
-            onGeometriesChange={onHierarchyGeometryChange ?? (() => undefined)}
+            onGeometriesChange={onFormItemGeometryChange ?? (() => undefined)}
           />
         </div>
       : undefined
@@ -560,8 +587,8 @@ const Category = ({
             {...{
               calculationByQuestionId,
               geometries,
-              hierarchyGeometries,
-              onHierarchyGeometryChange,
+              formItemGeometries,
+              onFormItemGeometryChange,
               questionsForMention,
               locationPolygonGeoJson,
               onResponseGeometryChange,
@@ -608,15 +635,16 @@ const Subcategory = ({
     actions={
       subcategory.allowGeometryAssociation ?
         <div className="flex items-center">
-          <ResponseFormHierarchyGeometryControls
-            targetKey={`subcategory-${subcategory.subcategoryId}`}
+          <ResponseFormFormItemGeometryControls
+            formItemId={subcategory.formItemId}
+            itemType="SUBCATEGORY"
             targetName={subcategory.name}
-            geometries={sharedProps.hierarchyGeometries ?? []}
+            geometries={sharedProps.formItemGeometries ?? []}
             locationPolygonGeoJson={sharedProps.locationPolygonGeoJson}
             finalized={sharedProps.readOnly}
             geometryTypes={subcategory.geometryTypes}
             onGeometriesChange={
-              sharedProps.onHierarchyGeometryChange ?? (() => undefined)
+              sharedProps.onFormItemGeometryChange ?? (() => undefined)
             }
           />
         </div>

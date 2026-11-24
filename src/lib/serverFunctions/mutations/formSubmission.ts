@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import {
   type FormSubmissionOptionValueWithOverride,
   responseFormGeometrySchema,
+  responseGeometrySchema,
   serializedFormValuesSchema,
 } from "@/lib/types/formSubmission/responseFormTypes";
 import { serializeResponseGeometryToWkt } from "@/lib/utils/responseGeometry";
@@ -18,6 +19,15 @@ import { z } from "zod";
 export const formSubmissionDataSchema = z.object({
   responses: serializedFormValuesSchema,
   geometries: z.array(responseFormGeometrySchema),
+  formItemGeometries: z
+    .array(
+      z.object({
+        formItemId: z.number().int().positive(),
+        itemType: z.enum(["CATEGORY", "SUBCATEGORY"]),
+        geometries: z.array(responseGeometrySchema),
+      }),
+    )
+    .optional(),
 });
 
 export type FormSubmissionData = z.infer<typeof formSubmissionDataSchema>;
@@ -86,7 +96,7 @@ export type getFormSubmissionUpdateTransactionsParams = {
  */
 export const getFormSubmissionUpdateTransactions = async ({
   formSubmissionId,
-  formSubmission: { responses, geometries },
+  formSubmission: { responses, geometries, formItemGeometries = [] },
   prismaClient = prisma,
   responseGeometryIdsByLocalId,
 }: getFormSubmissionUpdateTransactionsParams): Promise<
@@ -133,6 +143,70 @@ export const getFormSubmissionUpdateTransactions = async ({
 
   if (questions.length !== requestedQuestionIds.length) {
     throw new Error("Uma ou mais questões não pertencem ao formulário!");
+  }
+
+  const formItemIds = [
+    ...new Set(formItemGeometries.map((item) => item.formItemId)),
+  ];
+  const formItems = await prismaClient.formItem.findMany({
+    where: {
+      id: { in: formItemIds },
+      formId,
+    },
+    select: {
+      id: true,
+      subcategoryId: true,
+      category: {
+        select: {
+          allowGeometryAssociation: true,
+          geometryTypes: true,
+        },
+      },
+      subcategory: {
+        select: {
+          allowGeometryAssociation: true,
+          geometryTypes: true,
+        },
+      },
+    },
+  });
+
+  if (formItems.length !== formItemIds.length) {
+    throw new Error("Um ou mais itens não pertencem ao formulário!");
+  }
+
+  for (const formItemGeometry of formItemGeometries) {
+    const formItem = formItems.find(
+      (item) => item.id === formItemGeometry.formItemId,
+    );
+    if (!formItem) {
+      throw new Error("Item do formulário não encontrado!");
+    }
+
+    const itemType =
+      formItem.subcategoryId !== null ? "SUBCATEGORY" : "CATEGORY";
+    if (formItemGeometry.itemType !== itemType) {
+      throw new Error("Tipo do item da hierarquia inválido!");
+    }
+
+    const configuration =
+      itemType === "SUBCATEGORY" ? formItem.subcategory : formItem.category;
+    if (!configuration?.allowGeometryAssociation) {
+      throw new Error("O item não permite associação de geometrias!");
+    }
+
+    for (const geometry of formItemGeometry.geometries) {
+      const geometryType =
+        geometry.type === "Point" ? "POINT"
+        : geometry.type === "Polygon" ? "POLYGON"
+        : null;
+      if (
+        !geometryType ||
+        !configuration.geometryTypes.includes(geometryType)
+      ) {
+        throw new Error("Tipo de geometria não permitido para este item!");
+      }
+    }
   }
 
   const writtenResponses: {
@@ -258,6 +332,9 @@ export const getFormSubmissionUpdateTransactions = async ({
     prismaClient.$executeRaw`
       DELETE FROM response_geometry WHERE form_submission_id = ${formSubmissionId}
     `,
+    prismaClient.formItemGeometry.deleteMany({
+      where: { formSubmissionId },
+    }),
   ];
 
   const responseRows = [
@@ -307,6 +384,24 @@ export const getFormSubmissionUpdateTransactions = async ({
         INSERT INTO response_geometry
           (id, form_submission_id, question_id, geometry, description, updated_at)
         VALUES ${Prisma.join(geometryRows)}
+      `,
+    );
+  }
+
+  const formItemGeometryRows = formItemGeometries.flatMap(
+    ({ formItemId, geometries: itemGeometries }) =>
+      itemGeometries.map((geometry) => {
+        const wkt = serializeResponseGeometryToWkt(geometry);
+        const description = geometry.description?.trim() || null;
+        return Prisma.sql`(${formItemId}, ${formSubmissionId}, ST_GeomFromText(${wkt}, 4326), ${description}, TRUE, NOW())`;
+      }),
+  );
+  if (formItemGeometryRows.length > 0) {
+    transactions.push(
+      prismaClient.$executeRaw`
+        INSERT INTO form_item_geometry
+          (form_item_id, form_submission_id, geometry, description, active, updated_at)
+        VALUES ${Prisma.join(formItemGeometryRows)}
       `,
     );
   }

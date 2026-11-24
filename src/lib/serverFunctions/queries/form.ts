@@ -229,6 +229,7 @@ const getFormStructure = async ({
       if (FormItemUtils.isCategoryType(item)) {
         if (!categories.find((c) => c.categoryId === item.categoryId)) {
           categories.push({
+            formItemId: item.id,
             categoryId: item.categoryId,
             name: item.category.name,
             notes: item.category.notes,
@@ -262,6 +263,7 @@ const getFormStructure = async ({
 
         if (!subcategory) {
           subcategory = {
+            formItemId: item.id,
             position: item.position,
             subcategoryId: item.subcategoryId,
             name: dbSubcategory.name,

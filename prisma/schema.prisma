@@ -415,6 +415,7 @@ model FormSubmission {
   tally              Tally?
   behavioralMap      BehavioralMap?
   responseGeometries ResponseGeometry[]
+  formItemGeometries FormItemGeometry[]
   responses          Response[]
   responseOptions    ResponseOption[]
   // locations          Location[]
@@ -463,9 +464,11 @@ model FormItem {
 }
 
 model FormItemGeometry {
-  id         Int      @id @default(autoincrement())
-  formItemId Int      @map("form_item_id")
-  formItem   FormItem @relation(fields: [formItemId], references: [id], onDelete: Cascade)
+  id               Int            @id @default(autoincrement())
+  formItemId       Int            @map("form_item_id")
+  formItem         FormItem       @relation(fields: [formItemId], references: [id], onDelete: Cascade)
+  formSubmissionId Int            @map("form_submission_id")
+  formSubmission   FormSubmission @relation(fields: [formSubmissionId], references: [id], onDelete: Cascade)
 
   geometry    Unsupported("Geometry")?
   description String?

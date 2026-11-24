@@ -101,5 +101,6 @@ export const buildFormPreviewSubmission = ({
     },
     responsesFormValues,
     geometries: [],
+    formItemGeometries: [],
   };
 };

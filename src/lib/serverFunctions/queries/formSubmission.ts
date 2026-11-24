@@ -2,13 +2,17 @@ import { BooleanResponseValue } from "@/lib/enums/formSubmissionResponse";
 import { prisma } from "@/lib/prisma";
 import { getFormSubmissionResponseGeometries } from "@/lib/serverFunctions/serverOnly/geometries";
 import type { SerializedFormValues } from "@/lib/types/formSubmission/responseFormTypes";
+import type { FormItemGeometry } from "@/lib/types/formSubmission/responseFormTypes";
 import type {
   CategoryItem,
   QuestionItem,
   SubcategoryItem,
 } from "@/lib/types/forms/formStructure";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
-import { groupResponseGeometriesByQuestion } from "@/lib/utils/responseGeometry";
+import {
+  deserializeResponseGeometriesFromWkt,
+  groupResponseGeometriesByQuestion,
+} from "@/lib/utils/responseGeometry";
 
 import { getFormStructure } from "./form";
 
@@ -35,8 +39,7 @@ export type FormSubmissionCategoryItem = Omit<
 > & {
   id: number;
   categoryChildren: (
-    | FormSubmissionQuestionItem
-    | FormSubmissionSubcategoryItem
+    FormSubmissionQuestionItem | FormSubmissionSubcategoryItem
   )[];
 };
 
@@ -148,30 +151,28 @@ export const getFormSubmissionResponsesAndFilterEmptyCategoriesAndSubcategories 
     };
 
     const filteredCategories = categories
-      .map(
-        (category): FormSubmissionCategoryItem => ({
-          ...category,
-          id: category.categoryId,
-          categoryChildren: category.categoryChildren.reduce<
-            FormSubmissionCategoryItem["categoryChildren"]
-          >((children, child) => {
-            if (FormItemUtils.isSubcategoryType(child)) {
-              const questions = child.questions.map(toQuestionItem);
-              if (questions.length > 0) {
-                children.push({
-                  ...child,
-                  id: child.subcategoryId,
-                  questions,
-                });
-              }
-              return children;
+      .map((category): FormSubmissionCategoryItem => ({
+        ...category,
+        id: category.categoryId,
+        categoryChildren: category.categoryChildren.reduce<
+          FormSubmissionCategoryItem["categoryChildren"]
+        >((children, child) => {
+          if (FormItemUtils.isSubcategoryType(child)) {
+            const questions = child.questions.map(toQuestionItem);
+            if (questions.length > 0) {
+              children.push({
+                ...child,
+                id: child.subcategoryId,
+                questions,
+              });
             }
-
-            children.push(toQuestionItem(child));
             return children;
-          }, []),
-        }),
-      )
+          }
+
+          children.push(toQuestionItem(child));
+          return children;
+        }, []),
+      }))
       .filter((category) => category.categoryChildren.length > 0);
 
     return { filteredCategories, responsesFormValues };
@@ -192,17 +193,61 @@ export const getFormSubmissionData = async ({
   }
 
   const { formId } = formSubmission;
-  const [formStructure, rawGeometries] = await Promise.all([
-    getFormStructure({
-      formId,
-      publicQuestionsOnly,
-      includeCalculations,
-    }),
-    getFormSubmissionResponseGeometries({
-      formSubmissionId,
-      publicQuestionsOnly,
-    }),
-  ]);
+  const [formStructure, rawGeometries, rawFormItemGeometries] =
+    await Promise.all([
+      getFormStructure({
+        formId,
+        publicQuestionsOnly,
+        includeCalculations,
+      }),
+      getFormSubmissionResponseGeometries({
+        formSubmissionId,
+        publicQuestionsOnly,
+      }),
+      prisma.$queryRaw<
+        {
+          id: number;
+          formItemId: number;
+          itemType: "CATEGORY" | "SUBCATEGORY";
+          geometry: string | null;
+          description: string | null;
+        }[]
+      >`
+        SELECT
+          fig.id,
+          fig.form_item_id AS "formItemId",
+          CASE WHEN fi.subcategory_id IS NULL
+            THEN 'CATEGORY'
+            ELSE 'SUBCATEGORY'
+          END AS "itemType",
+          ST_AsText(fig.geometry) AS geometry,
+          fig.description
+        FROM form_item_geometry fig
+        INNER JOIN form_item fi ON fi.id = fig.form_item_id
+        WHERE fig.form_submission_id = ${formSubmissionId}
+          AND fig.active = TRUE
+        ORDER BY fig.id
+      `,
+    ]);
+
+  const formItemGeometriesByItem = new Map<number, FormItemGeometry>();
+  for (const row of rawFormItemGeometries) {
+    const current =
+      formItemGeometriesByItem.get(row.formItemId) ??
+      ({
+        formItemId: row.formItemId,
+        itemType: row.itemType,
+        geometries: [],
+      } satisfies FormItemGeometry);
+    for (const geometry of deserializeResponseGeometriesFromWkt(row.geometry)) {
+      current.geometries.push({
+        ...geometry,
+        localId: String(row.id),
+        description: row.description,
+      });
+    }
+    formItemGeometriesByItem.set(row.formItemId, current);
+  }
 
   const { filteredCategories, responsesFormValues } =
     await getFormSubmissionResponsesAndFilterEmptyCategoriesAndSubcategories({
@@ -222,9 +267,15 @@ export const getFormSubmissionData = async ({
     },
     responsesFormValues,
     geometries: groupResponseGeometriesByQuestion(rawGeometries),
+    ...(formItemGeometriesByItem.size > 0 ?
+      { formItemGeometries: Array.from(formItemGeometriesByItem.values()) }
+    : {}),
   };
 };
 
-export type GetFormSubmissionDataResult = Awaited<
-  ReturnType<typeof getFormSubmissionData>
->;
+export type GetFormSubmissionDataResult = Omit<
+  Awaited<ReturnType<typeof getFormSubmissionData>>,
+  "formItemGeometries"
+> & {
+  formItemGeometries?: import("@/lib/types/formSubmission/responseFormTypes").FormItemGeometry[];
+};

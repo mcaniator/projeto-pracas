@@ -27,8 +27,9 @@ export const responseFormGeometrySchema = z.object({
 
 export type ResponseFormGeometry = z.infer<typeof responseFormGeometrySchema>;
 
-export type HierarchyFormGeometry = {
-  key: string;
+export type FormItemGeometry = {
+  formItemId: number;
+  itemType: "CATEGORY" | "SUBCATEGORY";
   geometries: ResponseGeometry[];
 };
 
