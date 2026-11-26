@@ -122,6 +122,9 @@ const ClientV2 = ({
         notes: categoryFromCategoriesList.notes,
         position: previousCategories.length + 1,
         categoryChildren: [],
+        allowGeometryAssociation:
+          categoryFromCategoriesList.allowGeometryAssociation,
+        geometryTypes: categoryFromCategoriesList.geometryTypes,
       };
     }
 
@@ -149,6 +152,9 @@ const ClientV2 = ({
           position: newCategory.categoryChildren.length + 1, // insere no final
           notes: subcategoryFromCategoriesList.notes,
           questions: [],
+          allowGeometryAssociation:
+            subcategoryFromCategoriesList.allowGeometryAssociation,
+          geometryTypes: subcategoryFromCategoriesList.geometryTypes,
         };
       }
 

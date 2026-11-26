@@ -558,7 +558,7 @@ const Category = ({
     category={category}
     expanded={expanded}
     actions={
-      category.allowGeometryAssociation ?
+      category.allowGeometryAssociation && category.formItemId !== undefined ?
         <div className="flex items-center">
           <ResponseFormFormItemGeometryControls
             formItemId={category.formItemId}
@@ -631,7 +631,10 @@ const Subcategory = ({
     subcategory={subcategory}
     expanded={expanded}
     actions={
-      subcategory.allowGeometryAssociation ?
+      (
+        subcategory.allowGeometryAssociation &&
+        subcategory.formItemId !== undefined
+      ) ?
         <div className="flex items-center">
           <ResponseFormFormItemGeometryControls
             formItemId={subcategory.formItemId}

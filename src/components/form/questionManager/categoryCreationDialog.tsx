@@ -42,9 +42,11 @@ const CategoryCreationDialog = ({
       allowGeometryAssociationProp ??
       false,
   );
+
   const [geometryTypes, setGeometryTypes] = useState<string[]>(
     cloneCategory?.geometryTypes ?? geometryTypesProp ?? [],
   );
+
   useEffect(() => {
     setAllowGeometryAssociation(
       cloneCategory?.allowGeometryAssociation ??
@@ -53,6 +55,7 @@ const CategoryCreationDialog = ({
     );
     setGeometryTypes(cloneCategory?.geometryTypes ?? geometryTypesProp ?? []);
   }, [cloneCategory, allowGeometryAssociationProp, geometryTypesProp]);
+
   const [categorySubmit, isPending] = useCategorySubmit({
     callbacks: {
       onSuccess: () => {
@@ -60,6 +63,7 @@ const CategoryCreationDialog = ({
       },
     },
   });
+  
   const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
