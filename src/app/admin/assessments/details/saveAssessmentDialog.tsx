@@ -15,6 +15,7 @@ import { downloadBlob } from "@/lib/downloadFile";
 import { useAppSnackbar } from "@/lib/hooks/useAppSnackbar";
 import { useAssessmentSubmit } from "@/lib/serverFunctions/apiCalls/assessment";
 import type {
+  FormItemGeometry,
   ResponseFormGeometry,
   SerializedFormValues,
 } from "@/lib/types/formSubmission/responseFormTypes";
@@ -36,6 +37,7 @@ const SaveAssessmentDialog = ({
   assessmentId,
   serializedFormValues,
   geometries,
+  formItemGeometries,
   isFinalized,
   endDate,
   startDate,
@@ -56,6 +58,7 @@ const SaveAssessmentDialog = ({
   assessmentId: number;
   serializedFormValues: SerializedFormValues;
   geometries: ResponseFormGeometry[];
+  formItemGeometries: FormItemGeometry[];
   isFinalized: boolean;
   endDate: Dayjs | null;
   startDate: Dayjs;
@@ -182,6 +185,7 @@ const SaveAssessmentDialog = ({
         driveFolderUrl: driveFolderUrl,
         responseFormValues: serializedFormValues,
         geometries: geometries,
+        formItemGeometries,
       });
       setErrorOnLocalSave(false);
     } catch (e) {
@@ -219,6 +223,7 @@ const SaveAssessmentDialog = ({
               formSubmission: {
                 responses: serializedFormValues,
                 geometries,
+                formItemGeometries,
               },
               startDate: startDate.toDate(),
               endDate: endDate?.toDate() ?? null,
@@ -277,6 +282,7 @@ const SaveAssessmentDialog = ({
         assessmentId: assessmentId,
         responses: serializedFormValues,
         geometries: geometries,
+        formItemGeometries,
         driveFolderUrl: driveFolderUrl,
       };
 

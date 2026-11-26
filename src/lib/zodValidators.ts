@@ -441,6 +441,25 @@ const assessmentImportDataSchema = z.object({
       ),
     }),
   ),
+  formItemGeometries: z
+    .array(
+      z.object({
+        formItemId: z.number().int().positive(),
+        itemType: z.enum(["CATEGORY", "SUBCATEGORY"]),
+        geometries: z.array(
+          z.object({
+            type: z.enum(["Point", "Polygon"]),
+            coordinates: z.union([
+              z.array(z.number().finite()).min(2),
+              z.array(z.array(z.array(z.number().finite()).min(2)).min(1)),
+            ]),
+            localId: z.string().optional(),
+            description: z.string().nullable().optional(),
+          }),
+        ),
+      }),
+    )
+    .optional(),
   driveFolderUrl: z.string().nullable(),
 });
 

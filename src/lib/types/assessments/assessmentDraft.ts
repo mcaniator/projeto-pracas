@@ -1,5 +1,6 @@
 import {
   responseFormGeometrySchema,
+  responseGeometrySchema,
   serializedFormValuesSchema,
 } from "@/lib/types/formSubmission/responseFormTypes";
 import { z } from "zod";
@@ -16,6 +17,15 @@ export const assessmentDraftSchema = z.object({
   driveFolderUrl: z.string().nullable(),
   responseFormValues: serializedFormValuesSchema,
   geometries: z.array(responseFormGeometrySchema),
+  formItemGeometries: z
+    .array(
+      z.object({
+        formItemId: z.number().int().positive(),
+        itemType: z.enum(["CATEGORY", "SUBCATEGORY"]),
+        geometries: z.array(responseGeometrySchema),
+      }),
+    )
+    .optional(),
 });
 
 export type AssessmentDraft = z.infer<typeof assessmentDraftSchema>;

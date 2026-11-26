@@ -406,23 +406,21 @@ const ResponseFormV2 = forwardRef<ResponseFormV2Handle, ResponseFormV2Props>(
       itemType: "CATEGORY" | "SUBCATEGORY",
       targetGeometries: ResponseGeometry[],
     ) => {
-      setFormItemGeometries((current) => {
-        const next =
-          current.some((item) => item.formItemId === formItemId) ?
-            current.map((item) =>
-              item.formItemId === formItemId ?
-                { formItemId, itemType, geometries: targetGeometries }
-              : item,
-            )
-          : [
-              ...current,
-              { formItemId, itemType, geometries: targetGeometries },
-            ];
-        onFormItemGeometriesChange?.({
-          formItemGeometries: next,
-          source: "user",
-        });
-        return next;
+      const next =
+        formItemGeometries.some((item) => item.formItemId === formItemId) ?
+          formItemGeometries.map((item) =>
+            item.formItemId === formItemId ?
+              { formItemId, itemType, geometries: targetGeometries }
+            : item,
+          )
+        : [
+            ...formItemGeometries,
+            { formItemId, itemType, geometries: targetGeometries },
+          ];
+      setFormItemGeometries(next);
+      onFormItemGeometriesChange?.({
+        formItemGeometries: next,
+        source: "user",
       });
     };
     return (

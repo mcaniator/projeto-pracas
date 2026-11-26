@@ -19,6 +19,7 @@ import CChip from "@/components/ui/cChip";
 import CDateTimePicker from "@/components/ui/cDateTimePicker";
 import CHelpChip from "@/components/ui/cHelpChip";
 import ResponseFormV2, {
+  type ResponseFormFormItemGeometriesChange,
   type ResponseFormGeometriesChange,
   type ResponseFormV2Handle,
   type ResponseFormValuesChange,
@@ -113,6 +114,7 @@ const AssessmentClient = ({
 
   const savedUpdatedAtRef = useRef(assessmentDetails.updatedAt);
   const geometriesRef = useRef(formSubmission.geometries);
+  const formItemGeometriesRef = useRef(formSubmission.formItemGeometries ?? []);
   const serializedFormValuesRef = useRef<SerializedFormValues>(
     formSubmission.responsesFormValues,
   );
@@ -139,6 +141,7 @@ const AssessmentClient = ({
         driveFolderUrl,
         responseFormValues: serializedFormValuesRef.current,
         geometries: geometriesRef.current,
+        formItemGeometries: formItemGeometriesRef.current,
       };
 
       void saveAssessmentResponsesDraft(assessmentDraft);
@@ -176,11 +179,23 @@ const AssessmentClient = ({
     [scheduleDraftSave],
   );
 
+  const handleFormItemGeometriesChange = useCallback(
+    ({ formItemGeometries, source }: ResponseFormFormItemGeometriesChange) => {
+      formItemGeometriesRef.current = formItemGeometries;
+      if (source === "user") {
+        isDirtyRef.current = true;
+        scheduleDraftSave();
+      }
+    },
+    [scheduleDraftSave],
+  );
+
   const applyDraftAssessmentValues = useCallback(
     (assessmentDraft: AssessmentDraft) => {
       responseFormRef.current?.reset({
         responsesFormValues: assessmentDraft.responseFormValues,
         geometries: assessmentDraft.geometries,
+        formItemGeometries: assessmentDraft.formItemGeometries ?? [],
       });
       serializedFormValuesRef.current = assessmentDraft.responseFormValues;
       setIsFinalized(assessmentDraft.isFinalized);
@@ -191,6 +206,7 @@ const AssessmentClient = ({
       );
       setDriveFolderUrl(assessmentDraft.driveFolderUrl);
       geometriesRef.current = assessmentDraft.geometries;
+      formItemGeometriesRef.current = assessmentDraft.formItemGeometries ?? [];
       isDirtyRef.current = false;
       setPendingDraftAssessmentChoice(undefined);
       setPendingSave(true);
@@ -204,6 +220,7 @@ const AssessmentClient = ({
       responseFormRef.current?.reset({
         responsesFormValues: formSubmission.responsesFormValues,
         geometries: formSubmission.geometries,
+        formItemGeometries: formSubmission.formItemGeometries ?? [],
       });
       serializedFormValuesRef.current = formSubmission.responsesFormValues;
       setIsFinalized(assessmentDetails.isFinalized);
@@ -214,6 +231,7 @@ const AssessmentClient = ({
       );
       setDriveFolderUrl(assessmentDetails.driveFolderUrl);
       geometriesRef.current = formSubmission.geometries;
+      formItemGeometriesRef.current = formSubmission.formItemGeometries ?? [];
       isDirtyRef.current = false;
       setPendingDraftAssessmentChoice(undefined);
       try {
@@ -237,6 +255,7 @@ const AssessmentClient = ({
     assessmentDetails,
     enqueueSnackbar,
     formSubmission.geometries,
+    formSubmission.formItemGeometries,
     formSubmission.responsesFormValues,
     setLoadingOverlay,
   ]);
@@ -256,9 +275,11 @@ const AssessmentClient = ({
       responseFormRef.current?.reset({
         responsesFormValues: importedData.responses,
         geometries: importedData.geometries,
+        formItemGeometries: importedData.formItemGeometries ?? [],
       });
       serializedFormValuesRef.current = importedData.responses;
       geometriesRef.current = importedData.geometries;
+      formItemGeometriesRef.current = importedData.formItemGeometries ?? [];
       setStartDate(dayjs(importedData.startDate));
       setEndDate(
         importedData.endDate && dayjs(importedData.endDate).isValid() ?
@@ -443,6 +464,7 @@ const AssessmentClient = ({
           locationPolygonGeoJson={locationPolygonGeoJson}
           onValuesChange={handleValuesChange}
           onGeometriesChange={handleGeometriesChange}
+          onFormItemGeometriesChange={handleFormItemGeometriesChange}
           onSubmit={() => {
             setOpenSaveDialog(true);
           }}
@@ -478,6 +500,7 @@ const AssessmentClient = ({
         open={openSaveDialog}
         serializedFormValues={serializedFormValuesRef.current}
         geometries={geometriesRef.current}
+        formItemGeometries={formItemGeometriesRef.current}
         endDate={endDate}
         isFinalized={isFinalized}
         startDate={startDate}
