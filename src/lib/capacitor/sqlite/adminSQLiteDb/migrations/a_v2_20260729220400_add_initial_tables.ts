@@ -122,6 +122,8 @@ const a_v2_20260729220400_add_initial_tables = new SQLiteMigration({
         optional INTEGER NOT NULL CHECK (optional IN (0, 1)),
         active INTEGER NOT NULL CHECK (active IN (0, 1)),
         notes TEXT,
+        allow_geometry_association INTEGER NOT NULL DEFAULT 0 CHECK (allow_geometry_association IN (0, 1)),
+        geometry_types TEXT NOT NULL DEFAULT '[]',
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         UNIQUE (form_use, name)
@@ -135,6 +137,8 @@ const a_v2_20260729220400_add_initial_tables = new SQLiteMigration({
         optional INTEGER NOT NULL CHECK (optional IN (0, 1)),
         active INTEGER NOT NULL CHECK (active IN (0, 1)),
         notes TEXT,
+        allow_geometry_association INTEGER NOT NULL DEFAULT 0 CHECK (allow_geometry_association IN (0, 1)),
+        geometry_types TEXT NOT NULL DEFAULT '[]',
         category_id INTEGER NOT NULL REFERENCES category(id) ON DELETE CASCADE,
         UNIQUE (form_use, category_id, name)
       )`,
@@ -276,6 +280,22 @@ const a_v2_20260729220400_add_initial_tables = new SQLiteMigration({
     {
       statement: `CREATE INDEX response_geometry_form_submission_id_id_idx
         ON response_geometry (form_submission_id, id)`,
+    },
+    {
+      statement: `CREATE TABLE form_item_geometry (
+        id INTEGER PRIMARY KEY,
+        form_item_id INTEGER NOT NULL REFERENCES form_item(id) ON DELETE CASCADE ON UPDATE CASCADE,
+        form_submission_id INTEGER NOT NULL REFERENCES form_submission(id) ON DELETE CASCADE ON UPDATE CASCADE,
+        geometry TEXT,
+        description TEXT,
+        active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1)),
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )`,
+    },
+    {
+      statement: `CREATE INDEX form_item_geometry_form_submission_id_id_idx
+        ON form_item_geometry (form_submission_id, id)`,
     },
     {
       statement: `CREATE TABLE assessment_draft (
