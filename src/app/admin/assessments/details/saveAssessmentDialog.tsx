@@ -135,6 +135,7 @@ const SaveAssessmentDialog = ({
                 formSubmission: {
                   responses: serializedFormValues,
                   geometries,
+                  formItemGeometries,
                 },
                 startDate: startDate.toDate(),
                 endDate: endDate?.toDate() ?? null,
@@ -243,6 +244,7 @@ const SaveAssessmentDialog = ({
             formSubmission: {
               responses: serializedFormValues,
               geometries,
+              formItemGeometries,
             },
             startDate: startDate.toDate(),
             endDate: endDate?.toDate() ?? null,

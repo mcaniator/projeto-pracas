@@ -1,4 +1,5 @@
 import adminSQLiteDb from "@/lib/capacitor/sqlite/adminSQLiteDb/adminSQLiteDb";
+import { sqliteBooleanSchema } from "@/lib/capacitor/sqlite/helpers";
 import type {
   SQLiteBulkInsertOperation,
   SQLiteTransactionOperation,
@@ -11,23 +12,26 @@ import type {
   FormSubmissionQuestionItem,
 } from "@/lib/serverFunctions/queries/formSubmission";
 import type {
+  FormItemGeometry,
   FormSubmissionOptionValueWithOverride,
   SerializedFormValues,
 } from "@/lib/types/formSubmission/responseFormTypes";
 import type { QuestionItem } from "@/lib/types/forms/formStructure";
 import { FormItemUtils } from "@/lib/utils/formTreeUtils";
 import {
+  deserializeResponseGeometriesFromWkt,
   groupResponseGeometriesByQuestion,
   serializeResponseGeometryToWkt,
 } from "@/lib/utils/responseGeometry";
 import {
   OptionTypes,
+  QuestionGeometryTypes,
   QuestionResponseCharacterTypes,
   QuestionTypes,
 } from "@prisma/client";
 import { z } from "zod";
 
-import { getAdminSQLiteFormStructure } from "./form";
+import { geometryTypesSchema, getAdminSQLiteFormStructure } from "./form";
 
 const formSubmissionSchema = z.object({
   formId: z.coerce.number(),
@@ -53,6 +57,25 @@ const responseGeometriesSchema = z.array(
     questionId: z.coerce.number(),
     geometry: z.string().nullable(),
     description: z.string().nullable(),
+  }),
+);
+
+const formItemGeometryRowsSchema = z.array(
+  z.object({
+    id: z.coerce.number(),
+    formItemId: z.coerce.number(),
+    itemType: z.enum(["CATEGORY", "SUBCATEGORY"]),
+    geometry: z.string().nullable(),
+    description: z.string().nullable(),
+  }),
+);
+
+const formItemGeometryConfigurationSchema = z.array(
+  z.object({
+    id: z.coerce.number(),
+    subcategoryId: z.coerce.number().nullable(),
+    allowGeometryAssociation: sqliteBooleanSchema,
+    geometryTypes: geometryTypesSchema,
   }),
 );
 
@@ -136,6 +159,56 @@ const getAdminSQLiteFormSubmissionResponseGeometries = async ({
   );
 };
 
+const getAdminSQLiteFormSubmissionFormItemGeometries = async ({
+  formSubmissionId,
+}: {
+  formSubmissionId: number;
+}): Promise<FormItemGeometry[]> => {
+  const formItemGeometryValues = await adminSQLiteDb.query({
+    statement: `
+      SELECT
+        fig.id,
+        fig.form_item_id AS formItemId,
+        CASE WHEN fi.subcategory_id IS NULL
+          THEN 'CATEGORY'
+          ELSE 'SUBCATEGORY'
+        END AS itemType,
+        fig.geometry,
+        fig.description
+      FROM form_item_geometry fig
+      INNER JOIN form_item fi ON fi.id = fig.form_item_id
+      WHERE fig.form_submission_id = ?
+        AND fig.active = 1
+      ORDER BY fig.id
+    `,
+    values: [formSubmissionId],
+  });
+  const rows = formItemGeometryRowsSchema.parse(formItemGeometryValues.values);
+  const formItemGeometriesByItem = new Map<number, FormItemGeometry>();
+
+  for (const row of rows) {
+    const formItemGeometry =
+      formItemGeometriesByItem.get(row.formItemId) ??
+      ({
+        formItemId: row.formItemId,
+        itemType: row.itemType,
+        geometries: [],
+      } satisfies FormItemGeometry);
+
+    for (const geometry of deserializeResponseGeometriesFromWkt(row.geometry)) {
+      formItemGeometry.geometries.push({
+        ...geometry,
+        localId: String(row.id),
+        description: row.description,
+      });
+    }
+
+    formItemGeometriesByItem.set(row.formItemId, formItemGeometry);
+  }
+
+  return Array.from(formItemGeometriesByItem.values());
+};
+
 type GetAdminSQLiteFormSubmissionDataParams = {
   formSubmissionId: number;
   includeCalculations: boolean;
@@ -164,25 +237,30 @@ const getAdminSQLiteFormSubmissionData = async ({
   }
 
   const { formId } = formSubmission.data;
-  const [formStructure, responsesValues, responseOptionsValues, geometries] =
-    await Promise.all([
-      getAdminSQLiteFormStructure({
-        formId,
-        publicQuestionsOnly,
-        includeCalculations,
-      }),
-      adminSQLiteDb.query({
-        statement: `
+  const [
+    formStructure,
+    responsesValues,
+    responseOptionsValues,
+    geometries,
+    formItemGeometries,
+  ] = await Promise.all([
+    getAdminSQLiteFormStructure({
+      formId,
+      publicQuestionsOnly,
+      includeCalculations,
+    }),
+    adminSQLiteDb.query({
+      statement: `
           SELECT r.question_id AS questionId, r.response
           FROM response r
           INNER JOIN question q ON q.id = r.question_id
           WHERE r.form_submission_id = ?
             ${publicQuestionsOnly ? "AND q.is_public = 1" : ""}
         `,
-        values: [formSubmissionId],
-      }),
-      adminSQLiteDb.query({
-        statement: `
+      values: [formSubmissionId],
+    }),
+    adminSQLiteDb.query({
+      statement: `
           SELECT
             ro.question_id AS questionId,
             ro.option_id AS optionId,
@@ -194,13 +272,14 @@ const getAdminSQLiteFormSubmissionData = async ({
             ${publicQuestionsOnly ? "AND q.is_public = 1" : ""}
           ORDER BY ro.created_at ASC, ro.id ASC
         `,
-        values: [formSubmissionId],
-      }),
-      getAdminSQLiteFormSubmissionResponseGeometries({
-        formSubmissionId,
-        publicQuestionsOnly,
-      }),
-    ]);
+      values: [formSubmissionId],
+    }),
+    getAdminSQLiteFormSubmissionResponseGeometries({
+      formSubmissionId,
+      publicQuestionsOnly,
+    }),
+    getAdminSQLiteFormSubmissionFormItemGeometries({ formSubmissionId }),
+  ]);
 
   const responses = responsesSchema.parse(responsesValues.values);
   const responseOptions = responseOptionsSchema.parse(
@@ -277,28 +356,28 @@ const getAdminSQLiteFormSubmissionData = async ({
   const categories = formStructure.categories
     .map(
       (category): FormSubmissionCategoryItem => ({
-        ...category,
-        id: category.categoryId,
-        categoryChildren: category.categoryChildren.reduce<
-          FormSubmissionCategoryItem["categoryChildren"]
-        >((children, child) => {
-          if (FormItemUtils.isSubcategoryType(child)) {
-            const questions = child.questions.map(toQuestionItem);
-            if (questions.length > 0) {
-              children.push({
-                ...child,
-                id: child.subcategoryId,
-                questions,
-              });
-            }
-            return children;
+      ...category,
+      id: category.categoryId,
+      categoryChildren: category.categoryChildren.reduce<
+        FormSubmissionCategoryItem["categoryChildren"]
+      >((children, child) => {
+        if (FormItemUtils.isSubcategoryType(child)) {
+          const questions = child.questions.map(toQuestionItem);
+          if (questions.length > 0) {
+            children.push({
+              ...child,
+              id: child.subcategoryId,
+              questions,
+            });
           }
-
-          children.push(toQuestionItem(child));
           return children;
-        }, []),
-      }),
-    )
+        }
+
+        children.push(toQuestionItem(child));
+        return children;
+      }, []),
+    }),
+  )
     .filter((category) => category.categoryChildren.length > 0);
 
   return {
@@ -312,6 +391,7 @@ const getAdminSQLiteFormSubmissionData = async ({
     },
     responsesFormValues,
     geometries,
+    formItemGeometries,
   };
 };
 
@@ -346,7 +426,7 @@ const prepareFormSubmissionInsertOperations = ({
 
 const getAdminSQLiteFormSubmissionUpdateOperations = async ({
   formSubmissionId,
-  formSubmission: { responses, geometries },
+  formSubmission: { responses, geometries, formItemGeometries = [] },
   userId,
   updatedAt,
 }: GetAdminSQLiteFormSubmissionUpdateOperationsParams): Promise<
@@ -366,6 +446,77 @@ const getAdminSQLiteFormSubmissionUpdateOperations = async ({
   );
   if (!storedFormSubmission.success) {
     throw new Error("Submissão de formulário não encontrada");
+  }
+
+  const formItemIds = [
+    ...new Set(formItemGeometries.map((item) => item.formItemId)),
+  ];
+  if (formItemIds.length !== formItemGeometries.length) {
+    throw new Error("Há itens duplicados nas geometrias associadas!");
+  }
+
+  const formItemValues = await adminSQLiteDb.query({
+    statement: `
+      SELECT
+        fi.id,
+        fi.subcategory_id AS subcategoryId,
+        CASE WHEN fi.subcategory_id IS NULL
+          THEN c.allow_geometry_association
+          ELSE s.allow_geometry_association
+        END AS allowGeometryAssociation,
+        CASE WHEN fi.subcategory_id IS NULL
+          THEN c.geometry_types
+          ELSE s.geometry_types
+        END AS geometryTypes
+      FROM form_item fi
+      INNER JOIN category c ON c.id = fi.category_id
+      LEFT JOIN subcategory s ON s.id = fi.subcategory_id
+      WHERE fi.form_id = ?
+        AND fi.question_id IS NULL
+    `,
+    values: [storedFormSubmission.data.formId],
+  });
+  const formItemConfigurations = formItemGeometryConfigurationSchema.parse(
+    formItemValues.values,
+  );
+  const formItemConfigurationById = new Map(
+    formItemConfigurations.map((item) => [item.id, item]),
+  );
+  if (
+    formItemIds.some((formItemId) => !formItemConfigurationById.has(formItemId))
+  ) {
+    throw new Error("Um ou mais itens não pertencem ao formulário!");
+  }
+
+  for (const formItemGeometry of formItemGeometries) {
+    const configuration = formItemConfigurationById.get(
+      formItemGeometry.formItemId,
+    );
+    if (!configuration) {
+      throw new Error("Item do formulário não encontrado!");
+    }
+
+    const itemType =
+      configuration.subcategoryId === null ? "CATEGORY" : "SUBCATEGORY";
+    if (formItemGeometry.itemType !== itemType) {
+      throw new Error("Tipo do item da hierarquia inválido!");
+    }
+    if (!configuration.allowGeometryAssociation) {
+      throw new Error("O item não permite associação de geometrias!");
+    }
+
+    for (const geometry of formItemGeometry.geometries) {
+      const geometryType =
+        geometry.type === "Point" ? QuestionGeometryTypes.POINT
+        : geometry.type === "Polygon" ? QuestionGeometryTypes.POLYGON
+        : null;
+      if (
+        !geometryType ||
+        !configuration.geometryTypes.includes(geometryType)
+      ) {
+        throw new Error("Tipo de geometria não permitido para este item!");
+      }
+    }
   }
 
   const responseQuestionIds = Object.keys(responses).map((key) => Number(key));
@@ -544,6 +695,19 @@ const getAdminSQLiteFormSubmissionUpdateOperations = async ({
       ]),
   );
 
+  const formItemGeometryRows = formItemGeometries.flatMap(
+    ({ formItemId, geometries: itemGeometries }) =>
+      itemGeometries.map((geometry) => [
+        formItemId,
+        formSubmissionId,
+        serializeResponseGeometryToWkt(geometry),
+        geometry.description?.trim() || null,
+        1,
+        updatedAtISOString,
+        updatedAtISOString,
+      ]),
+  );
+
   return [
     {
       statement: "DELETE FROM response WHERE form_submission_id = ?",
@@ -555,6 +719,10 @@ const getAdminSQLiteFormSubmissionUpdateOperations = async ({
     },
     {
       statement: "DELETE FROM response_geometry WHERE form_submission_id = ?",
+      values: [formSubmissionId],
+    },
+    {
+      statement: "DELETE FROM form_item_geometry WHERE form_submission_id = ?",
       values: [formSubmissionId],
     },
     ...prepareFormSubmissionInsertOperations({
@@ -593,6 +761,19 @@ const getAdminSQLiteFormSubmissionUpdateOperations = async ({
         "updated_at",
       ],
       rows: geometryRows,
+    }),
+    ...prepareFormSubmissionInsertOperations({
+      table: "form_item_geometry",
+      columns: [
+        "form_item_id",
+        "form_submission_id",
+        "geometry",
+        "description",
+        "active",
+        "created_at",
+        "updated_at",
+      ],
+      rows: formItemGeometryRows,
     }),
   ];
 };

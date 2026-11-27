@@ -45,29 +45,35 @@ const formSchema = z.array(
   }),
 );
 
+export const geometryTypesSchema = z
+  .string()
+  .transform((value) => JSON.parse(value) as unknown)
+  .pipe(z.array(z.nativeEnum(QuestionGeometryTypes)));
+
 const categoryFormItemsSchema = z.array(
   z.object({
+    formItemId: z.coerce.number(),
     categoryId: z.coerce.number(),
     name: z.string(),
     notes: z.string().nullable(),
     position: z.coerce.number(),
+    allowGeometryAssociation: sqliteBooleanSchema,
+    geometryTypes: geometryTypesSchema,
   }),
 );
 
 const subcategoryFormItemsSchema = z.array(
   z.object({
+    formItemId: z.coerce.number(),
     categoryId: z.coerce.number(),
     subcategoryId: z.coerce.number(),
     name: z.string(),
     notes: z.string().nullable(),
     position: z.coerce.number(),
+    allowGeometryAssociation: sqliteBooleanSchema,
+    geometryTypes: geometryTypesSchema,
   }),
 );
-
-const geometryTypesSchema = z
-  .string()
-  .transform((value) => JSON.parse(value) as unknown)
-  .pipe(z.array(z.nativeEnum(QuestionGeometryTypes)));
 
 const questionFormItemsSchema = z.array(
   z.object({
@@ -189,10 +195,13 @@ const getAdminSQLiteFormStructure = async ({
       adminSQLiteDb.query({
         statement: `
           SELECT
+            fi.id AS formItemId,
             fi.category_id AS categoryId,
             c.name,
             c.notes,
-            fi.position
+            fi.position,
+            c.allow_geometry_association AS allowGeometryAssociation,
+            c.geometry_types AS geometryTypes
           FROM form_item fi
           INNER JOIN category c ON c.id = fi.category_id
           WHERE fi.form_id = ?
@@ -204,11 +213,14 @@ const getAdminSQLiteFormStructure = async ({
       adminSQLiteDb.query({
         statement: `
           SELECT
+            fi.id AS formItemId,
             fi.category_id AS categoryId,
             fi.subcategory_id AS subcategoryId,
             s.name,
             s.notes,
-            fi.position
+            fi.position,
+            s.allow_geometry_association AS allowGeometryAssociation,
+            s.geometry_types AS geometryTypes
           FROM form_item fi
           INNER JOIN subcategory s ON s.id = fi.subcategory_id
           WHERE fi.form_id = ?
@@ -296,11 +308,14 @@ const getAdminSQLiteFormStructure = async ({
         !categories.some((category) => category.categoryId === item.categoryId)
       ) {
         categories.push({
+          formItemId: item.formItemId,
           categoryId: item.categoryId,
           name: item.name,
           notes: item.notes,
           position: item.position,
           categoryChildren: [],
+          allowGeometryAssociation: item.allowGeometryAssociation,
+          geometryTypes: item.geometryTypes,
         });
       }
     });
@@ -320,11 +335,14 @@ const getAdminSQLiteFormStructure = async ({
         )
       ) {
         const subcategory: SubcategoryItem = {
+          formItemId: item.formItemId,
           position: item.position,
           subcategoryId: item.subcategoryId,
           name: item.name,
           notes: item.notes,
           questions: [],
+          allowGeometryAssociation: item.allowGeometryAssociation,
+          geometryTypes: item.geometryTypes,
         };
         category.categoryChildren.push(subcategory);
       }

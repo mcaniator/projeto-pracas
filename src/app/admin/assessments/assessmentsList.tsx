@@ -182,6 +182,8 @@ const AssessmentsList = ({
             geometries: sqliteAssessmentDetails.formSubmission.geometries,
             responses:
               sqliteAssessmentDetails.formSubmission.responsesFormValues,
+            formItemGeometries:
+              sqliteAssessmentDetails.formSubmission.formItemGeometries,
           },
         },
       });
